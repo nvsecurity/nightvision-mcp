@@ -103,11 +103,14 @@ export const GetScanStatusParamsSchema = {
  */
 export const GetScanChecksParamsSchema = {
   scan_id: z.string().describe("ID of the scan to get vulnerability checks for"),
-  limit: z.number().optional().describe("Maximum number of vulnerability checks to return"),
-  offset: z.number().optional().describe("Number of records to skip for pagination"),
+  page: z.number().optional().describe("Page number for pagination"),
+  page_size: z.number().optional().describe("Number of items per page"),
+  name: z.string().optional().describe("Filter vulnerability checks by name"),
   check_kind: z.string().optional().describe("Filter vulnerability checks by specific kind"),
-  severity: z.enum(["critical", "high", "medium", "low", "info"]).optional().describe("Filter vulnerabilities by severity level"),
-  status: z.enum(["open", "closed", "false_positive"]).optional().describe("Filter vulnerabilities by status"),
+  severity: z.array(z.enum(["critical", "high", "medium", "low", "info", "unknown", "unspecified"])).describe("Filter vulnerabilities by severity levels (can specify multiple)"),
+  status: z.array(z.number().refine(val => [0, 1, 2, 3].includes(val), {
+    message: "Status must be one of: 0, 1, 2, 3"
+  })).describe("Filter vulnerabilities by status codes: 0, 1, 2, 3"),
   format: z.enum(["text", "json", "table"]).optional().default("json").describe("Format of command output")
 };
 

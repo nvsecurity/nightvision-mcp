@@ -386,8 +386,9 @@ export function registerScanTools(server: McpServer): void {
       try {
         const { 
           scan_id: scanId,
-          limit,
-          offset,
+          page,
+          page_size,
+          name,
           check_kind,
           severity,
           status,
@@ -405,13 +406,35 @@ export function registerScanTools(server: McpServer): void {
           };
         }
         
+        // Verify required parameters
+        if (!severity || !Array.isArray(severity) || severity.length === 0) {
+          return {
+            content: [{ 
+              type: "text" as const, 
+              text: "Severity parameter is required and must be an array of severity values." 
+            }],
+            isError: true
+          };
+        }
+        
+        if (!status || !Array.isArray(status) || status.length === 0) {
+          return {
+            content: [{ 
+              type: "text" as const, 
+              text: "Status parameter is required and must be an array of status codes (0, 1, 2, 3)." 
+            }],
+            isError: true
+          };
+        }
+        
         try {
           // Get the scan vulnerabilities
           const result = await nightvisionService.getScanChecks(
             scanId,
             {
-              limit,
-              offset,
+              page,
+              page_size,
+              name,
               check_kind,
               severity,
               status

@@ -534,12 +534,13 @@ export class NightVisionService {
   async getScanChecks(
     scanId: string,
     options: {
-      limit?: number;
-      offset?: number;
+      page?: number;
+      page_size?: number;
+      name?: string;
       check_kind?: string;
-      severity?: 'critical' | 'high' | 'medium' | 'low' | 'info';
-      status?: 'open' | 'closed' | 'false_positive';
-    } = {},
+      severity: Array<'critical' | 'high' | 'medium' | 'low' | 'info' | 'unknown' | 'unspecified'>;
+      status: Array<number>;
+    },
     format: OutputFormat = 'json'
   ): Promise<string> {
     try {
@@ -549,25 +550,28 @@ export class NightVisionService {
       // Build query parameters
       const params: Record<string, any> = {};
       
-      if (options.limit) {
-        params.limit = options.limit;
+      if (options.page) {
+        params.page = options.page;
       }
       
-      if (options.offset) {
-        params.offset = options.offset;
+      // Set page_size with default of 100 if not specified
+      params.page_size = options.page_size || 100;
+      
+      if (options.name) {
+        params.name = options.name;
       }
       
       if (options.check_kind) {
         params.check_kind = options.check_kind;
       }
       
-      if (options.severity) {
-        params.severity = options.severity;
-      }
+      // Add each severity as a separate query parameter
+      // This will be serialized as &severity=critical&severity=high etc.
+      params.severity = options.severity;
       
-      if (options.status) {
-        params.status = options.status;
-      }
+      // Add each status as a separate query parameter
+      // This will be serialized as &status=0&status=1 etc.
+      params.status = options.status;
       
       // Make API request to get checks
       const response = await this.apiRequest<any>(
