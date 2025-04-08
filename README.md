@@ -309,6 +309,42 @@ Example usage:
 }
 ```
 
+#### `get-scan-paths`
+
+Retrieves all paths (URLs) that have been checked during a specific scan. This helps you understand what endpoints were tested and their status.
+
+Parameters:
+- `scan_id` (string): ID of the scan to get checked paths for
+- `page` (number, optional): Page number for pagination
+- `page_size` (number, optional): Number of items per page
+- `filter` (string, optional): Filter string to narrow down the paths
+- `format` (enum: "text" | "json" | "table", optional, default: "json"): Format of command output
+
+Example commands:
+```
+Can you show me all paths that were checked in my scan with ID "12345678-1234-1234-1234-123456789012"?
+```
+```
+What URLs were tested in my last scan? The scan ID is "87654321-4321-4321-4321-210987654321".
+```
+```
+Show me page 2 of the paths checked in my scan with ID "12345678-1234-1234-1234-123456789012" with 20 items per page.
+```
+```
+Can you filter the tested paths containing "/api/" in my scan with ID "12345678-1234-1234-1234-123456789012"?
+```
+
+Example usage:
+```json
+{
+  "scan_id": "12345678-1234-1234-1234-123456789012",
+  "page": 1,
+  "page_size": 50,
+  "filter": "/api/",
+  "format": "table" 
+}
+```
+
 ### API Tools
 
 #### `discover-api`
@@ -523,6 +559,32 @@ Example usage:
 }
 ```
 
+#### `assign-nuclei-template`
+
+Assigns a nuclei template to a target in NightVision. This is a crucial step after creating and uploading a template, as it allows the template to be used in scans against the specified target.
+
+Parameters:
+- `target_id` (string): ID of the target to assign the template to (required)
+- `template_id` (string): ID of the nuclei template to assign (required)
+- `format` (enum: "text" | "json" | "table", optional, default: "json"): Format of command output
+
+Example commands:
+```
+Can you assign my nuclei template with ID "12345678-1234-1234-1234-123456789012" to target with ID "87654321-4321-4321-4321-210987654321"?
+```
+```
+Please link my custom template "12345678-1234-1234-1234-123456789012" to my target "87654321-4321-4321-4321-210987654321".
+```
+
+Example usage:
+```json
+{
+  "target_id": "87654321-4321-4321-4321-210987654321",
+  "template_id": "12345678-1234-1234-1234-123456789012",
+  "format": "json"
+}
+```
+
 **Complete Workflow for Nuclei Templates:**
 
 1. First, create a nuclei template record to get its UUID:
@@ -533,6 +595,11 @@ Example usage:
 2. Then, upload your YAML template file using the returned UUID:
    ```
    Now, please upload my template file from "./templates/custom-sqli.yaml" to the template ID you just created.
+   ```
+
+3. Finally, assign the template to a target:
+   ```
+   Now, assign this template to my target with ID "87654321-4321-4321-4321-210987654321".
    ```
 
 **Path Resolution in Nuclei Template Upload:**

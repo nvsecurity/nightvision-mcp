@@ -188,4 +188,24 @@ export const ListNucleiTemplatesParamsSchema = {
   limit: z.number().optional().describe("Maximum number of templates to return"),
   offset: z.number().optional().describe("Number of records to skip for pagination"),
   format: z.enum(["text", "json", "table"]).optional().default("json").describe("Format of command output")
+};
+
+/**
+ * Get scan paths tool parameters schema
+ */
+export const GetScanPathsParamsSchema = {
+  scan_id: z.string().describe("ID of the scan to get checked paths for"),
+  page: z.number().optional().describe("Page number for pagination"),
+  page_size: z.number().optional().describe("Number of items per page"),
+  filter: z.string().optional().describe("Filter string to narrow down the paths"),
+  format: z.enum(["text", "json", "table"]).optional().default("json").describe("Format of command output")
+};
+
+/**
+ * Assign nuclei template to target tool parameters schema
+ */
+export const AssignNucleiTemplateParamsSchema = {
+  target_id: z.string().describe("ID of the target to assign the template to"),
+  template_id: z.string().describe("ID of the nuclei template to assign"),
+  format: z.enum(["text", "json", "table"]).optional().default("json").describe("Format of command output")
 }; 

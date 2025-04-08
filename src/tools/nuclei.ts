@@ -1,6 +1,11 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { nightvisionService } from '../services/index.js';
-import { UploadNucleiTemplateParamsSchema, CreateNucleiTemplateParamsSchema, ListNucleiTemplatesParamsSchema } from '../types/index.js';
+import { 
+  UploadNucleiTemplateParamsSchema, 
+  CreateNucleiTemplateParamsSchema, 
+  ListNucleiTemplatesParamsSchema,
+  AssignNucleiTemplateParamsSchema
+} from '../types/index.js';
 import * as path from 'path';
 import * as fs from 'fs';
 
@@ -275,6 +280,72 @@ export function registerNucleiTools(server: McpServer): void {
           content: [{ 
             type: "text" as const, 
             text: `Failed to list nuclei templates: ${error.message}` 
+          }],
+          isError: true
+        };
+      }
+    }
+  );
+
+  /**
+   * Assign Nuclei Template Tool
+   * 
+   * Provides a tool to assign a nuclei template to a target in NightVision
+   */
+  server.tool(
+    "assign-nuclei-template",
+    AssignNucleiTemplateParamsSchema,
+    async (args: any, _extra: any) => {
+      try {
+        const { 
+          target_id: targetId,
+          template_id: templateId,
+          format = 'json'
+        } = args;
+        
+        // Check if authenticated
+        if (!nightvisionService.getToken()) {
+          return {
+            content: [{ 
+              type: "text" as const, 
+              text: "Not authenticated. Please use the authenticate tool to set a token first." 
+            }],
+            isError: true
+          };
+        }
+        
+        try {
+          // Assign the nuclei template to the target
+          const result = await nightvisionService.assignNucleiTemplate(
+            targetId,
+            templateId,
+            format
+          );
+          
+          // Return the formatted output
+          return {
+            content: [{ 
+              type: "text" as const, 
+              text: `Successfully assigned nuclei template "${templateId}" to target "${targetId}".\n\n${result}`
+            }]
+          };
+        } catch (error: any) {
+          console.error(`Error assigning nuclei template: ${error.message}`);
+          
+          // Return a helpful error message
+          return {
+            content: [{ 
+              type: "text" as const, 
+              text: `Failed to assign nuclei template: ${error.message}` 
+            }],
+            isError: true
+          };
+        }
+      } catch (error: any) {
+        return {
+          content: [{ 
+            type: "text" as const, 
+            text: `Failed to assign nuclei template: ${error.message}` 
           }],
           isError: true
         };

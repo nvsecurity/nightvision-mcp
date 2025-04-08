@@ -525,11 +525,11 @@ export class NightVisionService {
   }
 
   /**
-   * Get scan checks (vulnerabilities found) for a specific scan
-   * @param scanId Scan ID to retrieve checks for
-   * @param options Additional options for filtering checks
+   * Get vulnerability checks for a scan
+   * @param scanId ID of the scan to get checks for
+   * @param options Additional options for filtering checks 
    * @param format Output format
-   * @returns Scan checks/vulnerabilities information
+   * @returns List of vulnerability checks
    */
   async getScanChecks(
     scanId: string,
@@ -543,7 +543,8 @@ export class NightVisionService {
     format: OutputFormat = 'json'
   ): Promise<string> {
     try {
-      console.error(`Getting scan checks/vulnerabilities via API endpoint...`);
+      // Use API endpoint
+      console.error(`Getting scan checks for ${scanId} via API endpoint...`);
       
       // Build query parameters
       const params: Record<string, any> = {};
@@ -568,7 +569,7 @@ export class NightVisionService {
         params.status = options.status;
       }
       
-      // Make API request to get scan checks
+      // Make API request to get checks
       const response = await this.apiRequest<any>(
         `scans/${scanId}/checks/`,
         'GET',
@@ -578,44 +579,248 @@ export class NightVisionService {
       // Format the response according to the requested format
       if (format === 'json') {
         return JSON.stringify(response, null, 2);
+      } else if (format === 'text') {
+        return this.formatChecksAsText(response);
       } else if (format === 'table') {
-        // Create a simple table with the key information
-        if (!response.results || response.results.length === 0) {
-          return "No vulnerabilities found.";
-        }
-        
-        // Define table headers
-        const headers = ['ID', 'Kind', 'Severity', 'Status', 'Path', 'Created'];
-        
-        // Extract rows from the results
-        const rows = response.results.map((check: any) => [
-          check.id || 'N/A',
-          check.check_kind || 'N/A',
-          check.severity || 'N/A',
-          check.status || 'N/A',
-          check.path || 'N/A',
-          check.created || 'N/A'
-        ]);
-        
-        // Build a simple table format
-        const table = [
-          headers.join('\t'),
-          headers.map(() => '-----').join('\t'),
-          ...rows.map((row: string[]) => row.join('\t'))
-        ].join('\n');
-        
-        // Add summary information
-        const summary = `\nTotal Vulnerabilities: ${response.count || 0}`;
-        
-        return table + summary;
+        return this.formatChecksAsTable(response);
       }
       
-      // Default to returning raw JSON
       return JSON.stringify(response);
-    } catch (error: any) {
-      console.error(`Error getting scan checks: ${error.message}`);
-      throw new Error(`Failed to get scan checks: ${error.message}`);
+    } catch (error) {
+      console.error(`Error getting scan checks: ${error}`);
+      throw new Error(`Failed to get scan checks: ${error instanceof Error ? error.message : String(error)}`);
     }
+  }
+
+  /**
+   * Format scan checks as plain text
+   * @param checks Check data from API
+   * @returns Formatted text output
+   */
+  private formatChecksAsText(checks: any): string {
+    if (!checks || !Array.isArray(checks.results)) {
+      return 'No vulnerabilities found or invalid response format.';
+    }
+    
+    const results = checks.results;
+    let output = `Scan Vulnerabilities (${results.length}):\n\n`;
+    
+    for (let i = 0; i < results.length; i++) {
+      const check = results[i];
+      output += `Vulnerability ${i + 1}: ${check.check_kind || 'Unknown'}\n`;
+      output += `ID: ${check.id || 'N/A'}\n`;
+      output += `Severity: ${check.severity || 'N/A'}\n`;
+      output += `Status: ${check.status || 'N/A'}\n`;
+      output += `Path: ${check.path || 'N/A'}\n`;
+      output += `Created: ${check.created || 'N/A'}\n\n`;
+    }
+    
+    if (checks.count > results.length) {
+      output += `Note: Showing ${results.length} of ${checks.count} total vulnerabilities. Use 'limit' and 'offset' to see more.\n`;
+    }
+    
+    return output;
+  }
+
+  /**
+   * Format scan checks as a table
+   * @param checks Check data from API
+   * @returns Formatted table output
+   */
+  private formatChecksAsTable(checks: any): string {
+    if (!checks || !Array.isArray(checks.results)) {
+      return 'No vulnerabilities found or invalid response format.';
+    }
+    
+    const results = checks.results;
+    
+    // Create table headers
+    const headers = ['#', 'Kind', 'Severity', 'Status', 'Path', 'Created'];
+    const rows: string[][] = [];
+    
+    // Add data rows
+    for (let i = 0; i < results.length; i++) {
+      const check = results[i];
+      rows.push([
+        (i + 1).toString(),
+        check.check_kind || 'N/A',
+        check.severity || 'N/A',
+        check.status || 'N/A',
+        check.path || 'N/A',
+        check.created || 'N/A'
+      ]);
+    }
+    
+    // Format as ASCII table
+    const table = this.formatAsTable(headers, rows);
+    
+    // Add pagination info if applicable
+    let output = table;
+    if (checks.count > results.length) {
+      output += `\nNote: Showing ${results.length} of ${checks.count} total vulnerabilities. Use 'limit' and 'offset' to see more.\n`;
+    }
+    
+    return output;
+  }
+
+  /**
+   * Format data as an ASCII table
+   * @param headers Table headers
+   * @param rows Table data rows
+   * @returns Formatted table string
+   */
+  private formatAsTable(headers: string[], rows: string[][]): string {
+    if (headers.length === 0 || rows.length === 0) {
+      return 'No data to display';
+    }
+    
+    // Calculate column widths
+    const colWidths = headers.map((h, i) => {
+      const maxDataLength = Math.max(...rows.map(r => r[i]?.toString().length || 0));
+      return Math.max(h.length, maxDataLength);
+    });
+    
+    // Generate header row
+    const headerRow = headers.map((h, i) => h.padEnd(colWidths[i])).join(' | ');
+    
+    // Generate separator row
+    const separatorRow = colWidths.map(w => '-'.repeat(w)).join('-+-');
+    
+    // Generate data rows
+    const dataRows = rows.map(row => 
+      row.map((cell, i) => (cell || '').toString().padEnd(colWidths[i])).join(' | ')
+    );
+    
+    // Combine all rows
+    return [headerRow, separatorRow, ...dataRows].join('\n');
+  }
+
+  /**
+   * Get checked paths for a scan
+   * @param scanId ID of the scan to get paths for
+   * @param options Additional options for filtering paths
+   * @param format Output format
+   * @returns List of checked paths
+   */
+  async getScanPaths(
+    scanId: string,
+    options: {
+      page?: number;
+      page_size?: number;
+      filter?: string;
+    } = {},
+    format: OutputFormat = 'json'
+  ): Promise<string> {
+    try {
+      // Use API endpoint from https://docs.nightvision.net/reference/scans_paths_list
+      console.error(`Getting scan paths for ${scanId} via API endpoint...`);
+      
+      // Build query parameters
+      const params: Record<string, any> = {};
+      
+      if (options.page) {
+        params.page = options.page;
+      }
+      
+      if (options.page_size) {
+        params.page_size = options.page_size;
+      }
+      
+      if (options.filter) {
+        params.filter = options.filter;
+      }
+      
+      // Make API request to get paths
+      const response = await this.apiRequest<any>(
+        `scans/${scanId}/paths/`,
+        'GET',
+        params
+      );
+      
+      // Format the response according to the requested format
+      if (format === 'json') {
+        return JSON.stringify(response, null, 2);
+      } else if (format === 'text') {
+        return this.formatPathsAsText(response);
+      } else if (format === 'table') {
+        return this.formatPathsAsTable(response);
+      }
+      
+      return JSON.stringify(response);
+    } catch (error) {
+      console.error(`Error getting scan paths: ${error}`);
+      throw new Error(`Failed to get scan paths: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
+  
+  /**
+   * Format scan paths as plain text
+   * @param paths Paths data from API
+   * @returns Formatted text output
+   */
+  private formatPathsAsText(paths: any): string {
+    if (!paths || !Array.isArray(paths.results)) {
+      return 'No paths found or invalid response format.';
+    }
+    
+    const results = paths.results;
+    let output = `Scan Checked Paths (${results.length}):\n\n`;
+    
+    for (let i = 0; i < results.length; i++) {
+      const path = results[i];
+      output += `Path ${i + 1}: ${path.request_url || 'N/A'}\n`;
+      output += `Method: ${path.request_method || 'N/A'}\n`;
+      output += `Status Code: ${path.response_status_code || 'N/A'}\n`;
+      output += `Date: ${path.added_date || 'N/A'}\n`;
+      output += `Completed: ${path.completed ? 'Yes' : 'No'}\n\n`;
+    }
+    
+    if (paths.count > results.length) {
+      output += `Note: Showing ${results.length} of ${paths.count} total paths. Use 'page' and 'page_size' parameters for pagination.\n`;
+    }
+    
+    return output;
+  }
+
+  /**
+   * Format scan paths as a table
+   * @param paths Paths data from API
+   * @returns Formatted table output
+   */
+  private formatPathsAsTable(paths: any): string {
+    if (!paths || !Array.isArray(paths.results)) {
+      return 'No paths found or invalid response format.';
+    }
+    
+    const results = paths.results;
+    
+    // Create table headers
+    const headers = ['#', 'Method', 'URL', 'Status', 'Completed', 'Date'];
+    const rows: string[][] = [];
+    
+    // Add data rows
+    for (let i = 0; i < results.length; i++) {
+      const path = results[i];
+      rows.push([
+        (i + 1).toString(),
+        path.request_method || 'N/A',
+        path.request_url || 'N/A',
+        (path.response_status_code || 'N/A').toString(),
+        path.completed ? 'Yes' : 'No',
+        path.added_date || 'N/A'
+      ]);
+    }
+    
+    // Format as ASCII table
+    const table = this.formatAsTable(headers, rows);
+    
+    // Add pagination info if applicable
+    let output = table;
+    if (paths.count > results.length) {
+      output += `\nNote: Showing ${results.length} of ${paths.count} total paths. Use 'page' and 'page_size' parameters for pagination.\n`;
+    }
+    
+    return output;
   }
 
   /**
@@ -1153,6 +1358,78 @@ This may be due to permissions issues. Try specifying a different output locatio
     } catch (error: any) {
       console.error(`Error listing nuclei templates: ${error.message}`);
       throw new Error(`Failed to list nuclei templates: ${error.message}`);
+    }
+  }
+
+  /**
+   * Assign a nuclei template to a target
+   * @param targetId ID of the target to assign the template to
+   * @param templateId ID of the nuclei template to assign
+   * @param format Output format
+   * @returns Result of the assignment operation
+   */
+  async assignNucleiTemplate(
+    targetId: string,
+    templateId: string,
+    format: OutputFormat = 'json'
+  ): Promise<string> {
+    try {
+      console.error(`Assigning nuclei template ${templateId} to target ${targetId}...`);
+      
+      // Validate required parameters
+      if (!targetId || targetId.trim() === '') {
+        throw new Error("Target ID is required");
+      }
+      
+      if (!templateId || templateId.trim() === '') {
+        throw new Error("Template ID is required");
+      }
+      
+      // Prepare data for the API request
+      const data = {
+        nuclei_templates: [templateId]
+      };
+      
+      // Make API request to assign the template to the target
+      // Using endpoint: /api/v1/targets/{id}/nuclei-templates/assign/
+      const response = await this.apiRequest<any>(
+        `targets/${targetId}/nuclei-templates/assign/`,
+        'POST',
+        {},
+        data
+      );
+      
+      console.error(`Successfully assigned nuclei template to target`);
+      
+      // Format the response according to the requested format
+      if (format === 'json') {
+        return JSON.stringify(response, null, 2);
+      } else if (format === 'table') {
+        // Create a simple text representation
+        return `Template ${templateId} successfully assigned to target ${targetId}`;
+      } else if (format === 'text') {
+        return `Successfully assigned nuclei template ${templateId} to target ${targetId}`;
+      }
+      
+      // Default to returning raw JSON
+      return JSON.stringify(response);
+    } catch (error: any) {
+      console.error(`Error assigning nuclei template to target: ${error.message}`);
+      
+      // Check for common errors
+      if (error.message.includes('404')) {
+        throw new Error(`Target ID or Template ID not found. Please check that both exist and you have access to them.`);
+      }
+      
+      if (error.message.includes('401') || error.message.includes('403')) {
+        throw new Error(`Authentication or permission error. Please ensure you're authenticated and have permission to assign templates.`);
+      }
+      
+      if (error.message.includes('400')) {
+        throw new Error(`Bad request when assigning template. The template may not be compatible with this target.`);
+      }
+      
+      throw new Error(`Failed to assign nuclei template to target: ${error.message}`);
     }
   }
 }

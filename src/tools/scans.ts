@@ -4,7 +4,8 @@ import {
   StartScanParamsSchema, 
   ListScansParamsSchema,
   GetScanStatusParamsSchema,
-  GetScanChecksParamsSchema
+  GetScanChecksParamsSchema,
+  GetScanPathsParamsSchema
 } from '../types/index.js';
 
 /**
@@ -456,6 +457,67 @@ export function registerScanTools(server: McpServer): void {
           content: [{ 
             type: "text" as const, 
             text: `Failed to get scan vulnerabilities: ${error.message}` 
+          }],
+          isError: true
+        };
+      }
+    }
+  );
+
+  /**
+   * Get paths that have been checked during a scan
+   */
+  server.tool(
+    "get-scan-paths",
+    GetScanPathsParamsSchema,
+    async (args: any, _extra: any) => {
+      try {
+        const { scan_id, page, page_size, filter, format } = args;
+        
+        // Check if authenticated
+        if (!nightvisionService.getToken()) {
+          return {
+            content: [{ 
+              type: "text" as const, 
+              text: "Not authenticated. Please use the authenticate tool to set a token first." 
+            }],
+            isError: true
+          };
+        }
+        
+        // Verify required parameter
+        if (!scan_id) {
+          return {
+            content: [{ 
+              type: "text" as const, 
+              text: "Scan ID is required. Please provide a 'scan_id' parameter with the UUID of the scan." 
+            }],
+            isError: true
+          };
+        }
+        
+        // Get scan paths
+        const output = await nightvisionService.getScanPaths(
+          scan_id,
+          {
+            page,
+            page_size,
+            filter
+          },
+          format || "json"
+        );
+        
+        return {
+          content: [{ 
+            type: "text" as const, 
+            text: output 
+          }]
+        };
+      } catch (error: any) {
+        return {
+          content: [{ 
+            type: "text" as const, 
+            text: `Error getting scan paths: ${error.message}` 
           }],
           isError: true
         };
