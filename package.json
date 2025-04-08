@@ -1,0 +1,32 @@
+{
+  "name": "nightvision-mcp-server",
+  "version": "1.0.0",
+  "description": "MCP Server for NightVision CLI integration",
+  "type": "module",
+  "main": "build/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node build/index.js",
+    "dev": "tsc && node build/index.js",
+    "clean": "rm -rf build",
+    "rebuild": "npm run clean && npm run build"
+  },
+  "keywords": [
+    "mcp",
+    "nightvision",
+    "security",
+    "scanning"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.6.0",
+    "axios": "^1.8.4",
+    "form-data": "^4.0.2",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.5",
+    "typescript": "^5.3.3"
+  }
+}
