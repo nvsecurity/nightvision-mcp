@@ -1,7 +1,7 @@
 import { createServer, connectServer } from './core/index.js';
 import { nightvisionService } from './services/index.js';
 import { loadToken } from './config/index.js';
-import { registerAuthTools, registerTargetTools, registerScanTools, registerApiTools, registerNucleiTools, registerProjectTools } from './tools/index.js';
+import { registerAuthTools, registerTargetTools, registerScanTools, registerApiTools, registerNucleiTools, registerProjectTools, registerTrafficTools } from './tools/index.js';
 import { ENVIRONMENT } from './config/environment.js';
 
 /**
@@ -43,6 +43,7 @@ async function main() {
     registerApiTools(server);
     registerNucleiTools(server);
     registerProjectTools(server);
+    registerTrafficTools(server);
     
     // Start the server
     await connectServer(server);

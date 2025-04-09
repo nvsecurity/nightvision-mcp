@@ -624,6 +624,149 @@ Similar to the API discovery tool, the `upload-nuclei-template` tool supports bo
 
 For better accuracy when using relative paths, it's recommended to include the `project_path` parameter with the absolute path to your project directory.
 
+### Traffic Tools
+
+#### `record-traffic`
+
+Records browser traffic for a target using browser automation. This tool opens a browser window where you can interact with the application, then uploads the recorded traffic as a HAR file to NightVision.
+
+Parameters:
+- `name` (string): Name for the traffic recording (required)
+- `url` (string): URL to record traffic from (required)
+- `target` (string): Name of the target (required)
+- `project` (string): Name of the project (required)
+- `format` (enum: "text" | "json" | "table", optional, default: "text"): Format of command output
+
+Example commands:
+```
+Can you record my traffic on "https://javaspringvulny.nvtest.io:9000/" for my "javaspringvulny" target in project "ceylan" and name it "login-flow"?
+```
+```
+Record browser traffic for my target application at "https://vulnerable-webapp.com" and save it as "admin-authentication"
+```
+
+Example usage:
+```json
+{
+  "name": "login-flow",
+  "url": "https://javaspringvulny.nvtest.io:9000/",
+  "target": "javaspringvulny",
+  "project": "ceylan",
+  "format": "text"
+}
+```
+
+When you run this tool:
+1. A browser window will open automatically at the specified URL
+2. You'll interact with the application to generate traffic (login, navigate, use features, etc.)
+3. When finished, you'll close the browser window
+4. The traffic will be automatically recorded as a HAR file and uploaded to NightVision
+
+#### `list-traffic`
+
+Lists all available traffic recordings (HAR files) for a specific target.
+
+Parameters:
+- `target` (string): Name of the target (required)
+- `project` (string): Name of the project (required)
+- `format` (enum: "text" | "json" | "table", optional, default: "json"): Format of command output
+
+Example commands:
+```
+Can you list all the traffic files for my "javaspringvulny" target in project "ceylan"?
+```
+```
+Show me all the recorded HAR files for the "billing-app" target
+```
+
+Example usage:
+```json
+{
+  "target": "javaspringvulny",
+  "project": "ceylan",
+  "format": "table"
+}
+```
+
+#### `download-traffic`
+
+Downloads a specific traffic recording (HAR file) for analysis.
+
+**This tool will use the provided downloadPath or interactively ask for a writable directory path before downloading the file.**
+
+When you run this tool, it will:
+1. Use the `downloadPath` parameter if provided in the initial request, or ask you to provide one
+2. Validate that the directory is absolute and writable
+3. Download the HAR file to the specified directory
+4. Resolve any relative output_file paths against the download directory
+
+Parameters:
+- `name` (string): Name of the traffic file to download (required)
+- `target` (string): Name of the target (required)
+- `project` (string): Name of the project (required)
+- `downloadPath` (string, optional): Absolute directory path where the file should be downloaded (must be writable)
+- `output_file` (string, optional): Path where to save the downloaded HAR file (if not specified, saves as "<name>.har")
+- `format` (enum: "text" | "json" | "table", optional, default: "text"): Format of command output
+
+Example commands:
+```
+Can you download the traffic file named "login-flow" for my "javaspringvulny" target in project "ceylan"?
+```
+```
+Get the "admin-authentication" HAR file and save it to "/tmp/admin-auth.har"
+```
+
+Example usage:
+```json
+{
+  "name": "login-flow",
+  "target": "javaspringvulny",
+  "project": "ceylan",
+  "downloadPath": "/Users/username/Downloads",
+  "output_file": "login-flow.har",
+  "format": "text"
+}
+```
+
+**Path Resolution in Traffic File Download:**
+
+The download-traffic tool handles paths in the following ways:
+
+1. **downloadPath**: Must be an absolute directory path that exists and is writable
+   - If the path is not absolute, the home directory will be used
+   - If the path is not writable, the system temp directory will be used
+
+2. **output_file**:
+   - **Relative paths** (like `analysis/login-flow.har`):
+     - These are automatically resolved relative to the `downloadPath`
+     - For example, with `downloadPath: "/Users/username/Downloads"` and `output_file: "analysis/login-flow.har"`, 
+       the file will be saved to `/Users/username/Downloads/analysis/login-flow.har`
+
+   - **Absolute paths** (starting with `/`):
+     - These are used exactly as provided
+     - Example: `/tmp/traffic.har`
+
+3. **When no output_file is specified**:
+   - The file will be saved with the original name in the `downloadPath` directory
+   - Example: `{name}.har`
+
+**Complete Workflow for Traffic Recording and Analysis:**
+
+1. First, record traffic using your browser:
+   ```
+   Can you record my traffic on "https://javaspringvulny.nvtest.io:9000/" for my "javaspringvulny" target in project "ceylan" and name it "login-flow"?
+   ```
+
+2. Then, list available recordings to confirm it was saved:
+   ```
+   List all traffic files for "javaspringvulny" in project "ceylan"
+   ```
+
+3. Finally, download a recording for analysis:
+   ```
+   Download the "login-flow" traffic file for target "javaspringvulny" in project "ceylan" to "/Users/username/Downloads"
+   ```
+
 ## Development
 
 To run the server in development mode (build and start):

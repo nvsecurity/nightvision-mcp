@@ -214,4 +214,36 @@ export const AssignNucleiTemplateParamsSchema = {
   target_id: z.string().describe("ID of the target to assign the template to"),
   template_id: z.string().describe("ID of the nuclei template to assign"),
   format: z.enum(["text", "json", "table"]).optional().default("json").describe("Format of command output")
+};
+
+/**
+ * Record traffic tool parameters schema
+ */
+export const RecordTrafficParamsSchema = {
+  name: z.string().describe("Name for the traffic recording"),
+  url: z.string().describe("URL to record traffic from"),
+  target: z.string().describe("Name of the target"),
+  project: z.string().describe("Name of the project"),
+  format: z.enum(["text", "json", "table"]).optional().default("text").describe("Format of command output")
+};
+
+/**
+ * List traffic files tool parameters schema
+ */
+export const ListTrafficParamsSchema = {
+  target: z.string().describe("Name of the target"),
+  project: z.string().describe("Name of the project"),
+  format: z.enum(["text", "json", "table"]).optional().default("json").describe("Format of command output")
+};
+
+/**
+ * Download traffic file tool parameters schema
+ */
+export const DownloadTrafficParamsSchema = {
+  name: z.string().describe("Name of the traffic file to download"),
+  target: z.string().describe("Name of the target"),
+  project: z.string().describe("Name of the project"),
+  output_file: z.string().optional().describe("Path where to save the downloaded HAR file (optional)"),
+  downloadPath: z.string().optional().describe("Absolute directory path where to download the file (must be writable)"),
+  format: z.enum(["text", "json", "table"]).optional().default("text").describe("Format of command output")
 }; 

@@ -6,4 +6,5 @@ export { registerTargetTools } from './targets.js';
 export { registerScanTools } from './scans.js';
 export { registerApiTools } from './api.js';
 export { registerNucleiTools } from './nuclei.js';
-export { registerProjectTools } from './projects.js'; 
+export { registerProjectTools } from './projects.js';
+export { registerTrafficTools } from './traffic.js'; 
