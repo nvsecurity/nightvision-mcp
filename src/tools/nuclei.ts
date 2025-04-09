@@ -227,9 +227,11 @@ export function registerNucleiTools(server: McpServer): void {
       try {
         const { 
           project_id,
-          search,
-          limit,
-          offset,
+          filter,
+          page,
+          page_size = 100,
+          severity,
+          target,
           format = 'json'
         } = args;
         
@@ -249,9 +251,11 @@ export function registerNucleiTools(server: McpServer): void {
           const result = await nightvisionService.listNucleiTemplates(
             {
               project_id,
-              search,
-              limit,
-              offset
+              filter,
+              page,
+              page_size,
+              severity,
+              target
             },
             format
           );

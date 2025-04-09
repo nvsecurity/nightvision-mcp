@@ -480,9 +480,11 @@ Lists all available nuclei templates in NightVision. This tool helps you see wha
 
 Parameters:
 - `project_id` (string, optional): UUID of the project to filter templates by
-- `search` (string, optional): Search term to filter templates by name
-- `limit` (number, optional): Maximum number of templates to return
-- `offset` (number, optional): Number of records to skip for pagination
+- `filter` (string, optional): Filter string to narrow down templates by name
+- `page` (number, optional): Page number for pagination
+- `page_size` (number, optional, default: 100): Number of items per page (defaults to 100)
+- `severity` (string[], optional): Array of severity levels to filter by. Valid values include: "critical", "high", "medium", "low", "info", "unknown", "unspecified"
+- `target` (string, optional): UUID of the target to filter templates by
 - `format` (enum: "text" | "json" | "table", optional, default: "json"): Format of command output
 
 Example commands:
@@ -492,13 +494,19 @@ Can you list all my custom nuclei templates?
 ```
 Show me all nuclei templates in project with ID "2b0636ed-39ce-4348-8836-286b2129bfe0"
 ```
+```
+List all high and critical severity nuclei templates for my target
+```
 
 Example usage:
 ```json
 {
   "project_id": "2b0636ed-39ce-4348-8836-286b2129bfe0",
-  "search": "sql",
-  "limit": 10,
+  "filter": "sql",
+  "page": 1,
+  "page_size": 100,
+  "severity": ["high", "critical"],
+  "target": "87654321-4321-4321-4321-210987654321",
   "format": "table"
 }
 ```

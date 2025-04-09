@@ -1277,9 +1277,11 @@ This may be due to permissions issues. Try specifying a different output locatio
   async listNucleiTemplates(
     options: {
       project_id?: string;
-      search?: string;
-      limit?: number;
-      offset?: number;
+      filter?: string;
+      page?: number;
+      page_size?: number;
+      severity?: Array<'critical' | 'high' | 'medium' | 'low' | 'info' | 'unknown' | 'unspecified'>;
+      target?: string;
     } = {},
     format: OutputFormat = 'json'
   ): Promise<string> {
@@ -1293,16 +1295,25 @@ This may be due to permissions issues. Try specifying a different output locatio
         params.project = options.project_id;
       }
       
-      if (options.search) {
-        params.search = options.search;
+      if (options.filter) {
+        params.search = options.filter; // API still uses 'search' parameter
       }
       
-      if (options.limit) {
-        params.limit = options.limit;
+      if (options.page) {
+        params.page = options.page;
       }
       
-      if (options.offset) {
-        params.offset = options.offset;
+      // Set page_size with default of 100 if not specified
+      params.page_size = options.page_size || 100;
+      
+      // Add severity array if provided
+      if (options.severity && options.severity.length > 0) {
+        params.severity = options.severity;
+      }
+      
+      // Add target UUID if provided
+      if (options.target) {
+        params.target = options.target;
       }
       
       // Make API request to list templates
@@ -1322,12 +1333,13 @@ This may be due to permissions issues. Try specifying a different output locatio
         }
         
         // Define table headers
-        const headers = ['ID', 'Name', 'Description', 'Project', 'Created'];
+        const headers = ['ID', 'Name', 'Severity', 'Description', 'Project', 'Created'];
         
         // Extract rows from the results
         const rows = response.results.map((template: any) => [
           template.id || 'N/A',
           template.name || 'N/A',
+          template.severity || 'N/A',
           (template.description || '').substring(0, 30) + (template.description && template.description.length > 30 ? '...' : '') || 'N/A',
           template.project?.name || 'N/A',
           template.created || 'N/A'
@@ -1353,6 +1365,7 @@ This may be due to permissions issues. Try specifying a different output locatio
         const text = response.results.map((template: any) => 
           `${template.name} (ID: ${template.id})\n` +
           `  Project: ${template.project?.name || 'N/A'}\n` +
+          `  Severity: ${template.severity || 'N/A'}\n` +
           `  Description: ${template.description || 'N/A'}\n` +
           `  Created: ${template.created || 'N/A'}`
         ).join('\n\n');

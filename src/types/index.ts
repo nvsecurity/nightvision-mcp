@@ -187,9 +187,12 @@ export const ApiDiscoveryParamsSchema = {
  */
 export const ListNucleiTemplatesParamsSchema = {
   project_id: z.string().optional().describe("UUID of the project to filter templates by"),
-  search: z.string().optional().describe("Search term to filter templates by name"),
-  limit: z.number().optional().describe("Maximum number of templates to return"),
-  offset: z.number().optional().describe("Number of records to skip for pagination"),
+  filter: z.string().optional().describe("Filter string to narrow down templates by name"),
+  page: z.number().optional().describe("Page number for pagination"),
+  page_size: z.number().optional().default(100).describe("Number of items per page (defaults to 100)"),
+  severity: z.array(z.enum(["critical", "high", "medium", "low", "info", "unknown", "unspecified"])).optional()
+    .describe("Array of severity levels to filter by"),
+  target: z.string().optional().describe("UUID of the target to filter templates by"),
   format: z.enum(["text", "json", "table"]).optional().default("json").describe("Format of command output")
 };
 
