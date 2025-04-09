@@ -280,11 +280,11 @@ Retrieves vulnerabilities and check results found by a specific scan. This tool 
 
 Parameters:
 - `scan_id` (string): ID of the scan to get vulnerability checks for
-- `limit` (number, optional): Maximum number of vulnerability checks to return
-- `offset` (number, optional): Number of records to skip for pagination
+- `page` (number, optional): Page number for pagination
+- `page_size` (number, optional, default: 100): Number of items per page (defaults to 100)
 - `check_kind` (string, optional): Filter vulnerability checks by specific kind
-- `severity` (enum: "critical" | "high" | "medium" | "low" | "info", optional): Filter vulnerabilities by severity level
-- `status` (enum: "open" | "closed" | "false_positive", optional): Filter vulnerabilities by status
+- `severity` (string[], required): Array of severity levels to filter by. Valid values include: "critical", "high", "medium", "low", "info", "unknown", "unspecified"
+- `status` (number[], required): Array of status codes to filter by. Valid values include: 0 (open), 1 (closed), 2 (false positive), 3 (accepted risk)
 - `format` (enum: "text" | "json" | "table", optional, default: "json"): Format of command output
 
 Example commands:
@@ -302,9 +302,9 @@ Example usage:
 ```json
 {
   "scan_id": "12345678-1234-1234-1234-123456789012",
-  "severity": "high",
-  "status": "open",
-  "limit": 20,
+  "severity": ["high", "critical"],
+  "status": [0, 1],
+  "page_size": 100,
   "format": "table"
 }
 ```
