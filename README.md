@@ -25,8 +25,8 @@ A Model Context Protocol (MCP) server that enables AI assistants to interact wit
 
 1. Clone this repository:
    ```bash
-   git clone https://github.com/yourusername/nightvision-mcp-server.git
-   cd nightvision-mcp-server
+   git clone https://github.com/NimblerSecurity/nightvision-mcp.git
+   cd nightvision-mcp
    ```
 
 2. Install dependencies:
@@ -91,7 +91,7 @@ Authentication tokens are stored in `~/.nightvision/token` on your machine. This
      "mcpServers": {
        "nightvision": {
          "command": "node",
-         "args": ["/absolute/path/to/build/nightvision-mcp-server.js"]
+         "args": ["/absolute/path/to/build/index.js"]
        }
      }
    }
@@ -110,7 +110,7 @@ Authentication tokens are stored in `~/.nightvision/token` on your machine. This
        "mcpServers": {
          "nightvision": {
            "command": "node",
-           "args": ["/absolute/path/to/build/nightvision-mcp-server.js"]
+           "args": ["/absolute/path/to/build/index.js"]
          }
        }
      }
