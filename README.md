@@ -785,6 +785,60 @@ npm run dev
 
 This server runs NightVision CLI commands with the permissions of the current user. Be cautious when exposing this functionality to models, as it could potentially execute arbitrary commands if not properly restricted.
 
+## Troubleshooting
+
+### Common Installation Issues
+
+#### "spawn node ENOENT" Error
+
+If you see an error like `A system error occurred (spawn node ENOENT)` when Claude or Cursor tries to launch the MCP server, it means the `node` command can't be found in the system's PATH. This can happen even if Node.js is installed on your system.
+
+To fix this:
+
+1. **Use absolute path to Node.js**: Modify your MCP configuration to use the full path to the Node.js executable. First, find your Node.js installation path:
+
+   ```bash
+   which node
+   ```
+
+   Then update your configuration (in Claude for Desktop configuration or Cursor's MCP config):
+
+   ```json
+   {
+     "mcpServers": {
+       "nightvision": {
+         "command": "/usr/local/bin/node",  // Replace with your actual node path
+         "args": ["/Users/yourusername/path/to/nightvision-mcp/build/index.js"]
+       }
+     }
+   }
+   ```
+
+2. **Fix your PATH in the configuration file**: You can add PATH settings in your shell profile files (`.zshrc`, `.bash_profile`, etc.) to ensure Node.js is accessible.
+
+#### Module Not Found Errors
+
+If you see errors related to missing modules:
+
+1. Make sure you've run `npm install` in the project directory
+2. Check if you're using the correct Node.js version (16+)
+3. Try rebuilding the project with `npm run build`
+
+#### Authentication Issues
+
+If you see authentication errors:
+
+1. Run `nightvision login --api-url https://api.nightvision.net` in your terminal to authenticate with the CLI
+2. Check if your token is valid and not expired (tokens are stored in `~/.nightvision/token`)
+
+### Connection Issues
+
+If Claude or Cursor can't connect to the MCP server:
+
+1. Make sure the server is running (either as a background process or in a separate terminal)
+2. Check that the path to `build/index.js` in your configuration is correct
+3. Verify there are no firewall or security settings blocking the connection
+
 ## License
 
 MIT 
