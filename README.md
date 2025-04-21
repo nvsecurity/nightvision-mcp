@@ -60,13 +60,7 @@ The NightVision MCP Server requires authentication to interact with the NightVis
 The server provides an `authenticate` tool that can be used from any MCP client (Claude Desktop, Cursor, etc.):
 
 ```
-Can you authenticate with NightVision? I need to create a new token.
-```
-
-Or to use an existing token:
-
-```
-Can you authenticate with NightVision using token "YOUR_TOKEN_HERE"?
+Can you authenticate with NightVision?
 ```
 
 To check current authentication status:
@@ -838,6 +832,91 @@ If Claude or Cursor can't connect to the MCP server:
 1. Make sure the server is running (either as a background process or in a separate terminal)
 2. Check that the path to `build/index.js` in your configuration is correct
 3. Verify there are no firewall or security settings blocking the connection
+
+### Claude Authentication Issues
+
+If you see errors related to Claude authentication such as:
+- "Error refreshing default models: ConnectError: [unauthenticated] Error"
+- "Authentication error" or other Claude-specific connection errors
+
+Try the following:
+
+1. **Check your Claude API key/session**:
+   - For Claude for Desktop: Sign out and sign back in
+   - For Cursor: Make sure your Anthropic API key is correctly set up
+
+2. **Restart the application**:
+   - Completely close and reopen Claude for Desktop or Cursor
+   - If using a browser-based interface, clear browser cache and reload
+
+3. **Check your internet connection**:
+   - Ensure you have a stable internet connection
+   - If on a VPN, try disabling it temporarily
+   - Check if your corporate network is blocking outbound connections to Anthropic's services
+
+4. **Check service status**:
+   - Check if Anthropic's services are experiencing any outages
+
+Note that these authentication errors are specific to the Claude service and are separate from NightVision MCP server authentication.
+
+### Cursor-Specific Troubleshooting
+
+#### Fixing "spawn node ENOENT" in Cursor
+
+If you're using Cursor and seeing the `A system error occurred (spawn node ENOENT)` error, follow these specific steps:
+
+1. **Identify your node path**:
+   ```bash
+   which node
+   ```
+
+2. **Edit your MCP configuration**:
+   Create or edit the file `~/.cursor/mcp.json` (or `.cursor/mcp.json` in your project directory):
+   ```json
+   {
+     "mcpServers": {
+       "nightvision": {
+         "command": "/usr/local/bin/node",  // Replace with the output from 'which node'
+         "args": ["/absolute/path/to/nightvision-mcp/build/index.js"]
+       }
+     }
+   }
+   ```
+
+3. **Alternative approach using shell wrapper**:
+   If the above doesn't work, create a shell script wrapper:
+   
+   Create a file named `start-nightvision-mcp.sh`:
+   ```bash
+   #!/bin/bash
+   export PATH="/usr/local/bin:$PATH"  # Ensure node is in the PATH
+   node /absolute/path/to/nightvision-mcp/build/index.js
+   ```
+   
+   Make it executable:
+   ```bash
+   chmod +x start-nightvision-mcp.sh
+   ```
+   
+   Update your MCP configuration to use this script:
+   ```json
+   {
+     "mcpServers": {
+       "nightvision": {
+         "command": "/absolute/path/to/start-nightvision-mcp.sh",
+         "args": []
+       }
+     }
+   }
+   ```
+
+4. **Verify Node.js installation**:
+   If you're still having issues, ensure Node.js is correctly installed:
+   ```bash
+   node --version
+   ```
+   
+   If the command fails, you may need to reinstall Node.js.
 
 ## License
 
