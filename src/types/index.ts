@@ -58,8 +58,6 @@ export const CreateTargetParamsSchema = {
  */
 export const DeleteTargetParamsSchema = {
   name: z.string().describe("Name of the target to delete"),
-  project: z.string().optional().describe("Project Name of the target"),
-  project_id: z.string().optional().describe("Project UUID of the target"),
   format: z.enum(["text", "json", "table"]).optional().default("json").describe("Format of command output")
 };
 

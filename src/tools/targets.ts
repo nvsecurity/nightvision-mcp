@@ -111,10 +111,34 @@ export function registerTargetTools(server: McpServer): void {
         }
         
         // First list all targets to find the one with matching name
-        const allTargets = await nightvisionService.listTargets(false, undefined, "json");
+        const allTargets = await nightvisionService.listTargets(true, undefined, "json");
         
         try {
-          const targets = JSON.parse(allTargets) as Target[];
+          // Check if allTargets is not empty or null before parsing
+          if (!allTargets) {
+            return {
+              content: [{ 
+                type: "text" as const, 
+                text: "No target data received. Please try again later."
+              }],
+              isError: true
+            };
+          }
+          
+          // Try to parse the JSON
+          let targets;
+          try {
+            targets = JSON.parse(allTargets) as Target[];
+          } catch (jsonError) {
+            return {
+              content: [{ 
+                type: "text" as const, 
+                text: `Error parsing target data: ${jsonError}`
+              }],
+              isError: true
+            };
+          }
+          
           const targetMatch = targets.find((t) => t.name === name);
           
           if (!targetMatch) {
@@ -134,11 +158,11 @@ export function registerTargetTools(server: McpServer): void {
               text: JSON.stringify(targetMatch, null, 2)
             }]
           };
-        } catch (parseError) {
+        } catch (error: any) {
           return {
             content: [{ 
               type: "text" as const, 
-              text: `Error parsing target data: ${parseError}`
+              text: `Error getting target details: ${error.message}` 
             }],
             isError: true
           };
@@ -260,7 +284,7 @@ export function registerTargetTools(server: McpServer): void {
     DeleteTargetParamsSchema,
     async (args: any, _extra: any) => {
       try {
-        const { name, project, project_id, format } = args;
+        const { name, format } = args;
         
         // Check if authenticated
         if (!nightvisionService.getToken()) {
@@ -273,13 +297,39 @@ export function registerTargetTools(server: McpServer): void {
           };
         }
         
-        // Confirm target exists before deleting
+        // Confirm target exists before deleting and get project info
+        let project, project_id;
         try {
-          const allTargets = await nightvisionService.listTargets(false, undefined, "json");
-          const targets = JSON.parse(allTargets) as Target[];
-          const targetExists = targets.some(t => t.name === name);
+          const allTargets = await nightvisionService.listTargets(true, undefined, "json");
           
-          if (!targetExists) {
+          // Check if allTargets is not empty or null before parsing
+          if (!allTargets) {
+            return {
+              content: [{ 
+                type: "text" as const, 
+                text: "No target data received. Please try again later."
+              }],
+              isError: true
+            };
+          }
+          
+          // Try to parse the JSON
+          let targets;
+          try {
+            targets = JSON.parse(allTargets) as Target[];
+          } catch (jsonError) {
+            return {
+              content: [{ 
+                type: "text" as const, 
+                text: `Error parsing target data: ${jsonError}`
+              }],
+              isError: true
+            };
+          }
+          
+          const targetMatch = targets.find(t => t.name === name);
+          
+          if (!targetMatch) {
             return {
               content: [{ 
                 type: "text" as const, 
@@ -288,6 +338,11 @@ export function registerTargetTools(server: McpServer): void {
               isError: true
             };
           }
+          
+          // Extract project info from the found target
+          project = targetMatch.project_name;
+          project_id = targetMatch.project_id;
+          
         } catch (error) {
           console.error(`Error checking if target exists: ${error}`);
           // Continue with deletion attempt even if we couldn't confirm existence

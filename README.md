@@ -39,40 +39,6 @@ A Model Context Protocol (MCP) server that enables AI assistants to interact wit
    npm run build
    ```
 
-## Usage
-
-### Starting the server
-
-```bash
-npm start
-```
-
-### Authentication
-
-The NightVision MCP Server requires authentication to interact with the NightVision API. You have three options for authentication:
-
-1. **Use an existing token** - If you already have a NightVision API token, you can provide it to the server.
-2. **Create a new token** - The server can create a new token for you using the NightVision CLI.
-3. **Use the token saved from a previous session** - Tokens are stored locally for convenience.
-
-#### Using the Authentication Tool
-
-The server provides an `authenticate` tool that can be used from any MCP client (Claude Desktop, Cursor, etc.):
-
-```
-Can you authenticate with NightVision?
-```
-
-To check current authentication status:
-
-```
-Can you check if I'm authenticated with NightVision?
-```
-
-#### Token Storage
-
-Authentication tokens are stored in `~/.nightvision/token` on your machine. This allows the server to remain authenticated between restarts.
-
 ### Using with Claude for Desktop
 
 1. Edit your Claude for Desktop configuration file:
@@ -91,7 +57,7 @@ Authentication tokens are stored in `~/.nightvision/token` on your machine. This
    }
    ```
 
-3. Restart Claude for Desktop
+3. Restart Claude for Desktop.
 
 ### Using with Cursor
 
@@ -115,7 +81,35 @@ Authentication tokens are stored in `~/.nightvision/token` on your machine. This
 
 2. Restart Cursor or reload the window
 
-3. The NightVision tools will now be available to Cursor's AI assistant
+3. The NightVision tools will now be available to Cursor's AI assistant.
+
+## Usage
+
+### Authentication
+
+The NightVision MCP Server requires authentication to interact with the NightVision API. You have three options for authentication:
+
+1. **Use an existing token** - If you already have a NightVision API token, you can provide it to the server.
+2. **Create a new token** - The server can create a new token for you using the NightVision CLI.
+3. **Use the token saved from a previous session** - Tokens are stored locally for convenience.
+
+#### Using the Authentication Tool
+
+The server provides an `authenticate` tool that can be used from any MCP client (Claude Desktop, Cursor, etc.):
+
+```
+Can you create a new NightVision authentication token?
+```
+
+To check current authentication status:
+
+```
+Can you check if I'm authenticated with NightVision?
+```
+
+#### Token Storage
+
+Authentication tokens are stored in `~/.nightvision/token` on your machine. This allows the server to remain authenticated between restarts.
 
 ### Available Tools
 
@@ -195,9 +189,6 @@ Deletes a NightVision target.
 
 Parameters:
 - `name` (string): Name of the target to delete
-- `project` (string, optional): Project Name of the target
-- `project_id` (string, optional): Project UUID of the target
-- `format` (enum: "text" | "json" | "table", optional, default: "json"): Format of command output
 
 Example commands:
 ```
