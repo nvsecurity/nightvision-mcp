@@ -165,8 +165,11 @@ export interface FormattedTargetList {
  * API discovery tool parameters schema
  */
 export const ApiDiscoveryParamsSchema = {
-  source_paths: z.array(z.string()).describe("Paths to code directories to analyze (can specify multiple)"),
-  lang: z.enum(["csharp", "go", "java", "js", "python", "ruby"]).describe("Language of the target code"),
+  source_paths: z.array(z.string()).describe("Absolute paths to code directories to analyze (must be absolute paths, not relative). The provided paths should be used exactly as specified by the user."),
+  langs: z.union([
+    z.enum(["csharp", "go", "java", "js", "python", "ruby"]),
+    z.array(z.enum(["csharp", "go", "java", "js", "python", "ruby"]))
+  ]).optional().describe("Language(s) of the target code. Can be a single language or an array of languages for multi-language projects. If not provided, the AI client should analyze the source code to identify the language(s)."),
   target: z.string().optional().describe("Target name to upload the swagger file to"),
   target_id: z.string().optional().describe("Target UUID to upload the swagger file to"),
   project: z.string().optional().describe("Project name for the swagger extract"),

@@ -336,15 +336,17 @@ Example usage:
 
 Discovers API endpoints by analyzing source code using the NightVision CLI's `swagger extract` feature. This tool extracts API information from the codebase and generates a Swagger/OpenAPI specification file.
 
-**This tool now prompts for your project path before analyzing the code.**
+**Before calling this tool, the AI client should:**
+1. Identify the programming language of the codebase by checking file extensions or asking the user
+2. Ensure all paths provided are absolute paths, not relative paths
+3. Confirm the output location for the OpenAPI specification
 
-When you run this tool, it will:
-1. First ask you to confirm your absolute project directory path
-2. After you provide the path, it will analyze your code using that path for resolving relative paths
+**If you don't specify the languages:**
+The tool will return instructions for analyzing the source code to identify the language. You should examine file extensions and code patterns, then call the tool again with the identified languages.
 
 Parameters:
-- `source_paths` (string[]): Paths to code directories to analyze (both absolute and relative paths are supported)
-- `lang` (enum: "csharp" | "go" | "java" | "js" | "python" | "ruby"): Language of the target code
+- `source_paths` (string[]): Absolute paths to code directories to analyze (must be absolute paths, not relative). The provided paths should be used exactly as specified by the user. If not provided, the project root will be used.
+- `langs` (enum: "csharp" | "go" | "java" | "js" | "python" | "ruby" or array of these values): Language(s) of the target code. Must be provided as an array for multi-language projects.
 - `target` (string, optional): Target name to upload the swagger file to
 - `target_id` (string, optional): Target UUID to upload the swagger file to
 - `project` (string, optional): Project name for the swagger extract
@@ -354,22 +356,26 @@ Parameters:
 - `version` (string, optional, default: "0.1"): Version for the OpenAPI specs
 - `no_upload` (boolean, optional, default: true): Skip creation of a new target in the Nightvision API
 - `dump_code` (boolean, optional): Include code snippets in the generated spec
-- `verbose` (boolean, optional, default: false): Enable verbose output for detailed debugging information
+- `verbose` (boolean, optional, default: false): Enable verbose output for detailed information about the API discovery process
 - `format` (enum: "text" | "json" | "table", optional, default: "text"): Format of command output
 
 Example commands:
+
 ```
-Can you discover API endpoints in my JavaScript codebase by analyzing the "./src/routes" directory and save the result to "api-spec.yml"?
+Can you discover API endpoints in my JavaScript codebase by analyzing the "/Users/username/projects/myapp" directory and save the result to "api-spec.yml"?
 ```
 ```
-Please analyze my Java application in the "./src/controllers" directory to generate an API specification at "./output/openapi.json" and link it to my "my-api" target.
+Analyze my Java application in the "/absolute/project/source/code/path" directory to generate an API specification at "./output/openapi.json".
+```
+```
+Discover APIs of the current project, save the results in a file.
 ```
 
-Example usage:
+Example usage (multiple languages):
 ```json
 {
-  "source_paths": ["./src/routes", "./src/controllers"],
-  "lang": "js",
+  "source_paths": ["/Users/username/projects/myapp/src/routes", "/Users/username/projects/myapp/src/controllers"],
+  "langs": ["js", "python"],
   "output": "./api-spec.yml",
   "target": "my-api-target",
   "project": "my-project",
@@ -378,36 +384,10 @@ Example usage:
 }
 ```
 
-**Path Resolution in API Discovery:**
-
-The `discover-api` tool now interactively asks for your project path to ensure accurate path resolution.
-
-When you invoke the tool, it will prompt you for the absolute path to your project directory. This ensures that:
-1. Relative paths are resolved correctly even if the MCP server has a different working directory
-2. All file operations use the correct base directory
-3. You don't have to worry about where the server is running from
-
-After providing your project path, the tool supports both relative and absolute paths for both source code and output files:
-
-1. **Relative paths** (like `./src/routes` or `./output/api-spec.yml`):
-   - These are automatically resolved relative to your provided project path
-   - For example, `./src/routes` will resolve to `/your/provided/project/path/src/routes`
-   - Especially useful for analyzing the current project and storing outputs in the project directory
-
-2. **Absolute paths** (starting with `/`):
-   - These are used exactly as provided
-   - Example: `/home/user/project/src/routes`
-
-The **required** `output` parameter works the same way:
-   - Relative paths: `"output": "./api/openapi.yml"` will save in your specified project directory
-   - Absolute paths: `"output": "/tmp/openapi.yml"` will save to the absolute location
-
-In both cases, the tool will:
-- Automatically resolve paths to absolute paths
-- Show the path resolution in the output
-- Write the OpenAPI spec to the specified location if writable
-
-> **Note**: The server will automatically handle permissions issues and redirect output to writable locations when needed.
+**Important Notes**: 
+1. When discovering APIs for multiple languages, the tool will generate separate output files for each language with names like "openapi-crapi-discovered_python$1" and "openapi-crapi-discovered_java$1" (where $1 is a sequence number).
+2. These generated files will NOT have file extensions even though they contain YAML content. You'll need to manually add ".yml" extensions to these files.
+3. If the output is generated in a temporary location, the tool will provide instructions for moving it to a permanent location.
 
 ### Project Tools
 
@@ -912,3 +892,4 @@ If you're using Cursor and seeing the `A system error occurred (spawn node ENOEN
 ## License
 
 MIT 
+

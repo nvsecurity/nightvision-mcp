@@ -1059,7 +1059,7 @@ Created: ${response.created || 'N/A'}`;
   async discoverApi(
     sourcePaths: string[],
     options: {
-      lang: 'csharp' | 'go' | 'java' | 'js' | 'python' | 'ruby';
+      lang: 'csharp' | 'go' | 'java' | 'js' | 'python' | 'ruby' | Array<'csharp' | 'go' | 'java' | 'js' | 'python' | 'ruby'>;
       target?: string;
       target_id?: string;
       project?: string;
@@ -1098,34 +1098,27 @@ Created: ${response.created || 'N/A'}`;
         }
         return sourcePath;
       });
+
+      // Handle single language or multiple languages
+      let languages: Array<'csharp' | 'go' | 'java' | 'js' | 'python' | 'ruby'>;
       
-      // Build the CLI command arguments based on the NightVision CLI
-      const args = ['swagger', 'extract', ...absoluteSourcePaths];
-      
-      // Add mandatory language option
-      if (options.lang) {
-        args.push('--lang', options.lang);
+      if (Array.isArray(options.lang)) {
+        languages = options.lang;
+        console.error(`Multiple languages requested: ${languages.join(', ')}`);
+      } else if (options.lang) {
+        languages = [options.lang];
+        console.error(`Single language requested: ${options.lang}`);
       } else {
         throw new Error("Language is required for API discovery");
       }
-      
-      // Add target information if provided
-      if (options.target) {
-        args.push('--target', options.target);
+
+      // Validate languages
+      if (languages.length === 0) {
+        throw new Error("At least one language must be specified for API discovery");
       }
-      
-      if (options.target_id) {
-        args.push('--target-id', options.target_id);
-      }
-      
-      // Add project information if provided
-      if (options.project) {
-        args.push('--project', options.project);
-      }
-      
-      if (options.project_id) {
-        args.push('--project-id', options.project_id);
-      }
+
+      // Build the CLI command arguments based on the NightVision CLI
+      const args = ['swagger', 'extract', ...absoluteSourcePaths];
       
       // Add output file name with absolute path to a writable directory
       // Use Node's os.tmpdir() to get system temp directory that should be writable
@@ -1159,75 +1152,175 @@ Created: ${response.created || 'N/A'}`;
         outputFile = path.join(tempDir, path.basename(outputFile));
       }
       
-      // Add the vetted output file to arguments
-      args.push('--output', outputFile);
-      
-      // Add exclude patterns if provided
-      if (options.exclude) {
-        args.push('--exclude', options.exclude);
-      }
-      
-      // Add version if provided
-      if (options.version) {
-        args.push('--version', options.version);
-      }
-      
-      // Add no-upload flag (default to true for safety)
-      if (options.no_upload !== false) {
-        args.push('--no-upload');
-      }
-      
-      // Add dump-code flag if requested
-      if (options.dump_code) {
-        args.push('--dump-code');
-      }
+      // For multiple languages, we need to run the command multiple times
+      // and merge the results
+      if (languages.length > 1) {
+        // Use a different output file for each language
+        const results: string[] = [];
+        const outputs: string[] = [];
 
-      // Remove verbose flag completely - always keep verbosity off to prevent large outputs
-      // Ignoring the options.verbose parameter input
-      // if (options.verbose) {
-      //   args.push('--verbose');
-      // }
-      
-      try {
-        // Execute the CLI command
-        const result = await this.executeCommand(args, format);
+        for (const lang of languages) {
+          const langOutputFile = `${outputFile.replace(/\.(json|yaml|yml)$/, '')}_${lang}$1`;
+          console.error(`Processing language: ${lang} with output: ${langOutputFile}`);
+          
+          // Build command arguments for this language
+          const langArgs = [...args];
+          
+          // Add language option
+          langArgs.push('--lang', lang);
+          
+          // Add target information if provided
+          if (options.target) {
+            langArgs.push('--target', options.target);
+          }
+          
+          if (options.target_id) {
+            langArgs.push('--target-id', options.target_id);
+          }
+          
+          // Add project information if provided
+          if (options.project) {
+            langArgs.push('--project', options.project);
+          }
+          
+          if (options.project_id) {
+            langArgs.push('--project-id', options.project_id);
+          }
+          
+          // Add the vetted output file to arguments
+          langArgs.push('--output', langOutputFile);
+          
+          // Add exclude patterns if provided
+          if (options.exclude) {
+            langArgs.push('--exclude', options.exclude);
+          }
+          
+          // Add version if provided
+          if (options.version) {
+            langArgs.push('--version', options.version);
+          }
+          
+          // Add no-upload flag (default to true for safety)
+          if (options.no_upload !== false) {
+            langArgs.push('--no-upload');
+          }
+          
+          // Add dump-code flag if requested
+          if (options.dump_code) {
+            langArgs.push('--dump-code');
+          }
+
+          try {
+            // Execute the CLI command for this language
+            const result = await this.executeCommand(langArgs, format);
+            results.push(`🔍 Language: ${lang}\n${result}`);
+            outputs.push(langOutputFile);
+          } catch (cliError: any) {
+            // Log the error but continue with other languages
+            const errorMessage = cliError.message;
+            console.error(`Error discovering API for language ${lang}: ${errorMessage}`);
+            results.push(`❌ Language: ${lang}\n${errorMessage}`);
+          }
+        }
+
+        // Combine the results
+        const combinedResult = results.join('\n\n---\n\n');
+        const outputInfo = `\nOpenAPI Specification Files:\n${outputs.map(o => `- ${o}`).join('\n')}`;
         
-        // Log the raw command output to help with debugging
-        console.error(`Command result: ${result.substring(0, 500)}${result.length > 500 ? '...' : ''}`);
-        console.error(`Output file location: ${outputFile}`);
+        return combinedResult + outputInfo;
+      } else {
+        // Single language processing (original implementation)
+        // Add mandatory language option
+        args.push('--lang', languages[0]);
         
-        // Add information about output file path to the result
-        // but preserve the original command output
-        const outputInfo = `\nOpenAPI Specification File: ${outputFile}`;
-        
-        // Make sure we're returning the full CLI output followed by our output file information
-        console.error(`Returning the command output with file path information appended`);
-        return result + outputInfo;
-      } catch (cliError: any) {
-        // Enrich error message with more context about the command
-        const errorMessage = cliError.message;
-        
-        if (errorMessage.includes("0 paths discovered")) {
-          // Provide lightweight error message
-          throw new Error(`No API endpoints found in [${sourcePaths.join(', ')}] using ${options.lang}. Try more specific directories.`);
+        // Add target information if provided
+        if (options.target) {
+          args.push('--target', options.target);
         }
         
-        // Check for file system errors and handle them explicitly
-        if (errorMessage.includes("read-only file system") || 
-            errorMessage.includes("permission denied") || 
-            errorMessage.includes("no such file or directory")) {
+        if (options.target_id) {
+          args.push('--target-id', options.target_id);
+        }
+        
+        // Add project information if provided
+        if (options.project) {
+          args.push('--project', options.project);
+        }
+        
+        if (options.project_id) {
+          args.push('--project-id', options.project_id);
+        }
+        
+        // Add the vetted output file to arguments
+        args.push('--output', outputFile);
+        
+        // Add exclude patterns if provided
+        if (options.exclude) {
+          args.push('--exclude', options.exclude);
+        }
+        
+        // Add version if provided
+        if (options.version) {
+          args.push('--version', options.version);
+        }
+        
+        // Add no-upload flag (default to true for safety)
+        if (options.no_upload !== false) {
+          args.push('--no-upload');
+        }
+        
+        // Add dump-code flag if requested
+        if (options.dump_code) {
+          args.push('--dump-code');
+        }
+
+        // Remove verbose flag completely - always keep verbosity off to prevent large outputs
+        // Ignoring the options.verbose parameter input
+        // if (options.verbose) {
+        //   args.push('--verbose');
+        // }
+        
+        try {
+          // Execute the CLI command
+          const result = await this.executeCommand(args, format);
           
-          throw new Error(`File system error: Unable to write to ${outputFile}. 
+          // Log the raw command output to help with debugging
+          console.error(`Command result: ${result.substring(0, 500)}${result.length > 500 ? '...' : ''}`);
+          console.error(`Output file location: ${outputFile}`);
           
+          // Add information about output file path to the result
+          // but preserve the original command output
+          const outputInfo = `\nOpenAPI Specification File: ${outputFile}`;
+          
+          // Make sure we're returning the full CLI output followed by our output file information
+          console.error(`Returning the command output with file path information appended`);
+          return result + outputInfo;
+        } catch (cliError: any) {
+          // Enrich error message with more context about the command
+          const errorMessage = cliError.message;
+          
+          if (errorMessage.includes("0 paths discovered")) {
+            // Provide lightweight error message
+            throw new Error(`No API endpoints found in [${sourcePaths.join(', ')}] using ${languages[0]}. Try more specific directories.`);
+          }
+          
+          // Check for file system errors and handle them explicitly
+          if (errorMessage.includes("read-only file system") || 
+              errorMessage.includes("permission denied") || 
+              errorMessage.includes("no such file or directory")) {
+            
+            throw new Error(`File system error: Unable to write to ${outputFile}. 
+            
 This may be due to permissions issues. Try specifying a different output location where you have write permissions.`);
+          }
+          
+          // Check for buffer exceeded errors
+          if (errorMessage.includes("maxBuffer length exceeded")) {
+            throw new Error(`Output too large. Try analyzing smaller directories or using the 'exclude' parameter to filter files.`);
+          }
+          
+          throw cliError;
         }
-        
-        // Check for buffer exceeded errors
-        if (errorMessage.includes("maxBuffer length exceeded")) {
-          throw new Error(`Output too large. Try analyzing smaller directories or using the 'exclude' parameter to filter files.`);
-        }
-        
-        throw cliError;
       }
     } catch (error: any) {
       console.error(`Error discovering API endpoints: ${error.message}`);
