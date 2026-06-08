@@ -9,6 +9,7 @@ export function createServer(): McpServer {
   const server = new McpServer({
     name: "NightVision Scanner",
     version: "1.0.0",
+  }, {
     capabilities: {
       tools: {},
     }
