@@ -85,6 +85,20 @@ A Model Context Protocol (MCP) server that enables AI assistants to interact wit
 
 3. The NightVision tools will now be available to Cursor's AI assistant.
 
+## Upgrading an Existing Installation
+
+If you already have the server installed:
+
+1. Pull the latest code with `git pull`.
+2. Reinstall dependencies and rebuild; a restart alone is not enough when dependencies or compiled output change:
+   ```bash
+   npm install
+   npm run rebuild
+   ```
+3. Restart your MCP client (Claude for Desktop or Cursor) so it reloads the server.
+
+Your saved token in `~/.nightvision/token` keeps working, so no re-authentication or MCP client config change is needed. The supported Node.js version is declared under `engines` in `package.json`, and `npm install` warns if yours is older. Review recent commits for any tool parameter changes that affect saved prompts.
+
 ## Usage
 
 ### Authentication
