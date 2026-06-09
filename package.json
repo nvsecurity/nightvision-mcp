@@ -4,6 +4,9 @@
   "description": "MCP Server for NightVision CLI integration",
   "type": "module",
   "main": "build/index.js",
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "build": "tsc",
     "start": "node build/index.js",
