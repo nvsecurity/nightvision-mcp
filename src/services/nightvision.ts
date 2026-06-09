@@ -1094,7 +1094,6 @@ Created: ${response.created || 'N/A'}`;
       version?: string;
       no_upload?: boolean;
       dump_code?: boolean;
-      verbose?: boolean;
     },
     format: OutputFormat = 'text',
     projectPath: string
@@ -1306,12 +1305,6 @@ Created: ${response.created || 'N/A'}`;
           args.push('--dump-code');
         }
 
-        // Remove verbose flag completely - always keep verbosity off to prevent large outputs
-        // Ignoring the options.verbose parameter input
-        // if (options.verbose) {
-        //   args.push('--verbose');
-        // }
-        
         try {
           // Execute the CLI command (concurrency-limited)
           const result = await extractLimiter.run(() => this.executeCommand(args, format));

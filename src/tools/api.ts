@@ -40,7 +40,7 @@ export function registerApiTools(server: McpServer): void {
         }
 
         // Extract params from request
-        const { source_paths, langs, output, exclude, target, target_id, project, project_id, version, no_upload, dump_code, verbose } = params;
+        const { source_paths, langs, output, exclude, target, target_id, project, project_id, version, no_upload, dump_code } = params;
         
         // Check if output path is provided
         if (!output) {
@@ -106,8 +106,7 @@ export function registerApiTools(server: McpServer): void {
               project_id,
               version,
               no_upload,
-              dump_code,
-              verbose
+              dump_code
             },
             'text',
             projectPath

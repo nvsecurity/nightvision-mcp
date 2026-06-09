@@ -181,7 +181,6 @@ export const ApiDiscoveryParamsSchema = {
   version: z.string().optional().default("0.1").describe("Version for the OpenAPI specs"),
   no_upload: z.boolean().optional().default(true).describe("Skip creation of a new target in the Nightvision API"),
   dump_code: z.boolean().optional().describe("Include code snippets in the generated spec"),
-  verbose: z.boolean().optional().default(false).describe("Enable verbose output for detailed information about the API discovery process"),
   format: z.enum(["text", "json", "table"]).optional().default("text").describe("Format of command output")
 };
 
