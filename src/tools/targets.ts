@@ -98,7 +98,7 @@ export function registerTargetTools(server: McpServer): void {
     GetTargetDetailsParamsSchema,
     async (args: any, _extra: any) => {
       try {
-        const { name, format } = args;
+        const { name } = args;
         
         // Check if authenticated
         if (!nightvisionService.getToken()) {

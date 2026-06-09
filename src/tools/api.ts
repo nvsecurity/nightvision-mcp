@@ -1,8 +1,6 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { nightvisionService } from '../services/index.js';
 import { ApiDiscoveryParamsSchema } from '../types/index.js';
-import * as fs from 'fs';
-import { z } from 'zod';
 
 /**
  * Register API-related tools with the MCP server
