@@ -283,7 +283,7 @@ export function registerTargetTools(server: McpServer): void {
   server.tool(
     "delete-target",
     DeleteTargetParamsSchema,
-    async (args: any, _extra: any) => {
+    async (args, _extra) => {
       try {
         const { name, format } = args;
         
