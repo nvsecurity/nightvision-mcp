@@ -8,6 +8,7 @@ import {
   CreateTargetParamsSchema,
   DeleteTargetParamsSchema
 } from '../types/index.js';
+import { matchTargetByName } from './target-matching.js';
 
 /**
  * Register target-related tools with the MCP server
@@ -327,42 +328,33 @@ export function registerTargetTools(server: McpServer): void {
             };
           }
           
-          // Names are unique only within a project. Narrow by any caller-supplied
-          // project/project_id, and refuse to guess when the name is ambiguous.
-          let matches = targets.filter(t => t.name === name);
-          if (args.project) {
-            matches = matches.filter(t => t.project_name === args.project);
-          }
-          if (args.project_id) {
-            matches = matches.filter(t => t.project_id === args.project_id);
-          }
+          // Names are unique only within a project, so refuse to guess when the
+          // name is ambiguous across projects.
+          const match = matchTargetByName(targets, name, args.project, args.project_id);
 
-          if (matches.length > 1) {
-            const projectNames = matches.map(m => m.project_name).join(", ");
+          if (match.status === "ambiguous") {
             return {
               content: [{
                 type: "text" as const,
-                text: `Multiple targets named "${name}" exist (in projects: ${projectNames}). Specify 'project' or 'project_id' to identify which one to delete.`
+                text: `Multiple targets named "${name}" exist (in projects: ${match.projects.join(", ")}). Specify 'project' or 'project_id' to identify which one to delete.`
               }],
               isError: true
             };
           }
 
-          const targetMatch = matches[0];
-          
-          if (!targetMatch) {
+          if (match.status === "not-found") {
             return {
-              content: [{ 
-                type: "text" as const, 
-                text: `Target "${name}" not found. Please check the name and try again.` 
+              content: [{
+                type: "text" as const,
+                text: `Target "${name}" not found. Please check the name and try again.`
               }],
               isError: true
             };
           }
-          
-          // Extract project info from the found target
-          project = targetMatch.project_name;
-          project_id = targetMatch.project_id;
+
+          // Use the resolved target's project info
+          project = match.target.project_name;
+          project_id = match.target.project_id;
           
         } catch (error) {
           console.error(`Error checking if target exists: ${error}`);

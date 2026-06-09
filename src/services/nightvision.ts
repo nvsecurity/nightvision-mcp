@@ -3,44 +3,18 @@ import { promisify } from 'util';
 import axios from 'axios';
 import FormData from 'form-data';
 import { ENVIRONMENT } from '../config/environment.js';
+import { Semaphore } from '../utils/semaphore.js';
+import { languageOutputPath } from '../utils/output-naming.js';
 
 // Promisify execFile for cleaner async/await usage
 const execFileAsync = promisify(execFile);
 
 /**
- * Minimal in-process concurrency limiter. API discovery spawns the heavy
- * `nightvision swagger extract` process (which runs the api-excavator engine);
- * running many at once can exhaust local memory, CPU, and file descriptors, so
- * the number of simultaneous extractions is capped. Override the limit with the
- * NIGHTVISION_EXTRACT_CONCURRENCY environment variable.
+ * Cap the number of simultaneous `nightvision swagger extract` subprocesses
+ * (each runs the heavy api-excavator engine). Running many at once under the
+ * single server process can exhaust local memory, CPU, and file descriptors.
+ * Override the limit with the NIGHTVISION_EXTRACT_CONCURRENCY environment variable.
  */
-class Semaphore {
-  private available: number;
-  private waiters: Array<() => void> = [];
-
-  constructor(max: number) {
-    this.available = max;
-  }
-
-  async run<T>(task: () => Promise<T>): Promise<T> {
-    if (this.available > 0) {
-      this.available--;
-    } else {
-      await new Promise<void>((resolve) => this.waiters.push(resolve));
-    }
-    try {
-      return await task();
-    } finally {
-      const next = this.waiters.shift();
-      if (next) {
-        next();
-      } else {
-        this.available++;
-      }
-    }
-  }
-}
-
 const MAX_EXTRACT_CONCURRENCY = Math.max(
   1,
   Number(process.env.NIGHTVISION_EXTRACT_CONCURRENCY) || 4
@@ -1218,8 +1192,7 @@ Created: ${response.created || 'N/A'}`;
         const outputs: string[] = [];
 
         for (const lang of languages) {
-          const ext = outputFile.match(/\.(json|yaml|yml)$/)?.[0] ?? '';
-          const langOutputFile = `${outputFile.replace(/\.(json|yaml|yml)$/, '')}_${lang}${ext}`;
+          const langOutputFile = languageOutputPath(outputFile, lang);
           console.error(`Processing language: ${lang} with output: ${langOutputFile}`);
           
           // Build command arguments for this language
