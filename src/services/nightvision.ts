@@ -1172,8 +1172,15 @@ Created: ${response.created || 'N/A'}`;
       const args = ['swagger', 'extract', ...absoluteSourcePaths];
       
       // Add output file name with absolute path to a writable directory
-      // Use Node's os.tmpdir() to get system temp directory that should be writable
-      const tempDir = os.tmpdir();
+      // Lazily create a unique per-call temp directory for output redirects, so
+      // concurrent discoveries that share an output base name do not collide.
+      let tempDir: string | null = null;
+      const redirectDir = (): string => {
+        if (tempDir === null) {
+          tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'nightvision-discover-'));
+        }
+        return tempDir;
+      };
       let outputFile: string;
       
       // Handle absolute or relative output paths
@@ -1183,7 +1190,7 @@ Created: ${response.created || 'N/A'}`;
         const basename = path.basename(options.output);
         
         if (dirname === '/' || !fs.existsSync(dirname)) {
-          outputFile = path.join(tempDir, basename);
+          outputFile = path.join(redirectDir(), basename);
           console.error(`Warning: Redirecting output from ${options.output} to ${outputFile} due to potential permissions issues`);
         } else {
           outputFile = options.output;
@@ -1200,7 +1207,7 @@ Created: ${response.created || 'N/A'}`;
         fs.accessSync(testDir, fs.constants.W_OK);
       } catch (err) {
         console.error(`Output directory is not writable, redirecting to temp directory`);
-        outputFile = path.join(tempDir, path.basename(outputFile));
+        outputFile = path.join(redirectDir(), path.basename(outputFile));
       }
       
       // For multiple languages, we need to run the command multiple times
