@@ -491,7 +491,7 @@ export class NightVisionService {
       
       // Make API request to get scan details
       const response = await this.apiRequest<any>(
-        `scans/${scanId}/`,
+        `scans/${encodeURIComponent(scanId)}/`,
         'GET'
       );
       
@@ -574,7 +574,7 @@ export class NightVisionService {
       
       // Make API request to get checks
       const response = await this.apiRequest<any>(
-        `scans/${scanId}/checks/`,
+        `scans/${encodeURIComponent(scanId)}/checks/`,
         'GET',
         params
       );
@@ -735,7 +735,7 @@ export class NightVisionService {
       
       // Make API request to get paths
       const response = await this.apiRequest<any>(
-        `scans/${scanId}/paths/`,
+        `scans/${encodeURIComponent(scanId)}/paths/`,
         'GET',
         params
       );
@@ -844,7 +844,16 @@ export class NightVisionService {
       // Import required modules
       const fs = await import('fs');
       const path = await import('path');
-      
+
+      // Reject paths containing null bytes and require a .yaml/.yml extension
+      // so a non-template file is not read and uploaded by mistake.
+      if (filePath.includes('\0')) {
+        throw new Error('Invalid template file path.');
+      }
+      if (!/\.ya?ml$/i.test(filePath)) {
+        throw new Error('Nuclei template file must be a .yaml or .yml file.');
+      }
+
       // Check if file exists
       if (!fs.existsSync(filePath)) {
         throw new Error(`Nuclei template file not found at: ${filePath}`);
@@ -869,7 +878,7 @@ export class NightVisionService {
       
       // Make API request to upload the template
       const response = await this.apiRequest<any>(
-        `nuclei-templates/${templateId}/upload/`,
+        `nuclei-templates/${encodeURIComponent(templateId)}/upload/`,
         'POST',
         {},
         formData,
@@ -1339,7 +1348,7 @@ This may be due to permissions issues. Try specifying a different output locatio
       
       // Use the project name endpoint to get details
       const response = await this.apiRequest<any>(
-        `projects/name/${projectName}/`,
+        `projects/name/${encodeURIComponent(projectName)}/`,
         'GET'
       );
       
@@ -1502,7 +1511,7 @@ This may be due to permissions issues. Try specifying a different output locatio
       // Make API request to assign the template to the target
       // Using endpoint: /api/v1/targets/{id}/nuclei-templates/assign/
       const response = await this.apiRequest<any>(
-        `targets/${targetId}/nuclei-templates/assign/`,
+        `targets/${encodeURIComponent(targetId)}/nuclei-templates/assign/`,
         'POST',
         {},
         data

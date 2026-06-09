@@ -44,7 +44,7 @@ export const CreateTargetParamsSchema = {
   name: z.string().describe("Name of the target to create"),
   url: z.string().describe("URL of the target"),
   project: z.string().describe("Project Name of the target (required)"),
-  project_id: z.string().optional().describe("Project UUID of the target"),
+  project_id: z.string().uuid().optional().describe("Project UUID of the target"),
   type: z.enum(["API", "WEB"]).optional().default("WEB").describe("Type of the target (API or WEB)"),
   spec_file: z.string().optional().describe("Path to a swagger specification / Postman collection file (for API)"),
   spec_url: z.string().optional().describe("URL to a swagger specification / Postman collection (for API)"),
@@ -67,10 +67,10 @@ export const DeleteTargetParamsSchema = {
 export const StartScanParamsSchema = {
   target_name: z.string().describe("Name of the target to scan"),
   auth: z.string().optional().describe("Authentication name to execute an authenticated scan"),
-  auth_id: z.string().optional().describe("Authentication UUID for scan authentication"),
+  auth_id: z.string().uuid().optional().describe("Authentication UUID for scan authentication"),
   no_auth: z.boolean().optional().describe("Set this flag to indicate not to include auth to the scan"),
   project: z.string().optional().describe("Project Name of the target to scan"),
-  project_id: z.string().optional().describe("Project UUID of the target to scan"),
+  project_id: z.string().uuid().optional().describe("Project UUID of the target to scan"),
   format: z.enum(["text", "json", "table"]).optional().default("json").describe("Format of command output")
 };
 
@@ -80,7 +80,7 @@ export const StartScanParamsSchema = {
 export const ListScansParamsSchema = {
   target: z.string().optional().describe("Filter scans by target name"),
   project: z.string().optional().describe("Filter scans by project name"),
-  project_id: z.string().optional().describe("Filter scans by project UUID"),
+  project_id: z.string().uuid().optional().describe("Filter scans by project UUID"),
   limit: z.number().optional().describe("Maximum number of scans to return"),
   status: z.enum(["running", "finished", "failed", "all"]).optional().default("all").describe("Filter scans by status"),
   format: z.enum(["text", "json", "table"]).optional().default("json").describe("Format of command output")
@@ -128,7 +128,7 @@ export const UploadNucleiTemplateParamsSchema = {
 export const CreateNucleiTemplateParamsSchema = {
   name: z.string().describe("Name of the nuclei template (required)"),
   description: z.string().optional().describe("Description of the nuclei template (optional)"),
-  project_id: z.string().describe("UUID of the project to associate the template with (required)"),
+  project_id: z.string().uuid().describe("UUID of the project to associate the template with (required)"),
   format: z.enum(["text", "json", "table"]).optional().default("json").describe("Format of command output")
 };
 
@@ -171,9 +171,9 @@ export const ApiDiscoveryParamsSchema = {
     z.array(z.enum(["csharp", "go", "java", "js", "php", "python", "ruby"]))
   ]).optional().describe("Language(s) of the target code. Can be a single language or an array of languages for multi-language projects. If not provided, the AI client should analyze the source code to identify the language(s)."),
   target: z.string().optional().describe("Target name to upload the swagger file to"),
-  target_id: z.string().optional().describe("Target UUID to upload the swagger file to"),
+  target_id: z.string().uuid().optional().describe("Target UUID to upload the swagger file to"),
   project: z.string().optional().describe("Project name for the swagger extract"),
-  project_id: z.string().optional().describe("Project UUID for the swagger extract"),
+  project_id: z.string().uuid().optional().describe("Project UUID for the swagger extract"),
   output: z.string().describe("Output file to store the OpenAPI specs (required)"),
   exclude: z.string().optional().describe("Files or directories to exclude from analysis (comma-separated, e.g. 'vendor/*,*.json')"),
   version: z.string().optional().default("0.1").describe("Version for the OpenAPI specs"),
@@ -187,13 +187,13 @@ export const ApiDiscoveryParamsSchema = {
  * List nuclei templates tool parameters schema
  */
 export const ListNucleiTemplatesParamsSchema = {
-  project_id: z.string().optional().describe("UUID of the project to filter templates by"),
+  project_id: z.string().uuid().optional().describe("UUID of the project to filter templates by"),
   filter: z.string().optional().describe("Filter string to narrow down templates by name"),
   page: z.number().optional().describe("Page number for pagination"),
   page_size: z.number().optional().default(100).describe("Number of items per page (defaults to 100)"),
   severity: z.array(z.enum(["critical", "high", "medium", "low", "info", "unknown", "unspecified"])).optional()
     .describe("Array of severity levels to filter by"),
-  target: z.string().optional().describe("UUID of the target to filter templates by"),
+  target: z.string().uuid().optional().describe("UUID of the target to filter templates by"),
   format: z.enum(["text", "json", "table"]).optional().default("json").describe("Format of command output")
 };
 
