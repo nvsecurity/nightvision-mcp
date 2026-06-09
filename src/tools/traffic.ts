@@ -219,7 +219,7 @@ This tool will open a browser window for you to interact with the target applica
             }
             
             // Determine final output path
-            let finalOutputPath = output_file 
+            const finalOutputPath = output_file 
               ? (path.isAbsolute(output_file) ? output_file : path.join(downloadPath, output_file))
               : path.join(downloadPath, `${name}.har`);
             
@@ -305,7 +305,7 @@ Please provide the 'downloadPath' parameter as an absolute directory path (e.g.,
                 }
                 
                 // Determine final output path
-                let finalOutputPath = output_file 
+                const finalOutputPath = output_file 
                   ? (path.isAbsolute(output_file) ? output_file : path.join(downloadPath, output_file))
                   : path.join(downloadPath, `${name}.har`);
                 

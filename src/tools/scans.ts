@@ -69,11 +69,10 @@ export function registerScanTools(server: McpServer): void {
               format
             ).then(result => {
               // Try to extract scan ID for better UX
-              let scanId = '';
               try {
                 const resultObj = JSON.parse(result);
                 if (resultObj.id || resultObj.extracted_id) {
-                  scanId = resultObj.extracted_id || resultObj.id;
+                  const scanId = resultObj.extracted_id || resultObj.id;
                   console.error(`Scan started with ID: ${scanId}`);
                 }
               } catch (parseError) {
@@ -103,7 +102,7 @@ export function registerScanTools(server: McpServer): void {
             return {
               content: [{ 
                 type: "text" as const, 
-                text: `Project error: The project specified does not exist or you don't have permission to access it.\n\nYou MUST specify a valid project when starting a scan. Please try again with:\n\n{\n  "target_name": "${targetName}",\n  "project": "ceylan",\n  "format": "json"\n}\n\nYou can run the following command in your terminal to see available projects:\n\$ nightvision project list\n\nError details: ${error.message}` 
+                text: `Project error: The project specified does not exist or you don't have permission to access it.\n\nYou MUST specify a valid project when starting a scan. Please try again with:\n\n{\n  "target_name": "${targetName}",\n  "project": "ceylan",\n  "format": "json"\n}\n\nYou can run the following command in your terminal to see available projects:\n$ nightvision project list\n\nError details: ${error.message}` 
               }],
               isError: true
             };
@@ -117,7 +116,7 @@ export function registerScanTools(server: McpServer): void {
             return {
               content: [{ 
                 type: "text" as const, 
-                text: `Target not found: The target '${targetName}' was not found or you don't have permission to access it.\n\nPlease check that:\n1. The target name is spelled correctly\n2. The target exists in your account\n3. You have permission to access the target\n\nYou can run the following command in your terminal to list available targets:\n\$ nightvision target list -p "${project || 'your-project'}"\n\nError details: ${error.message}` 
+                text: `Target not found: The target '${targetName}' was not found or you don't have permission to access it.\n\nPlease check that:\n1. The target name is spelled correctly\n2. The target exists in your account\n3. You have permission to access the target\n\nYou can run the following command in your terminal to list available targets:\n$ nightvision target list -p "${project || 'your-project'}"\n\nError details: ${error.message}` 
               }],
               isError: true
             };

@@ -13,7 +13,8 @@
     "dev": "tsc && node build/index.js",
     "clean": "rm -rf build",
     "rebuild": "npm run clean && npm run build",
-    "test": "npm run build && node --test \"build/**/*.test.js\""
+    "test": "npm run build && node --test \"build/**/*.test.js\"",
+    "lint": "eslint src"
   },
   "keywords": [
     "mcp",
@@ -30,7 +31,10 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@types/node": "^24.13.1",
-    "typescript": "^6.0.3"
+    "eslint": "^10.4.1",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.61.0"
   }
 }
