@@ -675,13 +675,13 @@ Example usage:
 
 Downloads a specific traffic recording (HAR file) for analysis.
 
-**This tool will use the provided downloadPath or interactively ask for a writable directory path before downloading the file.**
+**This tool resolves the download directory automatically and never prompts for it.**
 
 When you run this tool, it will:
-1. Use the `downloadPath` parameter if provided in the initial request, or ask you to provide one
-2. Validate that the directory is absolute and writable
-3. Download the HAR file to the specified directory
-4. Resolve any relative output_file paths against the download directory
+1. Use the `downloadPath` parameter when it is an absolute, writable directory
+2. Otherwise fall back to your home directory, and then to the system temp directory if that is not writable
+3. Download the HAR file to the resolved directory
+4. Resolve any relative output_file paths against that directory
 
 Parameters:
 - `name` (string): Name of the traffic file to download (required)
@@ -717,7 +717,7 @@ The download-traffic tool handles paths in the following ways:
 
 1. **downloadPath**: Must be an absolute directory path that exists and is writable
    - If the path is not absolute, the home directory will be used
-   - If the path is not writable, the system temp directory will be used
+   - If the path is not writable, the home directory will be used, falling back to the system temp directory if that is also not writable
 
 2. **output_file**:
    - **Relative paths** (like `analysis/login-flow.har`):

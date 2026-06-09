@@ -247,6 +247,6 @@ export const DownloadTrafficParamsSchema = {
   target: z.string().describe("Name of the target"),
   project: z.string().describe("Name of the project"),
   output_file: z.string().optional().describe("Path where to save the downloaded HAR file (optional)"),
-  downloadPath: z.string().optional().describe("Absolute directory path where to download the file (must be writable)"),
+  downloadPath: z.string().optional().describe("Absolute directory path to download into. If it is not an absolute, writable directory, the home directory is used, then the system temp directory."),
   format: z.enum(["text", "json", "table"]).optional().default("text").describe("Format of command output")
 }; 
