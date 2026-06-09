@@ -8,6 +8,46 @@ import { ENVIRONMENT } from '../config/environment.js';
 const execFileAsync = promisify(execFile);
 
 /**
+ * Minimal in-process concurrency limiter. API discovery spawns the heavy
+ * `nightvision swagger extract` process (which runs the api-excavator engine);
+ * running many at once can exhaust local memory, CPU, and file descriptors, so
+ * the number of simultaneous extractions is capped. Override the limit with the
+ * NIGHTVISION_EXTRACT_CONCURRENCY environment variable.
+ */
+class Semaphore {
+  private available: number;
+  private waiters: Array<() => void> = [];
+
+  constructor(max: number) {
+    this.available = max;
+  }
+
+  async run<T>(task: () => Promise<T>): Promise<T> {
+    if (this.available > 0) {
+      this.available--;
+    } else {
+      await new Promise<void>((resolve) => this.waiters.push(resolve));
+    }
+    try {
+      return await task();
+    } finally {
+      const next = this.waiters.shift();
+      if (next) {
+        next();
+      } else {
+        this.available++;
+      }
+    }
+  }
+}
+
+const MAX_EXTRACT_CONCURRENCY = Math.max(
+  1,
+  Number(process.env.NIGHTVISION_EXTRACT_CONCURRENCY) || 4
+);
+const extractLimiter = new Semaphore(MAX_EXTRACT_CONCURRENCY);
+
+/**
  * Supported output formats for NightVision commands
  */
 export type OutputFormat = 'text' | 'json' | 'table';
@@ -1223,8 +1263,8 @@ Created: ${response.created || 'N/A'}`;
           }
 
           try {
-            // Execute the CLI command for this language
-            const result = await this.executeCommand(langArgs, format);
+            // Execute the CLI command for this language (concurrency-limited)
+            const result = await extractLimiter.run(() => this.executeCommand(langArgs, format));
             results.push(`🔍 Language: ${lang}\n${result}`);
             outputs.push(langOutputFile);
           } catch (cliError: any) {
@@ -1293,8 +1333,8 @@ Created: ${response.created || 'N/A'}`;
         // }
         
         try {
-          // Execute the CLI command
-          const result = await this.executeCommand(args, format);
+          // Execute the CLI command (concurrency-limited)
+          const result = await extractLimiter.run(() => this.executeCommand(args, format));
           
           // Log the raw command output to help with debugging
           console.error(`Command result: ${result.substring(0, 500)}${result.length > 500 ? '...' : ''}`);
