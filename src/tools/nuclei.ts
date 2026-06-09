@@ -22,7 +22,7 @@ export function registerNucleiTools(server: McpServer): void {
   server.tool(
     "create-nuclei-template",
     CreateNucleiTemplateParamsSchema,
-    async (args: any, _extra: any) => {
+    async (args, _extra) => {
       try {
         const {
           name,
@@ -111,7 +111,7 @@ export function registerNucleiTools(server: McpServer): void {
   server.tool(
     "upload-nuclei-template",
     UploadNucleiTemplateParamsSchema,
-    async (args: any, _extra: any) => {
+    async (args, _extra) => {
       try {
         const { 
           template_id: templateId,
@@ -223,7 +223,7 @@ export function registerNucleiTools(server: McpServer): void {
   server.tool(
     "list-nuclei-templates",
     ListNucleiTemplatesParamsSchema,
-    async (args: any, _extra: any) => {
+    async (args, _extra) => {
       try {
         const { 
           project_id,
@@ -299,7 +299,7 @@ export function registerNucleiTools(server: McpServer): void {
   server.tool(
     "assign-nuclei-template",
     AssignNucleiTemplateParamsSchema,
-    async (args: any, _extra: any) => {
+    async (args, _extra) => {
       try {
         const { 
           target_id: targetId,

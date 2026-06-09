@@ -7,8 +7,8 @@ export default tseslint.config(
   ...tseslint.configs.recommended,
   {
     rules: {
-      // The tool handlers type their args as `any` at the MCP boundary;
-      // tightening that is a separate, larger change, so do not fail lint on it
+      // `any` remains in the error-catch blocks and the service layer;
+      // tightening those is a separate, larger change, so do not fail lint on it
       // here.
       '@typescript-eslint/no-explicit-any': 'off',
       // tsc's noUnusedLocals covers unused locals/imports; this also catches

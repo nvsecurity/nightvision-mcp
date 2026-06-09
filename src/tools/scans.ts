@@ -22,7 +22,7 @@ export function registerScanTools(server: McpServer): void {
   server.tool(
     "start-scan",
     StartScanParamsSchema,
-    async (args: any, _extra: any) => {
+    async (args, _extra) => {
       try {
         const { 
           target_name: targetName, 
@@ -151,7 +151,7 @@ export function registerScanTools(server: McpServer): void {
   server.tool(
     "list-scans",
     ListScansParamsSchema,
-    async (args: any, _extra: any) => {
+    async (args, _extra) => {
       try {
         const { 
           target, 
@@ -225,7 +225,7 @@ export function registerScanTools(server: McpServer): void {
   server.tool(
     "get-scan-status",
     GetScanStatusParamsSchema,
-    async (args: any, _extra: any) => {
+    async (args, _extra) => {
       try {
         const { 
           scan_id: scanId, 
@@ -381,7 +381,7 @@ export function registerScanTools(server: McpServer): void {
   server.tool(
     "get-scan-checks",
     GetScanChecksParamsSchema,
-    async (args: any, _extra: any) => {
+    async (args, _extra) => {
       try {
         const { 
           scan_id: scanId,
@@ -492,7 +492,7 @@ export function registerScanTools(server: McpServer): void {
   server.tool(
     "get-scan-paths",
     GetScanPathsParamsSchema,
-    async (args: any, _extra: any) => {
+    async (args, _extra) => {
       try {
         const { scan_id, page, page_size, filter, format } = args;
         

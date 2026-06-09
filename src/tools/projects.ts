@@ -46,7 +46,7 @@ export function registerProjectTools(server: McpServer): void {
   server.tool(
     "list-projects",
     ListProjectsParamsSchema,
-    async (args: any, _extra: any) => {
+    async (args, _extra) => {
       try {
         const { format = 'json' } = args;
         
@@ -148,7 +148,7 @@ export function registerProjectTools(server: McpServer): void {
   server.tool(
     "get-project-details",
     GetProjectDetailsParamsSchema,
-    async (args: any, _extra: any) => {
+    async (args, _extra) => {
       try {
         const { 
           name,

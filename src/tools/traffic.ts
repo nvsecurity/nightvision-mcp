@@ -19,7 +19,7 @@ export function registerTrafficTools(server: McpServer): void {
   server.tool(
     "record-traffic",
     RecordTrafficParamsSchema,
-    async (args: any, _extra: any) => {
+    async (args, _extra) => {
       try {
         const { 
           name,
@@ -98,7 +98,7 @@ This tool will open a browser window for you to interact with the target applica
   server.tool(
     "list-traffic",
     ListTrafficParamsSchema,
-    async (args: any, _extra: any) => {
+    async (args, _extra) => {
       try {
         const { 
           target,
@@ -164,7 +164,7 @@ This tool will open a browser window for you to interact with the target applica
   server.tool(
     "download-traffic",
     DownloadTrafficParamsSchema,
-    async (args: any, _extra: any) => {
+    async (args, _extra) => {
       try {
         const { 
           name,

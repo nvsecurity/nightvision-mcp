@@ -23,7 +23,7 @@ export function registerTargetTools(server: McpServer): void {
   server.tool(
     "list-targets",
     ListTargetsParamsSchema,
-    async (args: any, _extra: any) => {
+    async (args, _extra) => {
       try {
         const { all, projects, format } = args;
         
@@ -96,7 +96,7 @@ export function registerTargetTools(server: McpServer): void {
   server.tool(
     "get-target-details",
     GetTargetDetailsParamsSchema,
-    async (args: any, _extra: any) => {
+    async (args, _extra) => {
       try {
         const { name } = args;
         
@@ -186,7 +186,7 @@ export function registerTargetTools(server: McpServer): void {
   server.tool(
     "create-target",
     CreateTargetParamsSchema,
-    async (args: any, _extra: any) => {
+    async (args, _extra) => {
       try {
         const { 
           name, 

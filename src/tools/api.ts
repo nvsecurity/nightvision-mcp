@@ -26,7 +26,7 @@ export function registerApiTools(server: McpServer): void {
   server.tool(
     'discover-api',
     ApiDiscoveryParamsSchema,
-    async (params: any, _extra: any) => {
+    async (params, _extra) => {
       try {
         // Make sure the user is authenticated
         if (!nightvisionService.getToken()) {

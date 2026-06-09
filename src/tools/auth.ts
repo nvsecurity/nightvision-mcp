@@ -12,7 +12,7 @@ export function registerAuthTools(server: McpServer): void {
   server.tool(
     "authenticate",
     AuthenticateParamsSchema,
-    async (args: any, _extra: any) => {
+    async (args, _extra) => {
       try {
         const { token, create_new, expiry_date } = args;
         
