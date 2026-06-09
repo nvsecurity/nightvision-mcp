@@ -1059,7 +1059,7 @@ Created: ${response.created || 'N/A'}`;
   async discoverApi(
     sourcePaths: string[],
     options: {
-      lang: 'csharp' | 'go' | 'java' | 'js' | 'python' | 'ruby' | Array<'csharp' | 'go' | 'java' | 'js' | 'python' | 'ruby'>;
+      lang: 'csharp' | 'go' | 'java' | 'js' | 'php' | 'python' | 'ruby' | Array<'csharp' | 'go' | 'java' | 'js' | 'php' | 'python' | 'ruby'>;
       target?: string;
       target_id?: string;
       project?: string;
@@ -1100,7 +1100,7 @@ Created: ${response.created || 'N/A'}`;
       });
 
       // Handle single language or multiple languages
-      let languages: Array<'csharp' | 'go' | 'java' | 'js' | 'python' | 'ruby'>;
+      let languages: Array<'csharp' | 'go' | 'java' | 'js' | 'php' | 'python' | 'ruby'>;
       
       if (Array.isArray(options.lang)) {
         languages = options.lang;

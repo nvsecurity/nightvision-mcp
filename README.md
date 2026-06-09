@@ -346,7 +346,7 @@ The tool will return instructions for analyzing the source code to identify the 
 
 Parameters:
 - `source_paths` (string[]): Absolute paths to code directories to analyze (must be absolute paths, not relative). The provided paths should be used exactly as specified by the user. If not provided, the project root will be used.
-- `langs` (enum: "csharp" | "go" | "java" | "js" | "python" | "ruby" or array of these values): Language(s) of the target code. Must be provided as an array for multi-language projects.
+- `langs` (enum: "csharp" | "go" | "java" | "js" | "php" | "python" | "ruby" or array of these values): Language(s) of the target code. Must be provided as an array for multi-language projects.
 - `target` (string, optional): Target name to upload the swagger file to
 - `target_id` (string, optional): Target UUID to upload the swagger file to
 - `project` (string, optional): Project name for the swagger extract

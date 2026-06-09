@@ -67,7 +67,7 @@ export function registerApiTools(server: McpServer): void {
           return {
             content: [{ 
               type: "text" as const, 
-              text: `No languages specified. You should analyze the source code to determine the appropriate language(s).\n\nSupported languages are: csharp, go, java, js, python, ruby.\n\nPlease analyze the file extensions and code patterns in the source paths to identify the language, then call this tool again with the appropriate 'langs' parameter as an array.` 
+              text: `No languages specified. You should analyze the source code to determine the appropriate language(s).\n\nSupported languages are: csharp, go, java, js, php, python, ruby.\n\nPlease analyze the file extensions and code patterns in the source paths to identify the language, then call this tool again with the appropriate 'langs' parameter as an array.` 
             }],
             isError: true
           };
@@ -80,7 +80,7 @@ export function registerApiTools(server: McpServer): void {
         }
 
         // Check languages are supported
-        const supportedLanguages = ['csharp', 'go', 'java', 'js', 'python', 'ruby'];
+        const supportedLanguages = ['csharp', 'go', 'java', 'js', 'php', 'python', 'ruby'];
         for (const language of languages) {
           if (!supportedLanguages.includes(language)) {
             return {
