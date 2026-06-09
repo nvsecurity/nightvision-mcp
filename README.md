@@ -11,13 +11,15 @@ A Model Context Protocol (MCP) server that enables AI assistants to interact wit
 - Start security scans against targets
 - Track scan status and view results
 - View and filter vulnerabilities found in security scans
-- Discover API endpoints for API targets
-- Upload custom nuclei templates for targeted vulnerability scanning
+- Discover API endpoints from source code (multiple languages)
+- Manage projects and view project details
+- Record, list, and download browser traffic for targets
+- Upload and assign custom nuclei templates for targeted vulnerability scanning
 - Integration with Claude and other MCP-compatible assistants
 
 ## Prerequisites
 
-- Node.js 16+
+- Node.js 22 or later
 - NightVision CLI installed and configured
 - Valid NightVision account and authentication
 
@@ -25,7 +27,7 @@ A Model Context Protocol (MCP) server that enables AI assistants to interact wit
 
 1. Clone this repository:
    ```bash
-   git clone https://github.com/NimblerSecurity/nightvision-mcp.git
+   git clone https://github.com/nvsecurity/nightvision-mcp.git
    cd nightvision-mcp
    ```
 
@@ -748,7 +750,7 @@ npm run dev
 
 ## Security Considerations
 
-This server runs NightVision CLI commands with the permissions of the current user. Be cautious when exposing this functionality to models, as it could potentially execute arbitrary commands if not properly restricted.
+This server runs NightVision CLI commands and API calls with the permissions of the current user. Be cautious about exposing it to untrusted MCP clients. To report a security issue, see [SECURITY.md](SECURITY.md).
 
 ## Troubleshooting
 
@@ -786,7 +788,7 @@ To fix this:
 If you see errors related to missing modules:
 
 1. Make sure you've run `npm install` in the project directory
-2. Check if you're using the correct Node.js version (16+)
+2. Check if you're using the correct Node.js version (22 or later)
 3. Try rebuilding the project with `npm run build`
 
 #### Authentication Issues
