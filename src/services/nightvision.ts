@@ -100,7 +100,7 @@ export class NightVisionService {
    * Execute a NightVision CLI command
    * @param args Command arguments to pass to the CLI
    * @param format Output format (text, json, table)
-   * @param skipToken Whether to skip adding the current token to the command
+   * @param skipToken Whether to omit the current token from the command environment
    * @returns Command output
    */
   async executeCommand(
@@ -120,9 +120,11 @@ export class NightVisionService {
       // Always specify the production API URL to avoid using test environments
       commandArgs.push('--api-url', ENVIRONMENT.CURRENT_API_URL);
       
-      // Add token if available and not skipped
+      // Pass the token to the CLI via the environment (read as NIGHTVISION_TOKEN)
+      // rather than on the command line, so it stays out of argv and logs.
+      const env = { ...process.env };
       if (this.token && !skipToken) {
-        commandArgs.push('--token', this.token);
+        env.NIGHTVISION_TOKEN = this.token;
       }
       
       console.error(`Executing: ${['nightvision', ...commandArgs].join(' ')}`);
@@ -130,7 +132,8 @@ export class NightVisionService {
       // Invoke the binary directly with an argument vector (no shell), with an
       // increased buffer size (50MB)
       const { stdout, stderr } = await execFileAsync('nightvision', commandArgs, {
-        maxBuffer: 50 * 1024 * 1024 // 50MB buffer size (default is 1MB)
+        maxBuffer: 50 * 1024 * 1024, // 50MB buffer size (default is 1MB)
+        env
       });
       
       // Handle warnings/errors in stderr
