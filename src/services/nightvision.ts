@@ -101,12 +101,14 @@ export class NightVisionService {
    * @param args Command arguments to pass to the CLI
    * @param format Output format (text, json, table)
    * @param skipToken Whether to omit the current token from the command environment
+   * @param cwd Optional working directory for the spawned command
    * @returns Command output
    */
   async executeCommand(
     args: string[],
     format: OutputFormat = 'text',
-    skipToken: boolean = false
+    skipToken: boolean = false,
+    cwd?: string
   ): Promise<string> {
     try {
       // Build the command with format flag
@@ -133,7 +135,8 @@ export class NightVisionService {
       // increased buffer size (50MB)
       const { stdout, stderr } = await execFileAsync('nightvision', commandArgs, {
         maxBuffer: 50 * 1024 * 1024, // 50MB buffer size (default is 1MB)
-        env
+        env,
+        cwd
       });
       
       // Handle warnings/errors in stderr
@@ -1716,66 +1719,52 @@ This may be due to permissions issues. Try specifying a different output locatio
       const tempDownloadDir = path.join(downloadPath, 'nightvision-downloads');
       await fs.mkdir(tempDownloadDir, { recursive: true });
       
-      // Change the working directory to the temporary download directory
-      const previousCwd = process.cwd();
-      process.chdir(tempDownloadDir);
-      console.error(`Changed working directory to: ${tempDownloadDir}`);
+      // The CLI downloads into the temp dir, set as the child's working directory.
       
+      // Build CLI command
+      const args = ['traffic', 'download', name, '--target', target, '--project', project];
+
+      // Execute the command to download the file
+      const result = await this.executeCommand(args, format, false, tempDownloadDir);
+        
+      // Default download location will be the temp directory with the name of the file
+      const tempFilePath = path.join(tempDownloadDir, `${name}.har`);
+      
+      // Verify the file was downloaded
       try {
-        // Build CLI command to download to the current directory (now the temp dir)
-        const args = ['traffic', 'download', name, '--target', target, '--project', project];
-        
-        // Execute the command to download the file
-        const result = await this.executeCommand(args, format);
-        
-        // Default download location will be the temp directory with the name of the file
-        const tempFilePath = path.join(tempDownloadDir, `${name}.har`);
-        
-        // Verify the file was downloaded
-        try {
-          await fs.access(tempFilePath);
-        } catch (err) {
-          throw new Error(`Failed to download the file. The file was not found at ${tempFilePath}.`);
-        }
-        
-        // Move the file to the final output path if specified
-        let finalOutputPath = tempFilePath;
-        
-        if (outputFile && outputFile.trim() !== '') {
-          try {
-            // Create the target directory if needed
-            const outputDir = path.dirname(outputFile);
-            await fs.mkdir(outputDir, { recursive: true });
-            
-            // Copy the file to the destination
-            await fs.copyFile(tempFilePath, outputFile);
-            
-            // Successful copy, use the outputFile as the final path
-            finalOutputPath = outputFile;
-            console.error(`Copied traffic file from ${tempFilePath} to ${finalOutputPath}`);
-            
-            // Remove the temporary file
-            await fs.unlink(tempFilePath);
-          } catch (err) {
-            console.error(`Error copying file to final destination: ${err}`);
-            console.error(`Keeping the file at temporary location: ${tempFilePath}`);
-            // Keep the fallback path
-          }
-        }
-        
-        console.error(`Traffic file downloaded successfully to: ${finalOutputPath}`);
-        
-        // Return to the previous working directory
-        process.chdir(previousCwd);
-        console.error(`Restored working directory to: ${previousCwd}`);
-        
-        return result;
-      } catch (error) {
-        // Ensure we return to the original directory even if an error occurs
-        process.chdir(previousCwd);
-        console.error(`Restored working directory to: ${previousCwd} after error`);
-        throw error;
+        await fs.access(tempFilePath);
+      } catch (err) {
+        throw new Error(`Failed to download the file. The file was not found at ${tempFilePath}.`);
       }
+      
+      // Move the file to the final output path if specified
+      let finalOutputPath = tempFilePath;
+      
+      if (outputFile && outputFile.trim() !== '') {
+        try {
+          // Create the target directory if needed
+          const outputDir = path.dirname(outputFile);
+          await fs.mkdir(outputDir, { recursive: true });
+          
+          // Copy the file to the destination
+          await fs.copyFile(tempFilePath, outputFile);
+          
+          // Successful copy, use the outputFile as the final path
+          finalOutputPath = outputFile;
+          console.error(`Copied traffic file from ${tempFilePath} to ${finalOutputPath}`);
+          
+          // Remove the temporary file
+          await fs.unlink(tempFilePath);
+        } catch (err) {
+          console.error(`Error copying file to final destination: ${err}`);
+          console.error(`Keeping the file at temporary location: ${tempFilePath}`);
+          // Keep the fallback path
+        }
+      }
+      
+      console.error(`Traffic file downloaded successfully to: ${finalOutputPath}`);
+
+      return result;
     } catch (error: any) {
       console.error(`Error downloading traffic file: ${error.message}`);
       
