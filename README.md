@@ -387,9 +387,8 @@ Example usage (multiple languages):
 ```
 
 **Important Notes**: 
-1. When discovering APIs for multiple languages, the tool will generate separate output files for each language with names like "openapi-crapi-discovered_python$1" and "openapi-crapi-discovered_java$1" (where $1 is a sequence number).
-2. These generated files will NOT have file extensions even though they contain YAML content. You'll need to manually add ".yml" extensions to these files.
-3. If the output is generated in a temporary location, the tool will provide instructions for moving it to a permanent location.
+1. When discovering APIs for multiple languages, the tool generates a separate output file per language, appending the language to the base name and keeping the extension (e.g. "api-spec_python.yml" and "api-spec_java.yml").
+2. If the output is generated in a temporary location, the tool will provide instructions for moving it to a permanent location.
 
 ### Project Tools
 

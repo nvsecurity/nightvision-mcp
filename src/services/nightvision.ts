@@ -1171,7 +1171,8 @@ Created: ${response.created || 'N/A'}`;
         const outputs: string[] = [];
 
         for (const lang of languages) {
-          const langOutputFile = `${outputFile.replace(/\.(json|yaml|yml)$/, '')}_${lang}$1`;
+          const ext = outputFile.match(/\.(json|yaml|yml)$/)?.[0] ?? '';
+          const langOutputFile = `${outputFile.replace(/\.(json|yaml|yml)$/, '')}_${lang}${ext}`;
           console.error(`Processing language: ${lang} with output: ${langOutputFile}`);
           
           // Build command arguments for this language
