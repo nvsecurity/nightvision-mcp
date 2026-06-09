@@ -205,6 +205,9 @@ Deletes a NightVision target.
 
 Parameters:
 - `name` (string): Name of the target to delete
+- `project` (string, optional): Project name of the target (disambiguates a name shared across projects)
+- `project_id` (string, optional): Project UUID of the target (disambiguates a name shared across projects)
+- `format` (enum: "text" | "json" | "table", optional, default: "json"): Format of command output
 
 Example commands:
 ```

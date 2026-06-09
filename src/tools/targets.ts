@@ -298,7 +298,7 @@ export function registerTargetTools(server: McpServer): void {
         }
         
         // Confirm target exists before deleting and get project info
-        let project, project_id;
+        let project = args.project, project_id = args.project_id;
         try {
           const allTargets = await nightvisionService.listTargets(true, undefined, "json");
           
@@ -327,7 +327,28 @@ export function registerTargetTools(server: McpServer): void {
             };
           }
           
-          const targetMatch = targets.find(t => t.name === name);
+          // Names are unique only within a project. Narrow by any caller-supplied
+          // project/project_id, and refuse to guess when the name is ambiguous.
+          let matches = targets.filter(t => t.name === name);
+          if (args.project) {
+            matches = matches.filter(t => t.project_name === args.project);
+          }
+          if (args.project_id) {
+            matches = matches.filter(t => t.project_id === args.project_id);
+          }
+
+          if (matches.length > 1) {
+            const projectNames = matches.map(m => m.project_name).join(", ");
+            return {
+              content: [{
+                type: "text" as const,
+                text: `Multiple targets named "${name}" exist (in projects: ${projectNames}). Specify 'project' or 'project_id' to identify which one to delete.`
+              }],
+              isError: true
+            };
+          }
+
+          const targetMatch = matches[0];
           
           if (!targetMatch) {
             return {
@@ -345,7 +366,19 @@ export function registerTargetTools(server: McpServer): void {
           
         } catch (error) {
           console.error(`Error checking if target exists: ${error}`);
-          // Continue with deletion attempt even if we couldn't confirm existence
+          // The existence/ambiguity pre-check could not run. If the caller did
+          // not supply a project or project_id, refuse rather than guess which
+          // target to delete; when one was supplied the delete is already
+          // unambiguous, so let it proceed.
+          if (!args.project && !args.project_id) {
+            return {
+              content: [{
+                type: "text" as const,
+                text: `Could not verify the target "${name}" before deleting (failed to list targets). Please try again, or pass 'project' or 'project_id' to delete it directly.`
+              }],
+              isError: true
+            };
+          }
         }
         
         // Delete the target
