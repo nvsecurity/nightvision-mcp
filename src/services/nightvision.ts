@@ -1,11 +1,11 @@
-import { exec } from 'child_process';
+import { execFile } from 'child_process';
 import { promisify } from 'util';
 import axios from 'axios';
 import FormData from 'form-data';
 import { ENVIRONMENT } from '../config/environment.js';
 
-// Promisify exec for cleaner async/await usage
-const execAsync = promisify(exec);
+// Promisify execFile for cleaner async/await usage
+const execFileAsync = promisify(execFile);
 
 /**
  * Supported output formats for NightVision commands
@@ -125,15 +125,11 @@ export class NightVisionService {
         commandArgs.push('--token', this.token);
       }
       
-      // Create the full command
-      const command = ['nightvision', ...commandArgs]
-        .map(arg => arg.includes(' ') ? `"${arg}"` : arg)
-        .join(' ');
-      
-      console.error(`Executing: ${command}`);
-      
-      // Execute the command directly with increased buffer size (50MB)
-      const { stdout, stderr } = await execAsync(command, { 
+      console.error(`Executing: ${['nightvision', ...commandArgs].join(' ')}`);
+
+      // Invoke the binary directly with an argument vector (no shell), with an
+      // increased buffer size (50MB)
+      const { stdout, stderr } = await execFileAsync('nightvision', commandArgs, {
         maxBuffer: 50 * 1024 * 1024 // 50MB buffer size (default is 1MB)
       });
       
@@ -179,7 +175,7 @@ export class NightVisionService {
       // First, attempt to login to NightVision CLI (interactive process)
       try {
         console.error("Attempting to login to NightVision before creating a new token...");
-        await execAsync(`nightvision login --api-url ${ENVIRONMENT.CURRENT_API_URL}`);
+        await execFileAsync('nightvision', ['login', '--api-url', ENVIRONMENT.CURRENT_API_URL]);
         console.error("Login completed successfully.");
       } catch (loginError: any) {
         console.error(`Login attempt encountered an error: ${loginError.message}`);
