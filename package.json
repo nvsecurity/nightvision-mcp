@@ -12,7 +12,8 @@
     "start": "node build/index.js",
     "dev": "tsc && node build/index.js",
     "clean": "rm -rf build",
-    "rebuild": "npm run clean && npm run build"
+    "rebuild": "npm run clean && npm run build",
+    "test": "npm run build && node --test \"build/**/*.test.js\""
   },
   "keywords": [
     "mcp",
