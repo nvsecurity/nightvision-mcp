@@ -143,6 +143,7 @@ export interface Target {
   location: string;
   project_name: string;
   project: string;
+  project_id?: string;
   type: string;
   is_ready_to_scan: boolean;
   [key: string]: any;
