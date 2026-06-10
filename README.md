@@ -375,7 +375,6 @@ Parameters:
 - `version` (string, optional, default: "0.1"): Version for the OpenAPI specs
 - `no_upload` (boolean, optional, default: true): Skip creation of a new target in the Nightvision API
 - `dump_code` (boolean, optional): Include code snippets in the generated spec
-- `format` (enum: "text" | "json" | "table", optional, default: "text"): Format of command output
 
 Example commands:
 
