@@ -33,7 +33,9 @@ export const ListTargetsParamsSchema = {
  * Get target details tool parameters schema
  */
 export const GetTargetDetailsParamsSchema = {
-  name: z.string().describe("Name of the target to get details for")
+  name: z.string().describe("Name of the target to get details for"),
+  project: z.string().optional().describe("Project Name of the target (disambiguates a name shared across projects)"),
+  project_id: z.string().uuid().optional().describe("Project UUID of the target (disambiguates a name shared across projects)")
 };
 
 /**

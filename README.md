@@ -168,6 +168,8 @@ Gets detailed information about a specific target.
 
 Parameters:
 - `name` (string): Name of the target to get details for
+- `project` (string, optional): Project name of the target (disambiguates a name shared across projects)
+- `project_id` (string, optional): Project UUID of the target (disambiguates a name shared across projects)
 
 Example command in Claude:
 ```

@@ -98,19 +98,19 @@ export function registerTargetTools(server: McpServer): void {
     GetTargetDetailsParamsSchema,
     async (args, _extra) => {
       try {
-        const { name } = args;
-        
+        const { name, project, project_id } = args;
+
         // Check if authenticated
         if (!nightvisionService.getToken()) {
           return {
-            content: [{ 
-              type: "text" as const, 
-              text: "Not authenticated. Please use the authenticate tool to set a token first." 
+            content: [{
+              type: "text" as const,
+              text: "Not authenticated. Please use the authenticate tool to set a token first."
             }],
             isError: true
           };
         }
-        
+
         // First list all targets to find the one with matching name
         const allTargets = await nightvisionService.listTargets(true, undefined, "json");
         
@@ -140,23 +140,35 @@ export function registerTargetTools(server: McpServer): void {
             };
           }
           
-          const targetMatch = targets.find((t) => t.name === name);
-          
-          if (!targetMatch) {
+          // Names are unique only within a project, so refuse to guess when the
+          // name is ambiguous across projects.
+          const match = matchTargetByName(targets, name, project, project_id);
+
+          if (match.status === "ambiguous") {
             return {
-              content: [{ 
-                type: "text" as const, 
+              content: [{
+                type: "text" as const,
+                text: `Multiple targets named "${name}" exist (in projects: ${match.projects.join(", ")}). Specify 'project' or 'project_id' to identify which one.`
+              }],
+              isError: true
+            };
+          }
+
+          if (match.status === "not-found") {
+            return {
+              content: [{
+                type: "text" as const,
                 text: `No target found with name: ${name}`
               }],
               isError: true
             };
           }
-          
+
           // Return detailed information about the found target
           return {
-            content: [{ 
-              type: "text" as const, 
-              text: JSON.stringify(targetMatch, null, 2)
+            content: [{
+              type: "text" as const,
+              text: JSON.stringify(match.target, null, 2)
             }]
           };
         } catch (error: any) {
