@@ -168,7 +168,6 @@ Gets detailed information about a specific target.
 
 Parameters:
 - `name` (string): Name of the target to get details for
-- `format` (enum: "text" | "json" | "table", optional, default: "json"): Format of command output
 
 Example command in Claude:
 ```

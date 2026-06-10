@@ -33,8 +33,7 @@ export const ListTargetsParamsSchema = {
  * Get target details tool parameters schema
  */
 export const GetTargetDetailsParamsSchema = {
-  name: z.string().describe("Name of the target to get details for"),
-  format: z.enum(["text", "json", "table"]).optional().default("json").describe("Format of command output")
+  name: z.string().describe("Name of the target to get details for")
 };
 
 /**
