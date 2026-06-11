@@ -85,7 +85,7 @@ export const ListScansParamsSchema = {
   project: z.string().optional().describe("Filter scans by project name"),
   project_id: z.string().uuid().optional().describe("Filter scans by project UUID"),
   limit: z.number().optional().describe("Maximum number of scans to return"),
-  status: z.enum(["running", "finished", "failed", "all"]).optional().default("all").describe("Filter scans by status"),
+  status: z.enum(["running", "finished", "failed", "all"]).optional().default("all").describe("Filter scans by status: running, finished (any completed state), failed, or all"),
   format: z.enum(["text", "json", "table"]).optional().default("json").describe("Format of command output")
 };
 

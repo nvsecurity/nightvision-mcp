@@ -22,6 +22,24 @@ const MAX_EXTRACT_CONCURRENCY = Math.max(
 const extractLimiter = new Semaphore(MAX_EXTRACT_CONCURRENCY);
 
 /**
+ * Serialize query parameters so array values become repeated keys
+ * (status=1&status=2) rather than the HTTP client's default bracketed form
+ * (status[]=1), which the scans API does not parse as the field.
+ */
+function serializeRepeatedParams(params: Record<string, any>): string {
+  const search = new URLSearchParams();
+  for (const [key, value] of Object.entries(params)) {
+    if (value === undefined || value === null) continue;
+    if (Array.isArray(value)) {
+      for (const item of value) search.append(key, String(item));
+    } else {
+      search.append(key, String(value));
+    }
+  }
+  return search.toString();
+}
+
+/**
  * Supported output formats for NightVision commands
  */
 export type OutputFormat = 'text' | 'json' | 'table';
@@ -77,26 +95,28 @@ export class NightVisionService {
    * @returns Response data
    */
   private async apiRequest<T>(
-    endpoint: string, 
+    endpoint: string,
     method: 'GET' | 'POST' | 'PUT' | 'DELETE' = 'GET',
     params: Record<string, any> = {},
     data: any = null,
-    isFormData: boolean = false
+    isFormData: boolean = false,
+    serializeParams?: (params: Record<string, any>) => string
   ): Promise<T> {
     try {
       const url = `${this.getApiBaseUrl()}${endpoint}`;
-      
+
       // Use different headers for form data vs JSON
-      const headers = isFormData 
+      const headers = isFormData
         ? { 'Authorization': this.token ? `Token ${this.token}` : '' }
         : this.getApiHeaders();
-      
+
       const response = await axios({
         method,
         url,
         headers,
         params,
-        data
+        data,
+        ...(serializeParams ? { paramsSerializer: { serialize: serializeParams } } : {})
       });
       
       return response.data;
@@ -448,15 +468,29 @@ export class NightVisionService {
         params.limit = options.limit;
       }
       
+      // The scans API filters by numeric status codes via a multi-valued field,
+      // not by these coarse names. Map each name to the matching code(s):
+      // "finished" means any terminal state and "failed" the unsuccessful ones.
+      // Codes: 1 SUCCEEDED, 2 RUNNING, 3 ABORTED, 4 FAILED, 5 TIMED_OUT,
+      // 6 SCHEDULED.
       if (options.status && options.status !== 'all') {
-        params.status = options.status;
+        const statusCodes: Record<string, number[]> = {
+          running: [2],
+          finished: [1, 3, 4, 5],
+          failed: [3, 4, 5]
+        };
+        params.status = statusCodes[options.status] ?? [];
       }
-      
-      // Make API request to list scans
+
+      // Make API request to list scans. Status codes must be sent as repeated
+      // `status=` params, so use the repeated-key serializer for this call.
       const response = await this.apiRequest<any>(
         'scans/',
         'GET',
-        params
+        params,
+        null,
+        false,
+        serializeRepeatedParams
       );
       
       // Format the response according to the requested format
