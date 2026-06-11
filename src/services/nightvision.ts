@@ -592,19 +592,22 @@ export class NightVisionService {
         params.check_kind = options.check_kind;
       }
       
-      // Add each severity as a separate query parameter
-      // This will be serialized as &severity=critical&severity=high etc.
-      params.severity = options.severity;
-      
-      // Add each status as a separate query parameter
-      // This will be serialized as &status=0&status=1 etc.
+      // Filter by severity and status. The API reads these as repeated keys
+      // (severity=CRITICAL&severity=HIGH), so the request below uses the
+      // repeated-key serializer; the default bracketed form is not parsed. The
+      // API's severity choices are uppercase, so the tool's lowercase enum
+      // values are normalized before sending or the request is rejected (400).
+      params.severity = options.severity.map((s) => s.toUpperCase());
       params.status = options.status;
-      
+
       // Make API request to get checks
       const response = await this.apiRequest<any>(
         `scans/${encodeURIComponent(scanId)}/checks/`,
         'GET',
-        params
+        params,
+        null,
+        false,
+        serializeRepeatedParams
       );
       
       // Format the response according to the requested format
@@ -1430,9 +1433,10 @@ This may be due to permissions issues. Try specifying a different output locatio
       // Set page_size with default of 100 if not specified
       params.page_size = options.page_size || 100;
       
-      // Add severity array if provided
+      // Add severity array if provided. The API's severity choices are
+      // uppercase, so normalize the tool's lowercase enum values before sending.
       if (options.severity && options.severity.length > 0) {
-        params.severity = options.severity;
+        params.severity = options.severity.map((s) => s.toUpperCase());
       }
       
       // Add target UUID if provided
@@ -1440,11 +1444,15 @@ This may be due to permissions issues. Try specifying a different output locatio
         params.target = options.target;
       }
       
-      // Make API request to list templates
+      // Make API request to list templates. The severity array must reach the
+      // API as repeated keys, so use the repeated-key serializer.
       const response = await this.apiRequest<any>(
         'nuclei-templates/',
         'GET',
-        params
+        params,
+        null,
+        false,
+        serializeRepeatedParams
       );
       
       // Format the response according to the requested format
