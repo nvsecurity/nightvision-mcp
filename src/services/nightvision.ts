@@ -8,6 +8,7 @@ import { languageOutputPath } from '../utils/output-naming.js';
 import { serializeRepeatedParams } from '../utils/query-params.js';
 import { scanStatusFilterCodes } from '../utils/scan-status.js';
 import { assertValidNucleiTemplatePath } from '../utils/nuclei-template.js';
+import { formatScanChecksText, formatScanChecksTable } from '../utils/scan-check-format.js';
 
 // Promisify execFile for cleaner async/await usage
 const execFileAsync = promisify(execFile);
@@ -614,9 +615,9 @@ export class NightVisionService {
       if (format === 'json') {
         return JSON.stringify(response, null, 2);
       } else if (format === 'text') {
-        return this.formatChecksAsText(response);
+        return formatScanChecksText(response);
       } else if (format === 'table') {
-        return this.formatChecksAsTable(response);
+        return formatScanChecksTable(response);
       }
       
       return JSON.stringify(response);
@@ -624,77 +625,6 @@ export class NightVisionService {
       console.error(`Error getting scan checks: ${error}`);
       throw new Error(`Failed to get scan checks: ${error instanceof Error ? error.message : String(error)}`);
     }
-  }
-
-  /**
-   * Format scan checks as plain text
-   * @param checks Check data from API
-   * @returns Formatted text output
-   */
-  private formatChecksAsText(checks: any): string {
-    if (!checks || !Array.isArray(checks.results)) {
-      return 'No vulnerabilities found or invalid response format.';
-    }
-    
-    const results = checks.results;
-    let output = `Scan Vulnerabilities (${results.length}):\n\n`;
-    
-    for (let i = 0; i < results.length; i++) {
-      const check = results[i];
-      output += `Vulnerability ${i + 1}: ${check.check_kind || 'Unknown'}\n`;
-      output += `ID: ${check.id || 'N/A'}\n`;
-      output += `Severity: ${check.severity || 'N/A'}\n`;
-      output += `Status: ${check.status || 'N/A'}\n`;
-      output += `Path: ${check.path || 'N/A'}\n`;
-      output += `Created: ${check.created || 'N/A'}\n\n`;
-    }
-    
-    if (checks.count > results.length) {
-      output += `Note: Showing ${results.length} of ${checks.count} total vulnerabilities. Use 'limit' and 'offset' to see more.\n`;
-    }
-    
-    return output;
-  }
-
-  /**
-   * Format scan checks as a table
-   * @param checks Check data from API
-   * @returns Formatted table output
-   */
-  private formatChecksAsTable(checks: any): string {
-    if (!checks || !Array.isArray(checks.results)) {
-      return 'No vulnerabilities found or invalid response format.';
-    }
-    
-    const results = checks.results;
-    
-    // Create table headers
-    const headers = ['#', 'Kind', 'Severity', 'Status', 'Path', 'Created'];
-    const rows: string[][] = [];
-    
-    // Add data rows
-    for (let i = 0; i < results.length; i++) {
-      const check = results[i];
-      rows.push([
-        (i + 1).toString(),
-        check.check_kind || 'N/A',
-        check.severity || 'N/A',
-        check.status || 'N/A',
-        check.path || 'N/A',
-        check.created || 'N/A'
-      ]);
-    }
-    
-    // Format as ASCII table
-    const table = this.formatAsTable(headers, rows);
-    
-    // Add pagination info if applicable
-    let output = table;
-    if (checks.count > results.length) {
-      output += `\nNote: Showing ${results.length} of ${checks.count} total vulnerabilities. Use 'limit' and 'offset' to see more.\n`;
-    }
-    
-    return output;
   }
 
   /**
