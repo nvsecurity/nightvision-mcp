@@ -5,6 +5,9 @@ import FormData from 'form-data';
 import { ENVIRONMENT } from '../config/environment.js';
 import { Semaphore } from '../utils/semaphore.js';
 import { languageOutputPath } from '../utils/output-naming.js';
+import { serializeRepeatedParams } from '../utils/query-params.js';
+import { scanStatusFilterCodes } from '../utils/scan-status.js';
+import { assertValidNucleiTemplatePath } from '../utils/nuclei-template.js';
 
 // Promisify execFile for cleaner async/await usage
 const execFileAsync = promisify(execFile);
@@ -20,24 +23,6 @@ const MAX_EXTRACT_CONCURRENCY = Math.max(
   Number(process.env.NIGHTVISION_EXTRACT_CONCURRENCY) || 4
 );
 const extractLimiter = new Semaphore(MAX_EXTRACT_CONCURRENCY);
-
-/**
- * Serialize query parameters so array values become repeated keys
- * (status=1&status=2) rather than the HTTP client's default bracketed form
- * (status[]=1), which the scans API does not parse as the field.
- */
-function serializeRepeatedParams(params: Record<string, any>): string {
-  const search = new URLSearchParams();
-  for (const [key, value] of Object.entries(params)) {
-    if (value === undefined || value === null) continue;
-    if (Array.isArray(value)) {
-      for (const item of value) search.append(key, String(item));
-    } else {
-      search.append(key, String(value));
-    }
-  }
-  return search.toString();
-}
 
 /**
  * Supported output formats for NightVision commands
@@ -468,18 +453,10 @@ export class NightVisionService {
         params.limit = options.limit;
       }
       
-      // The scans API filters by numeric status codes via a multi-valued field,
-      // not by these coarse names. Map each name to the matching code(s):
-      // "finished" means any terminal state and "failed" the unsuccessful ones.
-      // Codes: 1 SUCCEEDED, 2 RUNNING, 3 ABORTED, 4 FAILED, 5 TIMED_OUT,
-      // 6 SCHEDULED.
+      // The scans API filters on numeric status codes through a multi-valued
+      // field, not these coarse names; map each name to the matching code(s).
       if (options.status && options.status !== 'all') {
-        const statusCodes: Record<string, number[]> = {
-          running: [2],
-          finished: [1, 3, 4, 5],
-          failed: [3, 4, 5]
-        };
-        params.status = statusCodes[options.status] ?? [];
+        params.status = scanStatusFilterCodes(options.status);
       }
 
       // Make API request to list scans. Status codes must be sent as repeated
@@ -896,14 +873,9 @@ export class NightVisionService {
       const fs = await import('fs');
       const path = await import('path');
 
-      // Reject paths containing null bytes and require a .yaml/.yml extension
-      // so a non-template file is not read and uploaded by mistake.
-      if (filePath.includes('\0')) {
-        throw new Error('Invalid template file path.');
-      }
-      if (!/\.ya?ml$/i.test(filePath)) {
-        throw new Error('Nuclei template file must be a .yaml or .yml file.');
-      }
+      // Reject a NUL byte and require a .yaml/.yml extension so a non-template
+      // file is not read and uploaded by mistake.
+      assertValidNucleiTemplatePath(filePath);
 
       // Check if file exists
       if (!fs.existsSync(filePath)) {

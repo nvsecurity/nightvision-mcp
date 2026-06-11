@@ -5,6 +5,7 @@ import {
   ListTrafficParamsSchema,
   DownloadTrafficParamsSchema
 } from '../types/index.js';
+import { resolveDownloadDir } from '../utils/download-path.js';
 
 /**
  * Register traffic-related tools with the MCP server
@@ -186,47 +187,24 @@ This tool will open a browser window for you to interact with the target applica
           };
         }
         
-        // Import modules for validating the path
+        // Resolve the download directory (never prompt). A blank or non-absolute
+        // request falls back to the home directory; a non-writable directory
+        // falls back to the home directory and then the system temp directory.
         const path = await import('path');
-        const fs = await import('fs/promises');
+        const fs = await import('fs');
         const os = await import('os');
-        
-        // Resolve the download directory. downloadPath is already a tool parameter,
-        // so use it when given and otherwise default below; we never prompt for it.
-        let downloadPath = (initialDownloadPath ?? '').trim().replace(/^['"]|['"]$/g, '');
-        
-        // If provided path is empty, use home directory
-        if (!downloadPath || downloadPath.trim() === '') {
-          const homeDir = os.homedir();
-          console.error(`Provided downloadPath is empty. Using home directory: ${homeDir}`);
-          downloadPath = homeDir;
-        }
-        // Check if the path is absolute
-        else if (!path.isAbsolute(downloadPath)) {
-          const homeDir = os.homedir();
-          console.error(`Provided path '${downloadPath}' is not absolute. Using home directory instead: ${homeDir}`);
-          downloadPath = homeDir;
-        }
-        
-        // Verify the directory is writable; fall back to the home directory,
-        // then the system temp directory.
-        try {
-          await fs.access(downloadPath, fs.constants.W_OK);
-        } catch {
-          const homeDir = os.homedir();
-          let fallback = os.tmpdir();
-          if (downloadPath !== homeDir) {
-            try {
-              await fs.access(homeDir, fs.constants.W_OK);
-              fallback = homeDir;
-            } catch {
-              // home is not writable either; use the system temp directory
-            }
+
+        const isWritable = (dir: string): boolean => {
+          try {
+            fs.accessSync(dir, fs.constants.W_OK);
+            return true;
+          } catch {
+            return false;
           }
-          console.error(`Provided path '${downloadPath}' is not writable. Falling back to: ${fallback}`);
-          downloadPath = fallback;
-        }
-        
+        };
+        const downloadPath = resolveDownloadDir(initialDownloadPath, os.homedir(), os.tmpdir(), isWritable);
+        console.error(`Resolved download directory: ${downloadPath}`);
+
         // Determine final output path
         const finalOutputPath = output_file 
           ? (path.isAbsolute(output_file) ? output_file : path.join(downloadPath, output_file))
