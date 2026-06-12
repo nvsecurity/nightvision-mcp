@@ -10,6 +10,7 @@ import { scanStatusFilterCodes } from '../utils/scan-status.js';
 import { assertValidNucleiTemplatePath } from '../utils/nuclei-template.js';
 import { formatScanChecksText, formatScanChecksTable } from '../utils/scan-check-format.js';
 import { formatScansTable } from '../utils/scan-list-format.js';
+import { formatScanPathsText, formatScanPathsTable } from '../utils/scan-path-format.js';
 import { matchTargetByName } from '../utils/target-matching.js';
 import type { Target } from '../types/index.js';
 
@@ -655,37 +656,6 @@ export class NightVisionService {
     }
   }
 
-  /**
-   * Format data as an ASCII table
-   * @param headers Table headers
-   * @param rows Table data rows
-   * @returns Formatted table string
-   */
-  private formatAsTable(headers: string[], rows: string[][]): string {
-    if (headers.length === 0 || rows.length === 0) {
-      return 'No data to display';
-    }
-    
-    // Calculate column widths
-    const colWidths = headers.map((h, i) => {
-      const maxDataLength = Math.max(...rows.map(r => r[i]?.toString().length || 0));
-      return Math.max(h.length, maxDataLength);
-    });
-    
-    // Generate header row
-    const headerRow = headers.map((h, i) => h.padEnd(colWidths[i])).join(' | ');
-    
-    // Generate separator row
-    const separatorRow = colWidths.map(w => '-'.repeat(w)).join('-+-');
-    
-    // Generate data rows
-    const dataRows = rows.map(row => 
-      row.map((cell, i) => (cell || '').toString().padEnd(colWidths[i])).join(' | ')
-    );
-    
-    // Combine all rows
-    return [headerRow, separatorRow, ...dataRows].join('\n');
-  }
 
   /**
    * Get checked paths for a scan
@@ -733,86 +703,16 @@ export class NightVisionService {
       if (format === 'json') {
         return JSON.stringify(response, null, 2);
       } else if (format === 'text') {
-        return this.formatPathsAsText(response);
+        return formatScanPathsText(response);
       } else if (format === 'table') {
-        return this.formatPathsAsTable(response);
+        return formatScanPathsTable(response);
       }
-      
+
       return JSON.stringify(response);
     } catch (error) {
       console.error(`Error getting scan paths: ${error}`);
       throw new Error(`Failed to get scan paths: ${error instanceof Error ? error.message : String(error)}`);
     }
-  }
-  
-  /**
-   * Format scan paths as plain text
-   * @param paths Paths data from API
-   * @returns Formatted text output
-   */
-  private formatPathsAsText(paths: any): string {
-    if (!paths || !Array.isArray(paths.results)) {
-      return 'No paths found or invalid response format.';
-    }
-    
-    const results = paths.results;
-    let output = `Scan Checked Paths (${results.length}):\n\n`;
-    
-    for (let i = 0; i < results.length; i++) {
-      const path = results[i];
-      output += `Path ${i + 1}: ${path.request_url || 'N/A'}\n`;
-      output += `Method: ${path.request_method || 'N/A'}\n`;
-      output += `Status Code: ${path.response_status_code || 'N/A'}\n`;
-      output += `Date: ${path.added_date || 'N/A'}\n`;
-      output += `Completed: ${path.completed ? 'Yes' : 'No'}\n\n`;
-    }
-    
-    if (paths.count > results.length) {
-      output += `Note: Showing ${results.length} of ${paths.count} total paths. Use 'page' and 'page_size' parameters for pagination.\n`;
-    }
-    
-    return output;
-  }
-
-  /**
-   * Format scan paths as a table
-   * @param paths Paths data from API
-   * @returns Formatted table output
-   */
-  private formatPathsAsTable(paths: any): string {
-    if (!paths || !Array.isArray(paths.results)) {
-      return 'No paths found or invalid response format.';
-    }
-    
-    const results = paths.results;
-    
-    // Create table headers
-    const headers = ['#', 'Method', 'URL', 'Status', 'Completed', 'Date'];
-    const rows: string[][] = [];
-    
-    // Add data rows
-    for (let i = 0; i < results.length; i++) {
-      const path = results[i];
-      rows.push([
-        (i + 1).toString(),
-        path.request_method || 'N/A',
-        path.request_url || 'N/A',
-        (path.response_status_code || 'N/A').toString(),
-        path.completed ? 'Yes' : 'No',
-        path.added_date || 'N/A'
-      ]);
-    }
-    
-    // Format as ASCII table
-    const table = this.formatAsTable(headers, rows);
-    
-    // Add pagination info if applicable
-    let output = table;
-    if (paths.count > results.length) {
-      output += `\nNote: Showing ${results.length} of ${paths.count} total paths. Use 'page' and 'page_size' parameters for pagination.\n`;
-    }
-    
-    return output;
   }
 
   /**
