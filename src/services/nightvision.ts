@@ -10,6 +10,8 @@ import { scanStatusFilterCodes } from '../utils/scan-status.js';
 import { assertValidNucleiTemplatePath } from '../utils/nuclei-template.js';
 import { formatScanChecksText, formatScanChecksTable } from '../utils/scan-check-format.js';
 import { formatScansTable } from '../utils/scan-list-format.js';
+import { matchTargetByName } from '../utils/target-matching.js';
+import type { Target } from '../types/index.js';
 
 // Promisify execFile for cleaner async/await usage
 const execFileAsync = promisify(execFile);
@@ -436,21 +438,29 @@ export class NightVisionService {
       // Use API endpoint instead of CLI - based on https://docs.nightvision.net/reference/scans_list
       console.error(`Listing scans via API endpoint...`);
       
-      // Build query parameters
+      // Build query parameters. The scans endpoint scopes by `target` and
+      // `project`, each a repeated-key list of UUIDs (NV-4468); the by-name
+      // inputs are resolved to ids before the request.
       const params: Record<string, any> = {};
-      
+
       if (options.target) {
-        params.target_name = options.target;
+        const targetId = await this.resolveTargetId(
+          options.target,
+          options.project,
+          options.project_id
+        );
+        params.target = [targetId];
       }
-      
-      if (options.project) {
-        params.project_name = options.project;
-      }
-      
+
+      // Project scoping: a project UUID maps straight through; a project name is
+      // resolved to its id.
       if (options.project_id) {
-        params.project_id = options.project_id;
+        params.project = [options.project_id];
+      } else if (options.project) {
+        const project = await this.getProjectByName(options.project);
+        params.project = [project.id];
       }
-      
+
       if (options.limit) {
         params.limit = options.limit;
       }
@@ -485,6 +495,41 @@ export class NightVisionService {
       console.error(`Error listing scans: ${error.message}`);
       throw new Error(`Failed to list scans: ${error.message}`);
     }
+  }
+
+  /**
+   * Resolve a target name to its id for scan filtering. Target names are unique
+   * only within a project, so a name shared across projects must be narrowed by
+   * project name or id; an unresolvable or ambiguous name is an error rather
+   * than a silently broadened result.
+   * @param name Target name to resolve
+   * @param project Optional project name to disambiguate the target
+   * @param projectId Optional project UUID to disambiguate the target
+   * @returns The matching target's UUID
+   */
+  private async resolveTargetId(
+    name: string,
+    project?: string,
+    projectId?: string
+  ): Promise<string> {
+    const allTargets = await this.listTargets(true, undefined, 'json');
+    let targets: Target[];
+    try {
+      targets = JSON.parse(allTargets);
+    } catch {
+      throw new Error(`Could not parse the target list while resolving target "${name}".`);
+    }
+    const match = matchTargetByName(targets, name, project, projectId);
+    if (match.status === 'ambiguous') {
+      throw new Error(
+        `Multiple targets named "${name}" exist (in projects: ${match.projects.join(', ')}). ` +
+        `Specify 'project' or 'project_id' to identify which one.`
+      );
+    }
+    if (match.status === 'not-found') {
+      throw new Error(`No target found with name: ${name}`);
+    }
+    return match.target.id;
   }
 
   /**

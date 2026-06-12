@@ -8,7 +8,7 @@ import {
   CreateTargetParamsSchema,
   DeleteTargetParamsSchema
 } from '../types/index.js';
-import { matchTargetByName } from './target-matching.js';
+import { matchTargetByName } from '../utils/target-matching.js';
 
 /**
  * Register target-related tools with the MCP server
