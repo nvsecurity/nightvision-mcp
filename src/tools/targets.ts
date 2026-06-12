@@ -8,6 +8,7 @@ import {
   CreateTargetParamsSchema,
   DeleteTargetParamsSchema
 } from '../types/index.js';
+import { matchTargetByName } from '../utils/target-matching.js';
 
 /**
  * Register target-related tools with the MCP server
@@ -22,7 +23,7 @@ export function registerTargetTools(server: McpServer): void {
   server.tool(
     "list-targets",
     ListTargetsParamsSchema,
-    async (args: any, _extra: any) => {
+    async (args, _extra) => {
       try {
         const { all, projects, format } = args;
         
@@ -95,50 +96,86 @@ export function registerTargetTools(server: McpServer): void {
   server.tool(
     "get-target-details",
     GetTargetDetailsParamsSchema,
-    async (args: any, _extra: any) => {
+    async (args, _extra) => {
       try {
-        const { name, format } = args;
-        
+        const { name, project, project_id } = args;
+
         // Check if authenticated
         if (!nightvisionService.getToken()) {
           return {
-            content: [{ 
-              type: "text" as const, 
-              text: "Not authenticated. Please use the authenticate tool to set a token first." 
+            content: [{
+              type: "text" as const,
+              text: "Not authenticated. Please use the authenticate tool to set a token first."
             }],
             isError: true
           };
         }
-        
+
         // First list all targets to find the one with matching name
-        const allTargets = await nightvisionService.listTargets(false, undefined, "json");
+        const allTargets = await nightvisionService.listTargets(true, undefined, "json");
         
         try {
-          const targets = JSON.parse(allTargets) as Target[];
-          const targetMatch = targets.find((t) => t.name === name);
-          
-          if (!targetMatch) {
+          // Check if allTargets is not empty or null before parsing
+          if (!allTargets) {
             return {
               content: [{ 
                 type: "text" as const, 
-                text: `No target found with name: ${name}`
+                text: "No target data received. Please try again later."
               }],
               isError: true
             };
           }
           
+          // Try to parse the JSON
+          let targets;
+          try {
+            targets = JSON.parse(allTargets) as Target[];
+          } catch (jsonError) {
+            return {
+              content: [{ 
+                type: "text" as const, 
+                text: `Error parsing target data: ${jsonError}`
+              }],
+              isError: true
+            };
+          }
+          
+          // Names are unique only within a project, so refuse to guess when the
+          // name is ambiguous across projects.
+          const match = matchTargetByName(targets, name, project, project_id);
+
+          if (match.status === "ambiguous") {
+            return {
+              content: [{
+                type: "text" as const,
+                text: `Multiple targets named "${name}" exist (in projects: ${match.projects.join(", ")}). Specify 'project' or 'project_id' to identify which one.`
+              }],
+              isError: true
+            };
+          }
+
+          if (match.status === "not-found") {
+            return {
+              content: [{
+                type: "text" as const,
+                text: `No target found with name: ${name}`
+              }],
+              isError: true
+            };
+          }
+
           // Return detailed information about the found target
           return {
-            content: [{ 
-              type: "text" as const, 
-              text: JSON.stringify(targetMatch, null, 2)
+            content: [{
+              type: "text" as const,
+              text: JSON.stringify(match.target, null, 2)
             }]
           };
-        } catch (parseError) {
+        } catch (error: any) {
           return {
             content: [{ 
               type: "text" as const, 
-              text: `Error parsing target data: ${parseError}`
+              text: `Error getting target details: ${error.message}` 
             }],
             isError: true
           };
@@ -161,7 +198,7 @@ export function registerTargetTools(server: McpServer): void {
   server.tool(
     "create-target",
     CreateTargetParamsSchema,
-    async (args: any, _extra: any) => {
+    async (args, _extra) => {
       try {
         const { 
           name, 
@@ -258,9 +295,9 @@ export function registerTargetTools(server: McpServer): void {
   server.tool(
     "delete-target",
     DeleteTargetParamsSchema,
-    async (args: any, _extra: any) => {
+    async (args, _extra) => {
       try {
-        const { name, project, project_id, format } = args;
+        const { name, format } = args;
         
         // Check if authenticated
         if (!nightvisionService.getToken()) {
@@ -273,24 +310,79 @@ export function registerTargetTools(server: McpServer): void {
           };
         }
         
-        // Confirm target exists before deleting
+        // Confirm target exists before deleting and get project info
+        let project = args.project, project_id = args.project_id;
         try {
-          const allTargets = await nightvisionService.listTargets(false, undefined, "json");
-          const targets = JSON.parse(allTargets) as Target[];
-          const targetExists = targets.some(t => t.name === name);
+          const allTargets = await nightvisionService.listTargets(true, undefined, "json");
           
-          if (!targetExists) {
+          // Check if allTargets is not empty or null before parsing
+          if (!allTargets) {
             return {
               content: [{ 
                 type: "text" as const, 
-                text: `Target "${name}" not found. Please check the name and try again.` 
+                text: "No target data received. Please try again later."
               }],
               isError: true
             };
           }
+          
+          // Try to parse the JSON
+          let targets;
+          try {
+            targets = JSON.parse(allTargets) as Target[];
+          } catch (jsonError) {
+            return {
+              content: [{ 
+                type: "text" as const, 
+                text: `Error parsing target data: ${jsonError}`
+              }],
+              isError: true
+            };
+          }
+          
+          // Names are unique only within a project, so refuse to guess when the
+          // name is ambiguous across projects.
+          const match = matchTargetByName(targets, name, args.project, args.project_id);
+
+          if (match.status === "ambiguous") {
+            return {
+              content: [{
+                type: "text" as const,
+                text: `Multiple targets named "${name}" exist (in projects: ${match.projects.join(", ")}). Specify 'project' or 'project_id' to identify which one to delete.`
+              }],
+              isError: true
+            };
+          }
+
+          if (match.status === "not-found") {
+            return {
+              content: [{
+                type: "text" as const,
+                text: `Target "${name}" not found. Please check the name and try again.`
+              }],
+              isError: true
+            };
+          }
+
+          // Use the resolved target's project info
+          project = match.target.project_name;
+          project_id = match.target.project_id;
+          
         } catch (error) {
           console.error(`Error checking if target exists: ${error}`);
-          // Continue with deletion attempt even if we couldn't confirm existence
+          // The existence/ambiguity pre-check could not run. If the caller did
+          // not supply a project or project_id, refuse rather than guess which
+          // target to delete; when one was supplied the delete is already
+          // unambiguous, so let it proceed.
+          if (!args.project && !args.project_id) {
+            return {
+              content: [{
+                type: "text" as const,
+                text: `Could not verify the target "${name}" before deleting (failed to list targets). Please try again, or pass 'project' or 'project_id' to delete it directly.`
+              }],
+              isError: true
+            };
+          }
         }
         
         // Delete the target

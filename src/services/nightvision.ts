@@ -1,11 +1,35 @@
-import { exec } from 'child_process';
+import { execFile } from 'child_process';
 import { promisify } from 'util';
 import axios from 'axios';
 import FormData from 'form-data';
 import { ENVIRONMENT } from '../config/environment.js';
+import { Semaphore } from '../utils/semaphore.js';
+import { languageOutputPath } from '../utils/output-naming.js';
+import { resolveActualOutputFile } from '../utils/discover-output-path.js';
+import { extractCliVersion } from '../utils/cli-version.js';
+import { serializeRepeatedParams } from '../utils/query-params.js';
+import { scanStatusFilterCodes } from '../utils/scan-status.js';
+import { assertValidNucleiTemplatePath } from '../utils/nuclei-template.js';
+import { formatScanChecksText, formatScanChecksTable } from '../utils/scan-check-format.js';
+import { formatScansTable } from '../utils/scan-list-format.js';
+import { formatScanPathsText, formatScanPathsTable } from '../utils/scan-path-format.js';
+import { matchTargetByName } from '../utils/target-matching.js';
+import type { Target } from '../types/index.js';
 
-// Promisify exec for cleaner async/await usage
-const execAsync = promisify(exec);
+// Promisify execFile for cleaner async/await usage
+const execFileAsync = promisify(execFile);
+
+/**
+ * Cap the number of simultaneous `nightvision swagger extract` subprocesses
+ * (each runs the heavy api-excavator engine). Running many at once under the
+ * single server process can exhaust local memory, CPU, and file descriptors.
+ * Override the limit with the NIGHTVISION_EXTRACT_CONCURRENCY environment variable.
+ */
+const MAX_EXTRACT_CONCURRENCY = Math.max(
+  1,
+  Number(process.env.NIGHTVISION_EXTRACT_CONCURRENCY) || 4
+);
+const extractLimiter = new Semaphore(MAX_EXTRACT_CONCURRENCY);
 
 /**
  * Supported output formats for NightVision commands
@@ -63,26 +87,28 @@ export class NightVisionService {
    * @returns Response data
    */
   private async apiRequest<T>(
-    endpoint: string, 
+    endpoint: string,
     method: 'GET' | 'POST' | 'PUT' | 'DELETE' = 'GET',
     params: Record<string, any> = {},
     data: any = null,
-    isFormData: boolean = false
+    isFormData: boolean = false,
+    serializeParams?: (params: Record<string, any>) => string
   ): Promise<T> {
     try {
       const url = `${this.getApiBaseUrl()}${endpoint}`;
-      
+
       // Use different headers for form data vs JSON
-      const headers = isFormData 
+      const headers = isFormData
         ? { 'Authorization': this.token ? `Token ${this.token}` : '' }
         : this.getApiHeaders();
-      
+
       const response = await axios({
         method,
         url,
         headers,
         params,
-        data
+        data,
+        ...(serializeParams ? { paramsSerializer: { serialize: serializeParams } } : {})
       });
       
       return response.data;
@@ -100,13 +126,15 @@ export class NightVisionService {
    * Execute a NightVision CLI command
    * @param args Command arguments to pass to the CLI
    * @param format Output format (text, json, table)
-   * @param skipToken Whether to skip adding the current token to the command
+   * @param skipToken Whether to omit the current token from the command environment
+   * @param cwd Optional working directory for the spawned command
    * @returns Command output
    */
   async executeCommand(
     args: string[],
     format: OutputFormat = 'text',
-    skipToken: boolean = false
+    skipToken: boolean = false,
+    cwd?: string
   ): Promise<string> {
     try {
       // Build the command with format flag
@@ -120,21 +148,21 @@ export class NightVisionService {
       // Always specify the production API URL to avoid using test environments
       commandArgs.push('--api-url', ENVIRONMENT.CURRENT_API_URL);
       
-      // Add token if available and not skipped
+      // Pass the token to the CLI via the environment (read as NIGHTVISION_TOKEN)
+      // rather than on the command line, so it stays out of argv and logs.
+      const env = { ...process.env };
       if (this.token && !skipToken) {
-        commandArgs.push('--token', this.token);
+        env.NIGHTVISION_TOKEN = this.token;
       }
       
-      // Create the full command
-      const command = ['nightvision', ...commandArgs]
-        .map(arg => arg.includes(' ') ? `"${arg}"` : arg)
-        .join(' ');
-      
-      console.error(`Executing: ${command}`);
-      
-      // Execute the command directly with increased buffer size (50MB)
-      const { stdout, stderr } = await execAsync(command, { 
-        maxBuffer: 50 * 1024 * 1024 // 50MB buffer size (default is 1MB)
+      console.error(`Executing: ${['nightvision', ...commandArgs].join(' ')}`);
+
+      // Invoke the binary directly with an argument vector (no shell), with an
+      // increased buffer size (50MB)
+      const { stdout, stderr } = await execFileAsync('nightvision', commandArgs, {
+        maxBuffer: 50 * 1024 * 1024, // 50MB buffer size (default is 1MB)
+        env,
+        cwd
       });
       
       // Handle warnings/errors in stderr
@@ -167,6 +195,20 @@ export class NightVisionService {
       return false;
     }
   }
+
+  /**
+   * Get the installed NightVision CLI version as major.minor.patch.
+   * @returns The version string, or null if it cannot be determined (for
+   *   example a dev build that reports no version number)
+   */
+  async getCliVersion(): Promise<string | null> {
+    try {
+      const output = await this.executeCommand(['version']);
+      return extractCliVersion(output);
+    } catch {
+      return null;
+    }
+  }
   
   /**
    * Create a new authentication token
@@ -179,7 +221,7 @@ export class NightVisionService {
       // First, attempt to login to NightVision CLI (interactive process)
       try {
         console.error("Attempting to login to NightVision before creating a new token...");
-        await execAsync(`nightvision login --api-url ${ENVIRONMENT.CURRENT_API_URL}`);
+        await execFileAsync('nightvision', ['login', '--api-url', ENVIRONMENT.CURRENT_API_URL]);
         console.error("Login completed successfully.");
       } catch (loginError: any) {
         console.error(`Login attempt encountered an error: ${loginError.message}`);
@@ -413,59 +455,55 @@ export class NightVisionService {
       // Use API endpoint instead of CLI - based on https://docs.nightvision.net/reference/scans_list
       console.error(`Listing scans via API endpoint...`);
       
-      // Build query parameters
+      // Build query parameters. The scans endpoint scopes by `target` and
+      // `project`, each a repeated-key list of UUIDs (NV-4468); the by-name
+      // inputs are resolved to ids before the request.
       const params: Record<string, any> = {};
-      
+
       if (options.target) {
-        params.target_name = options.target;
+        const targetId = await this.resolveTargetId(
+          options.target,
+          options.project,
+          options.project_id
+        );
+        params.target = [targetId];
       }
-      
-      if (options.project) {
-        params.project_name = options.project;
-      }
-      
+
+      // Project scoping: a project UUID maps straight through; a project name is
+      // resolved to its id.
       if (options.project_id) {
-        params.project_id = options.project_id;
+        params.project = [options.project_id];
+      } else if (options.project) {
+        const project = await this.getProjectByName(options.project);
+        params.project = [project.id];
       }
-      
+
       if (options.limit) {
         params.limit = options.limit;
       }
       
+      // The scans API filters on numeric status codes through a multi-valued
+      // field, not these coarse names; map each name to the matching code(s).
       if (options.status && options.status !== 'all') {
-        params.status = options.status;
+        params.status = scanStatusFilterCodes(options.status);
       }
-      
-      // Make API request to list scans
+
+      // Make API request to list scans. Status codes must be sent as repeated
+      // `status=` params, so use the repeated-key serializer for this call.
       const response = await this.apiRequest<any>(
         'scans/',
         'GET',
-        params
+        params,
+        null,
+        false,
+        serializeRepeatedParams
       );
       
       // Format the response according to the requested format
       if (format === 'json') {
         return JSON.stringify(response, null, 2);
       } else if (format === 'table') {
-        // Create a simple table format for text output
-        // This is a basic implementation - could be improved
-        const headers = ['ID', 'Target', 'Status', 'Created', 'Project'];
-        const rows = response.results.map((scan: any) => [
-          scan.id,
-          scan.target?.name || 'N/A',
-          scan.status || 'N/A',
-          scan.created || 'N/A',
-          scan.project?.name || 'N/A'
-        ]);
-        
-        // Simple table formatting
-        const table = [
-          headers.join('\t'),
-          headers.map(() => '----').join('\t'),
-          ...rows.map((row: string[]) => row.join('\t'))
-        ].join('\n');
-        
-        return table;
+        return formatScansTable(response);
       }
       
       // Default to just returning the raw data as string
@@ -474,6 +512,41 @@ export class NightVisionService {
       console.error(`Error listing scans: ${error.message}`);
       throw new Error(`Failed to list scans: ${error.message}`);
     }
+  }
+
+  /**
+   * Resolve a target name to its id for scan filtering. Target names are unique
+   * only within a project, so a name shared across projects must be narrowed by
+   * project name or id; an unresolvable or ambiguous name is an error rather
+   * than a silently broadened result.
+   * @param name Target name to resolve
+   * @param project Optional project name to disambiguate the target
+   * @param projectId Optional project UUID to disambiguate the target
+   * @returns The matching target's UUID
+   */
+  private async resolveTargetId(
+    name: string,
+    project?: string,
+    projectId?: string
+  ): Promise<string> {
+    const allTargets = await this.listTargets(true, undefined, 'json');
+    let targets: Target[];
+    try {
+      targets = JSON.parse(allTargets);
+    } catch {
+      throw new Error(`Could not parse the target list while resolving target "${name}".`);
+    }
+    const match = matchTargetByName(targets, name, project, projectId);
+    if (match.status === 'ambiguous') {
+      throw new Error(
+        `Multiple targets named "${name}" exist (in projects: ${match.projects.join(', ')}). ` +
+        `Specify 'project' or 'project_id' to identify which one.`
+      );
+    }
+    if (match.status === 'not-found') {
+      throw new Error(`No target found with name: ${name}`);
+    }
+    return match.target.id;
   }
 
   /**
@@ -492,7 +565,7 @@ export class NightVisionService {
       
       // Make API request to get scan details
       const response = await this.apiRequest<any>(
-        `scans/${scanId}/`,
+        `scans/${encodeURIComponent(scanId)}/`,
         'GET'
       );
       
@@ -565,28 +638,31 @@ export class NightVisionService {
         params.check_kind = options.check_kind;
       }
       
-      // Add each severity as a separate query parameter
-      // This will be serialized as &severity=critical&severity=high etc.
-      params.severity = options.severity;
-      
-      // Add each status as a separate query parameter
-      // This will be serialized as &status=0&status=1 etc.
+      // Filter by severity and status. The API reads these as repeated keys
+      // (severity=CRITICAL&severity=HIGH), so the request below uses the
+      // repeated-key serializer; the default bracketed form is not parsed. The
+      // API's severity choices are uppercase, so the tool's lowercase enum
+      // values are normalized before sending or the request is rejected (400).
+      params.severity = options.severity.map((s) => s.toUpperCase());
       params.status = options.status;
-      
+
       // Make API request to get checks
       const response = await this.apiRequest<any>(
-        `scans/${scanId}/checks/`,
+        `scans/${encodeURIComponent(scanId)}/checks/`,
         'GET',
-        params
+        params,
+        null,
+        false,
+        serializeRepeatedParams
       );
       
       // Format the response according to the requested format
       if (format === 'json') {
         return JSON.stringify(response, null, 2);
       } else if (format === 'text') {
-        return this.formatChecksAsText(response);
+        return formatScanChecksText(response);
       } else if (format === 'table') {
-        return this.formatChecksAsTable(response);
+        return formatScanChecksTable(response);
       }
       
       return JSON.stringify(response);
@@ -596,108 +672,6 @@ export class NightVisionService {
     }
   }
 
-  /**
-   * Format scan checks as plain text
-   * @param checks Check data from API
-   * @returns Formatted text output
-   */
-  private formatChecksAsText(checks: any): string {
-    if (!checks || !Array.isArray(checks.results)) {
-      return 'No vulnerabilities found or invalid response format.';
-    }
-    
-    const results = checks.results;
-    let output = `Scan Vulnerabilities (${results.length}):\n\n`;
-    
-    for (let i = 0; i < results.length; i++) {
-      const check = results[i];
-      output += `Vulnerability ${i + 1}: ${check.check_kind || 'Unknown'}\n`;
-      output += `ID: ${check.id || 'N/A'}\n`;
-      output += `Severity: ${check.severity || 'N/A'}\n`;
-      output += `Status: ${check.status || 'N/A'}\n`;
-      output += `Path: ${check.path || 'N/A'}\n`;
-      output += `Created: ${check.created || 'N/A'}\n\n`;
-    }
-    
-    if (checks.count > results.length) {
-      output += `Note: Showing ${results.length} of ${checks.count} total vulnerabilities. Use 'limit' and 'offset' to see more.\n`;
-    }
-    
-    return output;
-  }
-
-  /**
-   * Format scan checks as a table
-   * @param checks Check data from API
-   * @returns Formatted table output
-   */
-  private formatChecksAsTable(checks: any): string {
-    if (!checks || !Array.isArray(checks.results)) {
-      return 'No vulnerabilities found or invalid response format.';
-    }
-    
-    const results = checks.results;
-    
-    // Create table headers
-    const headers = ['#', 'Kind', 'Severity', 'Status', 'Path', 'Created'];
-    const rows: string[][] = [];
-    
-    // Add data rows
-    for (let i = 0; i < results.length; i++) {
-      const check = results[i];
-      rows.push([
-        (i + 1).toString(),
-        check.check_kind || 'N/A',
-        check.severity || 'N/A',
-        check.status || 'N/A',
-        check.path || 'N/A',
-        check.created || 'N/A'
-      ]);
-    }
-    
-    // Format as ASCII table
-    const table = this.formatAsTable(headers, rows);
-    
-    // Add pagination info if applicable
-    let output = table;
-    if (checks.count > results.length) {
-      output += `\nNote: Showing ${results.length} of ${checks.count} total vulnerabilities. Use 'limit' and 'offset' to see more.\n`;
-    }
-    
-    return output;
-  }
-
-  /**
-   * Format data as an ASCII table
-   * @param headers Table headers
-   * @param rows Table data rows
-   * @returns Formatted table string
-   */
-  private formatAsTable(headers: string[], rows: string[][]): string {
-    if (headers.length === 0 || rows.length === 0) {
-      return 'No data to display';
-    }
-    
-    // Calculate column widths
-    const colWidths = headers.map((h, i) => {
-      const maxDataLength = Math.max(...rows.map(r => r[i]?.toString().length || 0));
-      return Math.max(h.length, maxDataLength);
-    });
-    
-    // Generate header row
-    const headerRow = headers.map((h, i) => h.padEnd(colWidths[i])).join(' | ');
-    
-    // Generate separator row
-    const separatorRow = colWidths.map(w => '-'.repeat(w)).join('-+-');
-    
-    // Generate data rows
-    const dataRows = rows.map(row => 
-      row.map((cell, i) => (cell || '').toString().padEnd(colWidths[i])).join(' | ')
-    );
-    
-    // Combine all rows
-    return [headerRow, separatorRow, ...dataRows].join('\n');
-  }
 
   /**
    * Get checked paths for a scan
@@ -736,7 +710,7 @@ export class NightVisionService {
       
       // Make API request to get paths
       const response = await this.apiRequest<any>(
-        `scans/${scanId}/paths/`,
+        `scans/${encodeURIComponent(scanId)}/paths/`,
         'GET',
         params
       );
@@ -745,86 +719,16 @@ export class NightVisionService {
       if (format === 'json') {
         return JSON.stringify(response, null, 2);
       } else if (format === 'text') {
-        return this.formatPathsAsText(response);
+        return formatScanPathsText(response);
       } else if (format === 'table') {
-        return this.formatPathsAsTable(response);
+        return formatScanPathsTable(response);
       }
-      
+
       return JSON.stringify(response);
     } catch (error) {
       console.error(`Error getting scan paths: ${error}`);
       throw new Error(`Failed to get scan paths: ${error instanceof Error ? error.message : String(error)}`);
     }
-  }
-  
-  /**
-   * Format scan paths as plain text
-   * @param paths Paths data from API
-   * @returns Formatted text output
-   */
-  private formatPathsAsText(paths: any): string {
-    if (!paths || !Array.isArray(paths.results)) {
-      return 'No paths found or invalid response format.';
-    }
-    
-    const results = paths.results;
-    let output = `Scan Checked Paths (${results.length}):\n\n`;
-    
-    for (let i = 0; i < results.length; i++) {
-      const path = results[i];
-      output += `Path ${i + 1}: ${path.request_url || 'N/A'}\n`;
-      output += `Method: ${path.request_method || 'N/A'}\n`;
-      output += `Status Code: ${path.response_status_code || 'N/A'}\n`;
-      output += `Date: ${path.added_date || 'N/A'}\n`;
-      output += `Completed: ${path.completed ? 'Yes' : 'No'}\n\n`;
-    }
-    
-    if (paths.count > results.length) {
-      output += `Note: Showing ${results.length} of ${paths.count} total paths. Use 'page' and 'page_size' parameters for pagination.\n`;
-    }
-    
-    return output;
-  }
-
-  /**
-   * Format scan paths as a table
-   * @param paths Paths data from API
-   * @returns Formatted table output
-   */
-  private formatPathsAsTable(paths: any): string {
-    if (!paths || !Array.isArray(paths.results)) {
-      return 'No paths found or invalid response format.';
-    }
-    
-    const results = paths.results;
-    
-    // Create table headers
-    const headers = ['#', 'Method', 'URL', 'Status', 'Completed', 'Date'];
-    const rows: string[][] = [];
-    
-    // Add data rows
-    for (let i = 0; i < results.length; i++) {
-      const path = results[i];
-      rows.push([
-        (i + 1).toString(),
-        path.request_method || 'N/A',
-        path.request_url || 'N/A',
-        (path.response_status_code || 'N/A').toString(),
-        path.completed ? 'Yes' : 'No',
-        path.added_date || 'N/A'
-      ]);
-    }
-    
-    // Format as ASCII table
-    const table = this.formatAsTable(headers, rows);
-    
-    // Add pagination info if applicable
-    let output = table;
-    if (paths.count > results.length) {
-      output += `\nNote: Showing ${results.length} of ${paths.count} total paths. Use 'page' and 'page_size' parameters for pagination.\n`;
-    }
-    
-    return output;
   }
 
   /**
@@ -845,7 +749,11 @@ export class NightVisionService {
       // Import required modules
       const fs = await import('fs');
       const path = await import('path');
-      
+
+      // Reject a NUL byte and require a .yaml/.yml extension so a non-template
+      // file is not read and uploaded by mistake.
+      assertValidNucleiTemplatePath(filePath);
+
       // Check if file exists
       if (!fs.existsSync(filePath)) {
         throw new Error(`Nuclei template file not found at: ${filePath}`);
@@ -870,7 +778,7 @@ export class NightVisionService {
       
       // Make API request to upload the template
       const response = await this.apiRequest<any>(
-        `nuclei-templates/${templateId}/upload/`,
+        `nuclei-templates/${encodeURIComponent(templateId)}/upload/`,
         'POST',
         {},
         formData,
@@ -1059,7 +967,7 @@ Created: ${response.created || 'N/A'}`;
   async discoverApi(
     sourcePaths: string[],
     options: {
-      lang: 'csharp' | 'go' | 'java' | 'js' | 'python' | 'ruby';
+      lang: 'csharp' | 'go' | 'java' | 'js' | 'php' | 'python' | 'ruby' | Array<'csharp' | 'go' | 'java' | 'js' | 'php' | 'python' | 'ruby'>;
       target?: string;
       target_id?: string;
       project?: string;
@@ -1069,7 +977,6 @@ Created: ${response.created || 'N/A'}`;
       version?: string;
       no_upload?: boolean;
       dump_code?: boolean;
-      verbose?: boolean;
     },
     format: OutputFormat = 'text',
     projectPath: string
@@ -1098,38 +1005,38 @@ Created: ${response.created || 'N/A'}`;
         }
         return sourcePath;
       });
+
+      // Handle single language or multiple languages
+      let languages: Array<'csharp' | 'go' | 'java' | 'js' | 'php' | 'python' | 'ruby'>;
       
-      // Build the CLI command arguments based on the NightVision CLI
-      const args = ['swagger', 'extract', ...absoluteSourcePaths];
-      
-      // Add mandatory language option
-      if (options.lang) {
-        args.push('--lang', options.lang);
+      if (Array.isArray(options.lang)) {
+        languages = options.lang;
+        console.error(`Multiple languages requested: ${languages.join(', ')}`);
+      } else if (options.lang) {
+        languages = [options.lang];
+        console.error(`Single language requested: ${options.lang}`);
       } else {
         throw new Error("Language is required for API discovery");
       }
-      
-      // Add target information if provided
-      if (options.target) {
-        args.push('--target', options.target);
+
+      // Validate languages
+      if (languages.length === 0) {
+        throw new Error("At least one language must be specified for API discovery");
       }
-      
-      if (options.target_id) {
-        args.push('--target-id', options.target_id);
-      }
-      
-      // Add project information if provided
-      if (options.project) {
-        args.push('--project', options.project);
-      }
-      
-      if (options.project_id) {
-        args.push('--project-id', options.project_id);
-      }
+
+      // Build the CLI command arguments based on the NightVision CLI
+      const args = ['swagger', 'extract', ...absoluteSourcePaths];
       
       // Add output file name with absolute path to a writable directory
-      // Use Node's os.tmpdir() to get system temp directory that should be writable
-      const tempDir = os.tmpdir();
+      // Lazily create a unique per-call temp directory for output redirects, so
+      // concurrent discoveries that share an output base name do not collide.
+      let tempDir: string | null = null;
+      const redirectDir = (): string => {
+        if (tempDir === null) {
+          tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'nightvision-discover-'));
+        }
+        return tempDir;
+      };
       let outputFile: string;
       
       // Handle absolute or relative output paths
@@ -1139,7 +1046,7 @@ Created: ${response.created || 'N/A'}`;
         const basename = path.basename(options.output);
         
         if (dirname === '/' || !fs.existsSync(dirname)) {
-          outputFile = path.join(tempDir, basename);
+          outputFile = path.join(redirectDir(), basename);
           console.error(`Warning: Redirecting output from ${options.output} to ${outputFile} due to potential permissions issues`);
         } else {
           outputFile = options.output;
@@ -1156,78 +1063,193 @@ Created: ${response.created || 'N/A'}`;
         fs.accessSync(testDir, fs.constants.W_OK);
       } catch (err) {
         console.error(`Output directory is not writable, redirecting to temp directory`);
-        outputFile = path.join(tempDir, path.basename(outputFile));
-      }
-      
-      // Add the vetted output file to arguments
-      args.push('--output', outputFile);
-      
-      // Add exclude patterns if provided
-      if (options.exclude) {
-        args.push('--exclude', options.exclude);
-      }
-      
-      // Add version if provided
-      if (options.version) {
-        args.push('--version', options.version);
-      }
-      
-      // Add no-upload flag (default to true for safety)
-      if (options.no_upload !== false) {
-        args.push('--no-upload');
-      }
-      
-      // Add dump-code flag if requested
-      if (options.dump_code) {
-        args.push('--dump-code');
+        outputFile = path.join(redirectDir(), path.basename(outputFile));
       }
 
-      // Remove verbose flag completely - always keep verbosity off to prevent large outputs
-      // Ignoring the options.verbose parameter input
-      // if (options.verbose) {
-      //   args.push('--verbose');
-      // }
-      
-      try {
-        // Execute the CLI command
-        const result = await this.executeCommand(args, format);
+      // The CLI defaults to YAML and ignores the output extension, so derive the
+      // file format from the requested extension and pass it explicitly; a
+      // .json request then actually produces JSON rather than YAML (NV-4473).
+      const fileFormat = /\.json$/i.test(outputFile) ? 'json' : 'yml';
+
+      // For multiple languages, we need to run the command multiple times
+      // and merge the results
+      if (languages.length > 1) {
+        // Use a different output file for each language
+        const results: string[] = [];
+        const outputs: string[] = [];
+
+        for (const lang of languages) {
+          const langOutputFile = languageOutputPath(outputFile, lang);
+          console.error(`Processing language: ${lang} with output: ${langOutputFile}`);
+          
+          // Build command arguments for this language
+          const langArgs = [...args];
+          
+          // Add language option
+          langArgs.push('--lang', lang);
+          
+          // Add target information if provided
+          if (options.target) {
+            langArgs.push('--target', options.target);
+          }
+          
+          if (options.target_id) {
+            langArgs.push('--target-id', options.target_id);
+          }
+          
+          // Add project information if provided
+          if (options.project) {
+            langArgs.push('--project', options.project);
+          }
+          
+          if (options.project_id) {
+            langArgs.push('--project-id', options.project_id);
+          }
+          
+          // Add the vetted output file and the matching file format
+          langArgs.push('--output', langOutputFile);
+          langArgs.push('--file-format', fileFormat);
+          
+          // Add exclude patterns if provided
+          if (options.exclude) {
+            langArgs.push('--exclude', options.exclude);
+          }
+          
+          // Add version if provided
+          if (options.version) {
+            langArgs.push('--version', options.version);
+          }
+          
+          // Add no-upload flag (default to true for safety)
+          if (options.no_upload !== false) {
+            langArgs.push('--no-upload');
+          }
+          
+          // Add dump-code flag if requested
+          if (options.dump_code) {
+            langArgs.push('--dump-code');
+          }
+
+          try {
+            // Execute the CLI command for this language (concurrency-limited)
+            const result = await extractLimiter.run(() => this.executeCommand(langArgs, format));
+            results.push(`🔍 Language: ${lang}\n${result}`);
+            // Report the file the CLI actually wrote, not the requested path:
+            // the CLI forces a .yml extension on its YAML output (NV-4473).
+            const langActual = resolveActualOutputFile(langOutputFile, fs.existsSync);
+            if (langActual) {
+              outputs.push(langActual);
+            }
+          } catch (cliError: any) {
+            // Log the error but continue with other languages
+            const errorMessage = cliError.message;
+            console.error(`Error discovering API for language ${lang}: ${errorMessage}`);
+            results.push(`❌ Language: ${lang}\n${errorMessage}`);
+          }
+        }
+
+        // Combine the results
+        const combinedResult = results.join('\n\n---\n\n');
+        const outputInfo = outputs.length
+          ? `\nOpenAPI Specification Files:\n${outputs.map(o => `- ${o}`).join('\n')}`
+          : `\nNo OpenAPI specification files were produced.`;
         
-        // Log the raw command output to help with debugging
-        console.error(`Command result: ${result.substring(0, 500)}${result.length > 500 ? '...' : ''}`);
-        console.error(`Output file location: ${outputFile}`);
+        return combinedResult + outputInfo;
+      } else {
+        // Single language processing (original implementation)
+        // Add mandatory language option
+        args.push('--lang', languages[0]);
         
-        // Add information about output file path to the result
-        // but preserve the original command output
-        const outputInfo = `\nOpenAPI Specification File: ${outputFile}`;
-        
-        // Make sure we're returning the full CLI output followed by our output file information
-        console.error(`Returning the command output with file path information appended`);
-        return result + outputInfo;
-      } catch (cliError: any) {
-        // Enrich error message with more context about the command
-        const errorMessage = cliError.message;
-        
-        if (errorMessage.includes("0 paths discovered")) {
-          // Provide lightweight error message
-          throw new Error(`No API endpoints found in [${sourcePaths.join(', ')}] using ${options.lang}. Try more specific directories.`);
+        // Add target information if provided
+        if (options.target) {
+          args.push('--target', options.target);
         }
         
-        // Check for file system errors and handle them explicitly
-        if (errorMessage.includes("read-only file system") || 
-            errorMessage.includes("permission denied") || 
-            errorMessage.includes("no such file or directory")) {
+        if (options.target_id) {
+          args.push('--target-id', options.target_id);
+        }
+        
+        // Add project information if provided
+        if (options.project) {
+          args.push('--project', options.project);
+        }
+        
+        if (options.project_id) {
+          args.push('--project-id', options.project_id);
+        }
+        
+        // Add the vetted output file and the matching file format
+        args.push('--output', outputFile);
+        args.push('--file-format', fileFormat);
+        
+        // Add exclude patterns if provided
+        if (options.exclude) {
+          args.push('--exclude', options.exclude);
+        }
+        
+        // Add version if provided
+        if (options.version) {
+          args.push('--version', options.version);
+        }
+        
+        // Add no-upload flag (default to true for safety)
+        if (options.no_upload !== false) {
+          args.push('--no-upload');
+        }
+        
+        // Add dump-code flag if requested
+        if (options.dump_code) {
+          args.push('--dump-code');
+        }
+
+        try {
+          // Execute the CLI command (concurrency-limited)
+          const result = await extractLimiter.run(() => this.executeCommand(args, format));
           
-          throw new Error(`File system error: Unable to write to ${outputFile}. 
+          // Log the raw command output to help with debugging
+          console.error(`Command result: ${result.substring(0, 500)}${result.length > 500 ? '...' : ''}`);
+          console.error(`Output file location: ${outputFile}`);
+
+          // The CLI forces a .yml extension on its YAML output, so the file it
+          // actually wrote may differ from the requested path; report the real
+          // one (NV-4473).
+          const actualOutputFile = resolveActualOutputFile(outputFile, fs.existsSync);
+
+          // Report the real artifact, or say so plainly when the CLI wrote no
+          // spec file, rather than naming a path that is not there (NV-4473).
+          const outputInfo = actualOutputFile
+            ? `\nOpenAPI Specification File: ${actualOutputFile}`
+            : `\nNo OpenAPI specification file was produced.`;
           
+          // Make sure we're returning the full CLI output followed by our output file information
+          console.error(`Returning the command output with file path information appended`);
+          return result + outputInfo;
+        } catch (cliError: any) {
+          // Enrich error message with more context about the command
+          const errorMessage = cliError.message;
+          
+          if (errorMessage.includes("0 paths discovered")) {
+            // Provide lightweight error message
+            throw new Error(`No API endpoints found in [${sourcePaths.join(', ')}] using ${languages[0]}. Try more specific directories.`);
+          }
+          
+          // Check for file system errors and handle them explicitly
+          if (errorMessage.includes("read-only file system") || 
+              errorMessage.includes("permission denied") || 
+              errorMessage.includes("no such file or directory")) {
+            
+            throw new Error(`File system error: Unable to write to ${outputFile}. 
+            
 This may be due to permissions issues. Try specifying a different output location where you have write permissions.`);
+          }
+          
+          // Check for buffer exceeded errors
+          if (errorMessage.includes("maxBuffer length exceeded")) {
+            throw new Error(`Output too large. Try analyzing smaller directories or using the 'exclude' parameter to filter files.`);
+          }
+          
+          throw cliError;
         }
-        
-        // Check for buffer exceeded errors
-        if (errorMessage.includes("maxBuffer length exceeded")) {
-          throw new Error(`Output too large. Try analyzing smaller directories or using the 'exclude' parameter to filter files.`);
-        }
-        
-        throw cliError;
       }
     } catch (error: any) {
       console.error(`Error discovering API endpoints: ${error.message}`);
@@ -1247,7 +1269,7 @@ This may be due to permissions issues. Try specifying a different output locatio
       
       // Use the project name endpoint to get details
       const response = await this.apiRequest<any>(
-        `projects/name/${projectName}/`,
+        `projects/name/${encodeURIComponent(projectName)}/`,
         'GET'
       );
       
@@ -1306,9 +1328,10 @@ This may be due to permissions issues. Try specifying a different output locatio
       // Set page_size with default of 100 if not specified
       params.page_size = options.page_size || 100;
       
-      // Add severity array if provided
+      // Add severity array if provided. The API's severity choices are
+      // uppercase, so normalize the tool's lowercase enum values before sending.
       if (options.severity && options.severity.length > 0) {
-        params.severity = options.severity;
+        params.severity = options.severity.map((s) => s.toUpperCase());
       }
       
       // Add target UUID if provided
@@ -1316,11 +1339,15 @@ This may be due to permissions issues. Try specifying a different output locatio
         params.target = options.target;
       }
       
-      // Make API request to list templates
+      // Make API request to list templates. The severity array must reach the
+      // API as repeated keys, so use the repeated-key serializer.
       const response = await this.apiRequest<any>(
         'nuclei-templates/',
         'GET',
-        params
+        params,
+        null,
+        false,
+        serializeRepeatedParams
       );
       
       // Format the response according to the requested format
@@ -1410,7 +1437,7 @@ This may be due to permissions issues. Try specifying a different output locatio
       // Make API request to assign the template to the target
       // Using endpoint: /api/v1/targets/{id}/nuclei-templates/assign/
       const response = await this.apiRequest<any>(
-        `targets/${targetId}/nuclei-templates/assign/`,
+        `targets/${encodeURIComponent(targetId)}/nuclei-templates/assign/`,
         'POST',
         {},
         data
@@ -1615,66 +1642,52 @@ This may be due to permissions issues. Try specifying a different output locatio
       const tempDownloadDir = path.join(downloadPath, 'nightvision-downloads');
       await fs.mkdir(tempDownloadDir, { recursive: true });
       
-      // Change the working directory to the temporary download directory
-      const previousCwd = process.cwd();
-      process.chdir(tempDownloadDir);
-      console.error(`Changed working directory to: ${tempDownloadDir}`);
+      // The CLI downloads into the temp dir, set as the child's working directory.
       
+      // Build CLI command
+      const args = ['traffic', 'download', name, '--target', target, '--project', project];
+
+      // Execute the command to download the file
+      const result = await this.executeCommand(args, format, false, tempDownloadDir);
+        
+      // Default download location will be the temp directory with the name of the file
+      const tempFilePath = path.join(tempDownloadDir, `${name}.har`);
+      
+      // Verify the file was downloaded
       try {
-        // Build CLI command to download to the current directory (now the temp dir)
-        const args = ['traffic', 'download', name, '--target', target, '--project', project];
-        
-        // Execute the command to download the file
-        const result = await this.executeCommand(args, format);
-        
-        // Default download location will be the temp directory with the name of the file
-        const tempFilePath = path.join(tempDownloadDir, `${name}.har`);
-        
-        // Verify the file was downloaded
-        try {
-          await fs.access(tempFilePath);
-        } catch (err) {
-          throw new Error(`Failed to download the file. The file was not found at ${tempFilePath}.`);
-        }
-        
-        // Move the file to the final output path if specified
-        let finalOutputPath = tempFilePath;
-        
-        if (outputFile && outputFile.trim() !== '') {
-          try {
-            // Create the target directory if needed
-            const outputDir = path.dirname(outputFile);
-            await fs.mkdir(outputDir, { recursive: true });
-            
-            // Copy the file to the destination
-            await fs.copyFile(tempFilePath, outputFile);
-            
-            // Successful copy, use the outputFile as the final path
-            finalOutputPath = outputFile;
-            console.error(`Copied traffic file from ${tempFilePath} to ${finalOutputPath}`);
-            
-            // Remove the temporary file
-            await fs.unlink(tempFilePath);
-          } catch (err) {
-            console.error(`Error copying file to final destination: ${err}`);
-            console.error(`Keeping the file at temporary location: ${tempFilePath}`);
-            // Keep the fallback path
-          }
-        }
-        
-        console.error(`Traffic file downloaded successfully to: ${finalOutputPath}`);
-        
-        // Return to the previous working directory
-        process.chdir(previousCwd);
-        console.error(`Restored working directory to: ${previousCwd}`);
-        
-        return result;
-      } catch (error) {
-        // Ensure we return to the original directory even if an error occurs
-        process.chdir(previousCwd);
-        console.error(`Restored working directory to: ${previousCwd} after error`);
-        throw error;
+        await fs.access(tempFilePath);
+      } catch (err) {
+        throw new Error(`Failed to download the file. The file was not found at ${tempFilePath}.`);
       }
+      
+      // Move the file to the final output path if specified
+      let finalOutputPath = tempFilePath;
+      
+      if (outputFile && outputFile.trim() !== '') {
+        try {
+          // Create the target directory if needed
+          const outputDir = path.dirname(outputFile);
+          await fs.mkdir(outputDir, { recursive: true });
+          
+          // Copy the file to the destination
+          await fs.copyFile(tempFilePath, outputFile);
+          
+          // Successful copy, use the outputFile as the final path
+          finalOutputPath = outputFile;
+          console.error(`Copied traffic file from ${tempFilePath} to ${finalOutputPath}`);
+          
+          // Remove the temporary file
+          await fs.unlink(tempFilePath);
+        } catch (err) {
+          console.error(`Error copying file to final destination: ${err}`);
+          console.error(`Keeping the file at temporary location: ${tempFilePath}`);
+          // Keep the fallback path
+        }
+      }
+      
+      console.error(`Traffic file downloaded successfully to: ${finalOutputPath}`);
+
+      return result;
     } catch (error: any) {
       console.error(`Error downloading traffic file: ${error.message}`);
       
