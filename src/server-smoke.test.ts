@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawn, type ChildProcess } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { mkdtempSync, mkdirSync, writeFileSync, chmodSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, writeFileSync, chmodSync, readFileSync } from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
 
@@ -98,6 +98,17 @@ test('server boots, advertises the tools capability, and lists the tool set', {
     });
     assert.ok(init.result?.serverInfo?.name, 'serverInfo.name is present');
     assert.ok(init.result?.capabilities?.tools, 'tools capability is advertised');
+
+    // The advertised version is sourced from package.json (single source of
+    // truth), so the handshake must report exactly the package version.
+    const pkgVersion = JSON.parse(
+      readFileSync(path.join(here, '..', 'package.json'), 'utf8')
+    ).version;
+    assert.equal(
+      init.result?.serverInfo?.version,
+      pkgVersion,
+      'serverInfo.version matches package.json'
+    );
 
     client.notify('notifications/initialized');
 
