@@ -3,6 +3,7 @@ import { nightvisionService } from './services/index.js';
 import { loadToken } from './config/index.js';
 import { registerAuthTools, registerTargetTools, registerScanTools, registerApiTools, registerNucleiTools, registerProjectTools, registerTrafficTools } from './tools/index.js';
 import { ENVIRONMENT } from './config/environment.js';
+import { isCliVersionBelow, MIN_CLI_VERSION } from './utils/cli-version.js';
 
 /**
  * Main application entry point
@@ -14,7 +15,14 @@ async function main() {
       console.error("ERROR: NightVision CLI not found. Please install NightVision and make sure it's in your PATH.");
       process.exit(1);
     }
-    
+
+    // Warn (but do not block) when the installed CLI is older than the minimum
+    // this server relies on. A dev build with no parseable version is left alone.
+    const cliVersion = await nightvisionService.getCliVersion();
+    if (cliVersion && isCliVersionBelow(cliVersion, MIN_CLI_VERSION)) {
+      console.error(`WARNING: NightVision CLI ${cliVersion} is older than the supported minimum ${MIN_CLI_VERSION}. Some tools (for example API discovery) may fail; please upgrade the NightVision CLI.`);
+    }
+
     // Load authentication token
     const token = loadToken();
     if (token) {

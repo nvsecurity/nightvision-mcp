@@ -20,8 +20,14 @@ A Model Context Protocol (MCP) server that enables AI assistants to interact wit
 ## Prerequisites
 
 - Node.js 22 or later
-- NightVision CLI installed and configured
+- NightVision CLI 0.5.0 or later, installed and on your `PATH`
 - Valid NightVision account and authentication
+
+The server runs the `nightvision` CLI it finds on your `PATH` and depends on its
+command and flag surface (for example `swagger extract --file-format`). It checks
+for the CLI at startup and logs a warning if the version is older than the
+supported minimum (0.5.0, where the API-discovery flags this server uses became
+available); a newer CLI is recommended. Upgrade the CLI the way you installed it.
 
 ## Installation
 

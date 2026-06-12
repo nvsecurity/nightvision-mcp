@@ -6,6 +6,7 @@ import { ENVIRONMENT } from '../config/environment.js';
 import { Semaphore } from '../utils/semaphore.js';
 import { languageOutputPath } from '../utils/output-naming.js';
 import { resolveActualOutputFile } from '../utils/discover-output-path.js';
+import { extractCliVersion } from '../utils/cli-version.js';
 import { serializeRepeatedParams } from '../utils/query-params.js';
 import { scanStatusFilterCodes } from '../utils/scan-status.js';
 import { assertValidNucleiTemplatePath } from '../utils/nuclei-template.js';
@@ -192,6 +193,20 @@ export class NightVisionService {
       return true;
     } catch {
       return false;
+    }
+  }
+
+  /**
+   * Get the installed NightVision CLI version as major.minor.patch.
+   * @returns The version string, or null if it cannot be determined (for
+   *   example a dev build that reports no version number)
+   */
+  async getCliVersion(): Promise<string | null> {
+    try {
+      const output = await this.executeCommand(['version']);
+      return extractCliVersion(output);
+    } catch {
+      return null;
     }
   }
   
