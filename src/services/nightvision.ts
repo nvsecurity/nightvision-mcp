@@ -9,6 +9,7 @@ import { serializeRepeatedParams } from '../utils/query-params.js';
 import { scanStatusFilterCodes } from '../utils/scan-status.js';
 import { assertValidNucleiTemplatePath } from '../utils/nuclei-template.js';
 import { formatScanChecksText, formatScanChecksTable } from '../utils/scan-check-format.js';
+import { formatScansTable } from '../utils/scan-list-format.js';
 
 // Promisify execFile for cleaner async/await usage
 const execFileAsync = promisify(execFile);
@@ -475,25 +476,7 @@ export class NightVisionService {
       if (format === 'json') {
         return JSON.stringify(response, null, 2);
       } else if (format === 'table') {
-        // Create a simple table format for text output
-        // This is a basic implementation - could be improved
-        const headers = ['ID', 'Target', 'Status', 'Created', 'Project'];
-        const rows = response.results.map((scan: any) => [
-          scan.id,
-          scan.target?.name || 'N/A',
-          scan.status || 'N/A',
-          scan.created || 'N/A',
-          scan.project?.name || 'N/A'
-        ]);
-        
-        // Simple table formatting
-        const table = [
-          headers.join('\t'),
-          headers.map(() => '----').join('\t'),
-          ...rows.map((row: string[]) => row.join('\t'))
-        ].join('\n');
-        
-        return table;
+        return formatScansTable(response);
       }
       
       // Default to just returning the raw data as string
