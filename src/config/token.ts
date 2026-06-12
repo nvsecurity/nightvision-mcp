@@ -31,9 +31,12 @@ export function saveToken(token: string): void {
   try {
     // Create config directory if it doesn't exist
     if (!fs.existsSync(CONFIG_DIR)) {
-      fs.mkdirSync(CONFIG_DIR, { recursive: true });
+      fs.mkdirSync(CONFIG_DIR, { recursive: true, mode: 0o700 });
     }
-    fs.writeFileSync(TOKEN_FILE, token);
+    fs.writeFileSync(TOKEN_FILE, token, { mode: 0o600 });
+    // writeFileSync's mode only applies when creating the file; enforce it on an
+    // already-existing file too.
+    fs.chmodSync(TOKEN_FILE, 0o600);
   } catch (error) {
     console.error(`Failed to save token: ${error}`);
   }

@@ -1,15 +1,20 @@
 {
   "name": "nightvision-mcp-server",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "MCP Server for NightVision CLI integration",
   "type": "module",
   "main": "build/index.js",
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "build": "tsc",
     "start": "node build/index.js",
     "dev": "tsc && node build/index.js",
     "clean": "rm -rf build",
-    "rebuild": "npm run clean && npm run build"
+    "rebuild": "npm run clean && npm run build",
+    "test": "npm run build && node --test \"build/**/*.test.js\"",
+    "lint": "eslint src"
   },
   "keywords": [
     "mcp",
@@ -20,13 +25,16 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.6.0",
-    "axios": "^1.8.4",
-    "form-data": "^4.0.2",
-    "zod": "^3.22.4"
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "axios": "^1.17.0",
+    "form-data": "^4.0.5",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@types/node": "^20.10.5",
-    "typescript": "^5.3.3"
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^24.13.1",
+    "eslint": "^10.4.1",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.61.0"
   }
 }

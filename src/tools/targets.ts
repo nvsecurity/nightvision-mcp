@@ -8,6 +8,7 @@ import {
   CreateTargetParamsSchema,
   DeleteTargetParamsSchema
 } from '../types/index.js';
+import { matchTargetByName } from '../utils/target-matching.js';
 
 /**
  * Register target-related tools with the MCP server
@@ -22,7 +23,7 @@ export function registerTargetTools(server: McpServer): void {
   server.tool(
     "list-targets",
     ListTargetsParamsSchema,
-    async (args: any, _extra: any) => {
+    async (args, _extra) => {
       try {
         const { all, projects, format } = args;
         
@@ -95,21 +96,21 @@ export function registerTargetTools(server: McpServer): void {
   server.tool(
     "get-target-details",
     GetTargetDetailsParamsSchema,
-    async (args: any, _extra: any) => {
+    async (args, _extra) => {
       try {
-        const { name, format } = args;
-        
+        const { name, project, project_id } = args;
+
         // Check if authenticated
         if (!nightvisionService.getToken()) {
           return {
-            content: [{ 
-              type: "text" as const, 
-              text: "Not authenticated. Please use the authenticate tool to set a token first." 
+            content: [{
+              type: "text" as const,
+              text: "Not authenticated. Please use the authenticate tool to set a token first."
             }],
             isError: true
           };
         }
-        
+
         // First list all targets to find the one with matching name
         const allTargets = await nightvisionService.listTargets(true, undefined, "json");
         
@@ -139,23 +140,35 @@ export function registerTargetTools(server: McpServer): void {
             };
           }
           
-          const targetMatch = targets.find((t) => t.name === name);
-          
-          if (!targetMatch) {
+          // Names are unique only within a project, so refuse to guess when the
+          // name is ambiguous across projects.
+          const match = matchTargetByName(targets, name, project, project_id);
+
+          if (match.status === "ambiguous") {
             return {
-              content: [{ 
-                type: "text" as const, 
+              content: [{
+                type: "text" as const,
+                text: `Multiple targets named "${name}" exist (in projects: ${match.projects.join(", ")}). Specify 'project' or 'project_id' to identify which one.`
+              }],
+              isError: true
+            };
+          }
+
+          if (match.status === "not-found") {
+            return {
+              content: [{
+                type: "text" as const,
                 text: `No target found with name: ${name}`
               }],
               isError: true
             };
           }
-          
+
           // Return detailed information about the found target
           return {
-            content: [{ 
-              type: "text" as const, 
-              text: JSON.stringify(targetMatch, null, 2)
+            content: [{
+              type: "text" as const,
+              text: JSON.stringify(match.target, null, 2)
             }]
           };
         } catch (error: any) {
@@ -185,7 +198,7 @@ export function registerTargetTools(server: McpServer): void {
   server.tool(
     "create-target",
     CreateTargetParamsSchema,
-    async (args: any, _extra: any) => {
+    async (args, _extra) => {
       try {
         const { 
           name, 
@@ -282,7 +295,7 @@ export function registerTargetTools(server: McpServer): void {
   server.tool(
     "delete-target",
     DeleteTargetParamsSchema,
-    async (args: any, _extra: any) => {
+    async (args, _extra) => {
       try {
         const { name, format } = args;
         
@@ -298,7 +311,7 @@ export function registerTargetTools(server: McpServer): void {
         }
         
         // Confirm target exists before deleting and get project info
-        let project, project_id;
+        let project = args.project, project_id = args.project_id;
         try {
           const allTargets = await nightvisionService.listTargets(true, undefined, "json");
           
@@ -327,25 +340,49 @@ export function registerTargetTools(server: McpServer): void {
             };
           }
           
-          const targetMatch = targets.find(t => t.name === name);
-          
-          if (!targetMatch) {
+          // Names are unique only within a project, so refuse to guess when the
+          // name is ambiguous across projects.
+          const match = matchTargetByName(targets, name, args.project, args.project_id);
+
+          if (match.status === "ambiguous") {
             return {
-              content: [{ 
-                type: "text" as const, 
-                text: `Target "${name}" not found. Please check the name and try again.` 
+              content: [{
+                type: "text" as const,
+                text: `Multiple targets named "${name}" exist (in projects: ${match.projects.join(", ")}). Specify 'project' or 'project_id' to identify which one to delete.`
               }],
               isError: true
             };
           }
-          
-          // Extract project info from the found target
-          project = targetMatch.project_name;
-          project_id = targetMatch.project_id;
+
+          if (match.status === "not-found") {
+            return {
+              content: [{
+                type: "text" as const,
+                text: `Target "${name}" not found. Please check the name and try again.`
+              }],
+              isError: true
+            };
+          }
+
+          // Use the resolved target's project info
+          project = match.target.project_name;
+          project_id = match.target.project_id;
           
         } catch (error) {
           console.error(`Error checking if target exists: ${error}`);
-          // Continue with deletion attempt even if we couldn't confirm existence
+          // The existence/ambiguity pre-check could not run. If the caller did
+          // not supply a project or project_id, refuse rather than guess which
+          // target to delete; when one was supplied the delete is already
+          // unambiguous, so let it proceed.
+          if (!args.project && !args.project_id) {
+            return {
+              content: [{
+                type: "text" as const,
+                text: `Could not verify the target "${name}" before deleting (failed to list targets). Please try again, or pass 'project' or 'project_id' to delete it directly.`
+              }],
+              isError: true
+            };
+          }
         }
         
         // Delete the target

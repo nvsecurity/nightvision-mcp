@@ -5,6 +5,7 @@ import {
   ListTrafficParamsSchema,
   DownloadTrafficParamsSchema
 } from '../types/index.js';
+import { resolveDownloadDir } from '../utils/download-path.js';
 
 /**
  * Register traffic-related tools with the MCP server
@@ -19,7 +20,7 @@ export function registerTrafficTools(server: McpServer): void {
   server.tool(
     "record-traffic",
     RecordTrafficParamsSchema,
-    async (args: any, _extra: any) => {
+    async (args, _extra) => {
       try {
         const { 
           name,
@@ -98,7 +99,7 @@ This tool will open a browser window for you to interact with the target applica
   server.tool(
     "list-traffic",
     ListTrafficParamsSchema,
-    async (args: any, _extra: any) => {
+    async (args, _extra) => {
       try {
         const { 
           target,
@@ -164,7 +165,7 @@ This tool will open a browser window for you to interact with the target applica
   server.tool(
     "download-traffic",
     DownloadTrafficParamsSchema,
-    async (args: any, _extra: any) => {
+    async (args, _extra) => {
       try {
         const { 
           name,
@@ -186,162 +187,47 @@ This tool will open a browser window for you to interact with the target applica
           };
         }
         
-        // Import modules for validating the path
+        // Resolve the download directory (never prompt). A blank or non-absolute
+        // request falls back to the home directory; a non-writable directory
+        // falls back to the home directory and then the system temp directory.
         const path = await import('path');
-        const fs = await import('fs/promises');
+        const fs = await import('fs');
         const os = await import('os');
-        
-        // If downloadPath is provided in the initial request, validate and use it
-        if (initialDownloadPath !== undefined) {
+
+        const isWritable = (dir: string): boolean => {
           try {
-            let downloadPath = initialDownloadPath.trim().replace(/^['"]|['"]$/g, '');
-            
-            // If provided path is empty, use home directory
-            if (!downloadPath || downloadPath.trim() === '') {
-              const homeDir = os.homedir();
-              console.error(`Provided downloadPath is empty. Using home directory: ${homeDir}`);
-              downloadPath = homeDir;
-            }
-            // Check if the path is absolute
-            else if (!path.isAbsolute(downloadPath)) {
-              const homeDir = os.homedir();
-              console.error(`Provided path '${downloadPath}' is not absolute. Using home directory instead: ${homeDir}`);
-              downloadPath = homeDir;
-            }
-            
-            // Verify the directory is writable
-            try {
-              await fs.access(downloadPath, fs.constants.W_OK);
-            } catch (error) {
-              const tempDir = os.tmpdir();
-              console.error(`Provided path '${downloadPath}' is not writable. Falling back to temp directory: ${tempDir}`);
-              downloadPath = tempDir;
-            }
-            
-            // Determine final output path
-            let finalOutputPath = output_file 
-              ? (path.isAbsolute(output_file) ? output_file : path.join(downloadPath, output_file))
-              : path.join(downloadPath, `${name}.har`);
-            
-            // Download the traffic file with the provided download path
-            const result = await nightvisionService.downloadTraffic(
-              name,
-              target,
-              project,
-              finalOutputPath,
-              downloadPath,
-              format
-            );
-            
-            const downloadMessage = `The traffic file "${name}" has been downloaded for target "${target}" in project "${project}".\n\nThe HAR file is saved at the absolute path: ${finalOutputPath}\n\nDownload directory used: ${downloadPath}`;
-            
-            // Return the formatted output
-            return {
-              content: [{ 
-                type: "text" as const, 
-                text: `${downloadMessage}\n\n${result}` 
-              }]
-            };
-          } catch (error: any) {
-            console.error(`Error processing download with provided downloadPath: ${error.message}`);
-            return {
-              content: [{ 
-                type: "text" as const, 
-                text: `Failed to download traffic file: ${error.message}` 
-              }],
-              isError: true
-            };
+            fs.accessSync(dir, fs.constants.W_OK);
+            return true;
+          } catch {
+            return false;
           }
-        }
+        };
+        const downloadPath = resolveDownloadDir(initialDownloadPath, os.homedir(), os.tmpdir(), isWritable);
+        console.error(`Resolved download directory: ${downloadPath}`);
+
+        // Determine final output path
+        const finalOutputPath = output_file 
+          ? (path.isAbsolute(output_file) ? output_file : path.join(downloadPath, output_file))
+          : path.join(downloadPath, `${name}.har`);
         
-        // If downloadPath not provided in the initial request, ask for it
-        const downloadPathPrompt = `I'll download the traffic file "${name}" for target "${target}" in project "${project}".
+        // Download the traffic file with the provided download path
+        const result = await nightvisionService.downloadTraffic(
+          name,
+          target,
+          project,
+          finalOutputPath,
+          downloadPath,
+          format
+        );
         
-Please provide the 'downloadPath' parameter as an absolute directory path (e.g., /Users/username/Downloads) where I should download the file. This directory must exist and be writable:`;
+        const downloadMessage = `The traffic file "${name}" has been downloaded for target "${target}" in project "${project}".\n\nThe HAR file is saved at the absolute path: ${finalOutputPath}\n\nDownload directory used: ${downloadPath}`;
         
-        // Return initial question about download path
+        // Return the formatted output
         return {
           content: [{ 
             type: "text" as const, 
-            text: downloadPathPrompt 
-          }],
-          continueInNewTurn: true,
-          turnAction: {
-            name: "prompt-for-info",
-            onResponse: async (downloadPath: string) => {
-              try {
-                // Import modules
-                const fs = await import('fs/promises');
-                const path = await import('path');
-                const os = await import('os');
-                
-                // Trim any quotes the user might have included
-                downloadPath = downloadPath.trim().replace(/^['"]|['"]$/g, '');
-                
-                // If no path provided, use home directory as a safe default
-                if (!downloadPath || downloadPath.trim() === '') {
-                  const homeDir = os.homedir();
-                  console.error(`No download path provided. Using home directory: ${homeDir}`);
-                  downloadPath = homeDir;
-                }
-                // Validate that downloadPath is absolute
-                else if (!path.isAbsolute(downloadPath)) {
-                  // If not absolute, use home directory as fallback and inform the user
-                  const homeDir = os.homedir();
-                  console.error(`Provided path '${downloadPath}' is not absolute. Using home directory instead: ${homeDir}`);
-                  downloadPath = homeDir;
-                } else {
-                  console.error(`Using download path: ${downloadPath}`);
-                }
-                
-                // Ensure the download directory exists and is writable
-                try {
-                  await fs.access(downloadPath, fs.constants.W_OK);
-                } catch (error) {
-                  // If directory doesn't exist or isn't writable, fall back to temp directory
-                  const tempDir = os.tmpdir();
-                  console.error(`Provided path '${downloadPath}' is not writable. Falling back to temp directory: ${tempDir}`);
-                  downloadPath = tempDir;
-                }
-                
-                // Determine final output path
-                let finalOutputPath = output_file 
-                  ? (path.isAbsolute(output_file) ? output_file : path.join(downloadPath, output_file))
-                  : path.join(downloadPath, `${name}.har`);
-                
-                // Download the traffic file with the provided download path
-                const result = await nightvisionService.downloadTraffic(
-                  name,
-                  target,
-                  project,
-                  finalOutputPath,
-                  downloadPath,
-                  format
-                );
-                
-                const downloadMessage = `The traffic file "${name}" has been downloaded for target "${target}" in project "${project}".\n\nThe HAR file is saved at the absolute path: ${finalOutputPath}\n\nDownload directory used: ${downloadPath}`;
-                
-                // Return the formatted output
-                return {
-                  content: [{ 
-                    type: "text" as const, 
-                    text: `${downloadMessage}\n\n${result}` 
-                  }]
-                };
-              } catch (error: any) {
-                console.error(`Error in download-traffic callback: ${error.message}`);
-                
-                // Return error message
-                return {
-                  content: [{ 
-                    type: "text" as const, 
-                    text: `Failed to download traffic file: ${error.message}` 
-                  }],
-                  isError: true
-                };
-              }
-            }
-          }
+            text: `${downloadMessage}\n\n${result}` 
+          }]
         };
       } catch (error: any) {
         return {
