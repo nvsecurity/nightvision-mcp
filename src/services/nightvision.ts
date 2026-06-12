@@ -5,6 +5,7 @@ import FormData from 'form-data';
 import { ENVIRONMENT } from '../config/environment.js';
 import { Semaphore } from '../utils/semaphore.js';
 import { languageOutputPath } from '../utils/output-naming.js';
+import { resolveActualOutputFile } from '../utils/discover-output-path.js';
 import { serializeRepeatedParams } from '../utils/query-params.js';
 import { scanStatusFilterCodes } from '../utils/scan-status.js';
 import { assertValidNucleiTemplatePath } from '../utils/nuclei-template.js';
@@ -1049,7 +1050,12 @@ Created: ${response.created || 'N/A'}`;
         console.error(`Output directory is not writable, redirecting to temp directory`);
         outputFile = path.join(redirectDir(), path.basename(outputFile));
       }
-      
+
+      // The CLI defaults to YAML and ignores the output extension, so derive the
+      // file format from the requested extension and pass it explicitly; a
+      // .json request then actually produces JSON rather than YAML (NV-4473).
+      const fileFormat = /\.json$/i.test(outputFile) ? 'json' : 'yml';
+
       // For multiple languages, we need to run the command multiple times
       // and merge the results
       if (languages.length > 1) {
@@ -1085,8 +1091,9 @@ Created: ${response.created || 'N/A'}`;
             langArgs.push('--project-id', options.project_id);
           }
           
-          // Add the vetted output file to arguments
+          // Add the vetted output file and the matching file format
           langArgs.push('--output', langOutputFile);
+          langArgs.push('--file-format', fileFormat);
           
           // Add exclude patterns if provided
           if (options.exclude) {
@@ -1112,7 +1119,12 @@ Created: ${response.created || 'N/A'}`;
             // Execute the CLI command for this language (concurrency-limited)
             const result = await extractLimiter.run(() => this.executeCommand(langArgs, format));
             results.push(`🔍 Language: ${lang}\n${result}`);
-            outputs.push(langOutputFile);
+            // Report the file the CLI actually wrote, not the requested path:
+            // the CLI forces a .yml extension on its YAML output (NV-4473).
+            const langActual = resolveActualOutputFile(langOutputFile, fs.existsSync);
+            if (langActual) {
+              outputs.push(langActual);
+            }
           } catch (cliError: any) {
             // Log the error but continue with other languages
             const errorMessage = cliError.message;
@@ -1123,7 +1135,9 @@ Created: ${response.created || 'N/A'}`;
 
         // Combine the results
         const combinedResult = results.join('\n\n---\n\n');
-        const outputInfo = `\nOpenAPI Specification Files:\n${outputs.map(o => `- ${o}`).join('\n')}`;
+        const outputInfo = outputs.length
+          ? `\nOpenAPI Specification Files:\n${outputs.map(o => `- ${o}`).join('\n')}`
+          : `\nNo OpenAPI specification files were produced.`;
         
         return combinedResult + outputInfo;
       } else {
@@ -1149,8 +1163,9 @@ Created: ${response.created || 'N/A'}`;
           args.push('--project-id', options.project_id);
         }
         
-        // Add the vetted output file to arguments
+        // Add the vetted output file and the matching file format
         args.push('--output', outputFile);
+        args.push('--file-format', fileFormat);
         
         // Add exclude patterns if provided
         if (options.exclude) {
@@ -1179,10 +1194,17 @@ Created: ${response.created || 'N/A'}`;
           // Log the raw command output to help with debugging
           console.error(`Command result: ${result.substring(0, 500)}${result.length > 500 ? '...' : ''}`);
           console.error(`Output file location: ${outputFile}`);
-          
-          // Add information about output file path to the result
-          // but preserve the original command output
-          const outputInfo = `\nOpenAPI Specification File: ${outputFile}`;
+
+          // The CLI forces a .yml extension on its YAML output, so the file it
+          // actually wrote may differ from the requested path; report the real
+          // one (NV-4473).
+          const actualOutputFile = resolveActualOutputFile(outputFile, fs.existsSync);
+
+          // Report the real artifact, or say so plainly when the CLI wrote no
+          // spec file, rather than naming a path that is not there (NV-4473).
+          const outputInfo = actualOutputFile
+            ? `\nOpenAPI Specification File: ${actualOutputFile}`
+            : `\nNo OpenAPI specification file was produced.`;
           
           // Make sure we're returning the full CLI output followed by our output file information
           console.error(`Returning the command output with file path information appended`);
