@@ -393,4 +393,26 @@ export const GetAuthCredentialParamsSchema = {
  */
 export const ListAuthCredentialsParamsSchema = {
   project_id: z.string().optional().describe("Project UUID to filter by")
+};
+
+/**
+ * Find target tool parameters schema
+ */
+export const FindTargetParamsSchema = {
+  name: z.string().describe("Target name or partial name to search for")
+};
+
+/**
+ * List additional paths tool parameters schema
+ */
+export const ListAdditionalPathsParamsSchema = {
+  target_id: z.string().describe("UUID of the target")
+};
+
+/**
+ * Add additional paths tool parameters schema
+ */
+export const AddAdditionalPathsParamsSchema = {
+  target_id: z.string().describe("UUID of the target"),
+  paths: z.array(z.string()).describe("List of URL paths to add (e.g. ['/api/users', '/admin/login'])")
 }; 

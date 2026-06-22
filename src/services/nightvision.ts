@@ -1708,6 +1708,43 @@ This may be due to permissions issues. Try specifying a different output locatio
     }
   }
 
+  // --- Targets: additional paths & lookup ---
+
+  /**
+   * List additional paths for a URL target
+   */
+  async listAdditionalPaths(targetId: string): Promise<any> {
+    return this.apiRequest<any>(`targets/url/${targetId}/additional-paths/`, 'GET');
+  }
+
+  /**
+   * Create additional paths for a URL target (bulk)
+   */
+  async createAdditionalPaths(targetId: string, paths: { path: string; disabled?: boolean }[]): Promise<any> {
+    return this.apiRequest<any>(`targets/url/${targetId}/additional-paths/`, 'POST', {}, paths);
+  }
+
+  /**
+   * Lightweight target lookup by name. Uses the API filter param to avoid
+   * fetching all targets. Returns matching targets with their projects.
+   */
+  async findTarget(name: string): Promise<{ name: string; id: string; project_name: string; project_id: string; location: string; type: string }[]> {
+    const response = await this.apiRequest<any>('targets/', 'GET', {
+      filter: name,
+      page_size: 20,
+    });
+
+    const results = response?.results || [];
+    return results.map((t: any) => ({
+      name: t.name,
+      id: t.id,
+      project_name: t.project_name || t.project?.name || 'Unknown',
+      project_id: t.project || t.project_id || '',
+      location: t.location || '',
+      type: t.type || '',
+    }));
+  }
+
   // --- Credentials ---
 
   /**
