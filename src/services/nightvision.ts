@@ -1708,6 +1708,128 @@ This may be due to permissions issues. Try specifying a different output locatio
     }
   }
 
+  // --- Credentials ---
+
+  /**
+   * Create a username/password credential
+   */
+  async createUserPassCredential(options: {
+    name: string;
+    username: string;
+    password: string;
+    project: string;
+    description?: string;
+  }): Promise<any> {
+    const data: Record<string, any> = {
+      name: options.name,
+      username: options.username,
+      password: options.password,
+      project: options.project,
+    };
+    if (options.description) data.description = options.description;
+    return this.apiRequest<any>('credentials/username-password/', 'POST', {}, data);
+  }
+
+  /**
+   * Create a header-based credential
+   */
+  async createHeaderCredential(options: {
+    name: string;
+    headers: { name: string; value: string }[];
+    project: string;
+    description?: string;
+  }): Promise<any> {
+    const data: Record<string, any> = {
+      name: options.name,
+      headers: options.headers,
+      project: options.project,
+    };
+    if (options.description) data.description = options.description;
+    return this.apiRequest<any>('credentials/header/', 'POST', {}, data);
+  }
+
+  /**
+   * Create a cookie-based credential
+   */
+  async createCookieCredential(options: {
+    name: string;
+    cookie: { name: string; value: string }[];
+    project: string;
+    description?: string;
+  }): Promise<any> {
+    const data: Record<string, any> = {
+      name: options.name,
+      cookie: options.cookie,
+      project: options.project,
+    };
+    if (options.description) data.description = options.description;
+    return this.apiRequest<any>('credentials/cookie/', 'POST', {}, data);
+  }
+
+  /**
+   * Assign a credential to targets
+   */
+  async assignCredentialToTargets(credentialId: string, targetIds: string[]): Promise<any> {
+    return this.apiRequest<any>(`credentials/${credentialId}/assign-to-targets/`, 'POST', {}, { targets: targetIds });
+  }
+
+  /**
+   * Create a script-based credential (Playwright recording)
+   */
+  async createScriptCredential(options: {
+    name: string;
+    script_content: string;
+    script_first_url?: string;
+    description?: string;
+    project: string;
+  }): Promise<any> {
+    const data: Record<string, any> = {
+      name: options.name,
+      script_content: options.script_content,
+      project: options.project,
+    };
+    if (options.script_first_url) data.script_first_url = options.script_first_url;
+    if (options.description) data.description = options.description;
+    return this.apiRequest<any>('credentials/script/', 'POST', {}, data);
+  }
+
+  /**
+   * Get a credential by UUID
+   */
+  async getCredential(id: string): Promise<any> {
+    return this.apiRequest<any>(`credentials/${id}/`, 'GET');
+  }
+
+  /**
+   * Get a credential by name within a project
+   */
+  async getCredentialByName(projectId: string, name: string): Promise<any> {
+    return this.apiRequest<any>(`projects/${projectId}/credentials/${name}/`, 'GET');
+  }
+
+  /**
+   * List credentials for projects
+   */
+  async listCredentials(projectIds?: string[]): Promise<any> {
+    const params: Record<string, any> = {};
+    if (projectIds && projectIds.length > 0) {
+      params.project = projectIds;
+    }
+    return this.apiRequest<any>('credentials/', 'GET', params);
+  }
+
+  /**
+   * Update an existing script-based credential
+   */
+  async updateScriptCredential(id: string, options: {
+    name?: string;
+    script_content?: string;
+    script_first_url?: string;
+    description?: string;
+  }): Promise<any> {
+    return this.apiRequest<any>(`credentials/${id}/`, 'PUT', {}, options);
+  }
+
   // --- Issues / Findings ---
 
   private readonly SENSITIVE_HEADERS = new Set([

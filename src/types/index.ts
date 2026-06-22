@@ -310,4 +310,87 @@ export const GetIssueOccurrencesParamsSchema = {
   resolution: z.array(z.number()).optional()
     .describe("Filter by resolution: 0=open, 1=false_positive, 2=resolved"),
   format: z.enum(["text", "json", "table"]).optional().default("json").describe("Format of command output")
+};
+
+/**
+ * Create username/password credential tool parameters schema
+ */
+export const CreateUserPassCredentialParamsSchema = {
+  name: z.string().describe("Name for the credential"),
+  username: z.string().describe("Username"),
+  password: z.string().describe("Password"),
+  project: z.string().describe("Project UUID"),
+  description: z.string().optional().describe("Description")
+};
+
+/**
+ * Create header-based credential tool parameters schema
+ */
+export const CreateHeaderCredentialParamsSchema = {
+  name: z.string().describe("Name for the credential"),
+  headers: z.array(z.object({
+    name: z.string().describe("Header name (e.g. 'Authorization')"),
+    value: z.string().describe("Header value (e.g. 'Bearer xyz')")
+  })).describe("List of headers to include in authenticated requests"),
+  project: z.string().describe("Project UUID"),
+  description: z.string().optional().describe("Description")
+};
+
+/**
+ * Create cookie-based credential tool parameters schema
+ */
+export const CreateCookieCredentialParamsSchema = {
+  name: z.string().describe("Name for the credential"),
+  cookies: z.array(z.object({
+    name: z.string().describe("Cookie name"),
+    value: z.string().describe("Cookie value")
+  })).describe("List of cookies to include in authenticated requests"),
+  project: z.string().describe("Project UUID"),
+  description: z.string().optional().describe("Description")
+};
+
+/**
+ * Assign credential to targets tool parameters schema
+ */
+export const AssignCredentialToTargetsParamsSchema = {
+  credential_id: z.string().describe("UUID of the credential"),
+  target_ids: z.array(z.string()).describe("List of target UUIDs to assign the credential to")
+};
+
+/**
+ * Save Playwright script credential tool parameters schema
+ */
+export const SavePlaywrightScriptParamsSchema = {
+  name: z.string().describe("Name for the credential (e.g. 'login-flow')"),
+  script_content: z.string().describe("The Playwright script content"),
+  project: z.string().describe("Project UUID to save the credential in"),
+  script_first_url: z.string().optional().describe("The first URL the script navigates to"),
+  description: z.string().optional().describe("Description of the credential")
+};
+
+/**
+ * Update Playwright script credential tool parameters schema
+ */
+export const UpdatePlaywrightScriptParamsSchema = {
+  id: z.string().describe("UUID of the credential to update"),
+  name: z.string().optional().describe("New name for the credential"),
+  script_content: z.string().optional().describe("Updated Playwright script content"),
+  script_first_url: z.string().optional().describe("Updated first URL"),
+  description: z.string().optional().describe("Updated description")
+};
+
+/**
+ * Get auth credential tool parameters schema
+ */
+export const GetAuthCredentialParamsSchema = {
+  id: z.string().optional().describe("UUID of the credential"),
+  name: z.string().optional().describe("Name of the credential (requires project_id)"),
+  project_id: z.string().optional().describe("Project UUID (required when using name)")
+};
+
+/**
+ * List auth credentials tool parameters schema
+ */
+export const ListAuthCredentialsParamsSchema = {
+  project_id: z.string().optional().describe("Project UUID to filter by")
 }; 
