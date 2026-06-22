@@ -249,4 +249,65 @@ export const DownloadTrafficParamsSchema = {
   output_file: z.string().optional().describe("Path where to save the downloaded HAR file (optional)"),
   downloadPath: z.string().optional().describe("Absolute directory path to download into. If it is not an absolute, writable directory, the home directory is used, then the system temp directory."),
   format: z.enum(["text", "json", "table"]).optional().default("text").describe("Format of command output")
+};
+
+/**
+ * List issues (findings) tool parameters schema
+ */
+export const ListIssuesParamsSchema = {
+  scan_id: z.string().describe("ID of the scan to get findings for"),
+  page: z.number().optional().describe("Page number for pagination"),
+  page_size: z.number().optional().default(50).describe("Number of items per page (defaults to 50)"),
+  severity: z.array(z.enum(["CRITICAL", "HIGH", "MEDIUM", "LOW", "INFORMATIONAL", "UNSPECIFIED"])).optional()
+    .describe("Filter by severity levels"),
+  resolution: z.array(z.number()).optional()
+    .describe("Filter by resolution: 0=open, 1=false_positive, 2=resolved, 3=excluded_false_positive"),
+  kind: z.array(z.number()).optional().describe("Filter by issue kind IDs"),
+  filter: z.string().optional().describe("Text filter for url_path, parameter_name, or target name"),
+  format: z.enum(["text", "json", "table"]).optional().default("json").describe("Format of command output")
+};
+
+/**
+ * Get issue details tool parameters schema
+ */
+export const GetIssueDetailsParamsSchema = {
+  issue_id: z.string().describe("UUID of the issue to get full details for"),
+  format: z.enum(["text", "json", "table"]).optional().default("json").describe("Format of command output")
+};
+
+/**
+ * Get issue kind statistics tool parameters schema
+ */
+export const GetIssueKindStatsParamsSchema = {
+  scan_id: z.string().describe("ID of the scan to get issue kind statistics for"),
+  filter: z.string().optional().describe("Text filter for kind names"),
+  format: z.enum(["text", "json", "table"]).optional().default("json").describe("Format of command output")
+};
+
+/**
+ * Get vulnerable paths tool parameters schema
+ */
+export const GetVulnerablePathsParamsSchema = {
+  scan_id: z.string().describe("ID of the scan to get vulnerable paths for"),
+  kind: z.array(z.number()).optional().describe("Filter by issue kind IDs"),
+  nuclei_template: z.array(z.string()).optional().describe("Filter by nuclei template UUIDs"),
+  resolution: z.array(z.number()).optional()
+    .describe("Filter by resolution: 0=open, 1=false_positive, 2=resolved"),
+  filter: z.string().optional().describe("Text filter for paths"),
+  format: z.enum(["text", "json", "table"]).optional().default("json").describe("Format of command output")
+};
+
+/**
+ * Get issue occurrences tool parameters schema
+ */
+export const GetIssueOccurrencesParamsSchema = {
+  scan_id: z.string().describe("ID of the scan"),
+  url_path: z.string().describe("URL path to get occurrences for"),
+  http_method: z.string().describe("HTTP method (GET, POST, etc.)"),
+  kind_id: z.number().optional().describe("Issue kind ID (required if no nuclei_template_id)"),
+  nuclei_template_id: z.string().optional().describe("Nuclei template UUID (required if no kind_id)"),
+  parameter_name: z.string().optional().describe("Filter by parameter name"),
+  resolution: z.array(z.number()).optional()
+    .describe("Filter by resolution: 0=open, 1=false_positive, 2=resolved"),
+  format: z.enum(["text", "json", "table"]).optional().default("json").describe("Format of command output")
 }; 
