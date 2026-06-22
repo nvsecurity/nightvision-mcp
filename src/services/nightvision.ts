@@ -10,6 +10,7 @@ import { extractCliVersion } from '../utils/cli-version.js';
 import { serializeRepeatedParams } from '../utils/query-params.js';
 import { scanStatusFilterCodes } from '../utils/scan-status.js';
 import { assertValidNucleiTemplatePath } from '../utils/nuclei-template.js';
+import type { ConfiguredChecks } from '../utils/check-catalog.js';
 import { formatScanChecksText, formatScanChecksTable } from '../utils/scan-check-format.js';
 import { formatScansTable } from '../utils/scan-list-format.js';
 import { formatScanPathsText, formatScanPathsTable } from '../utils/scan-path-format.js';
@@ -384,6 +385,8 @@ export class NightVisionService {
       no_auth?: boolean;
       project?: string;
       project_id?: string;
+      disable_zap_active_alerts?: string[];
+      disable_nuclei_folders?: string[];
     } = {},
     format: OutputFormat = 'json'
   ): Promise<string> {
@@ -412,7 +415,15 @@ export class NightVisionService {
     if (options.project_id) {
       args.push('-P', options.project_id);
     }
-    
+
+    if (options.disable_zap_active_alerts && options.disable_zap_active_alerts.length > 0) {
+      args.push('--disable-zap-active-alerts', options.disable_zap_active_alerts.join(','));
+    }
+
+    if (options.disable_nuclei_folders && options.disable_nuclei_folders.length > 0) {
+      args.push('--disable-nuclei-folders', options.disable_nuclei_folders.join(','));
+    }
+
     // Execute the command with standard parameters
     const result = await this.executeCommand(args, format);
     
@@ -1706,6 +1717,21 @@ This may be due to permissions issues. Try specifying a different output locatio
       
       throw new Error(`Failed to download traffic file: ${error.message}`);
     }
+  }
+
+  // --- Check catalog ---
+
+  private cachedChecks: ConfiguredChecks | null = null;
+
+  /**
+   * Fetch the configured check catalog from the API.
+   * Cached for the lifetime of the server process.
+   */
+  async getConfiguredChecks(): Promise<ConfiguredChecks> {
+    if (this.cachedChecks) return this.cachedChecks;
+    const response = await this.apiRequest<ConfiguredChecks>('common/configured-checks/', 'GET');
+    this.cachedChecks = response;
+    return response;
   }
 
   // --- Targets: additional paths & lookup ---

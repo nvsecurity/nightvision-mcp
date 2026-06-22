@@ -74,8 +74,17 @@ export const StartScanParamsSchema = {
   no_auth: z.boolean().optional().describe("Set this flag to indicate not to include auth to the scan"),
   project: z.string().optional().describe("Project Name of the target to scan"),
   project_id: z.string().uuid().optional().describe("Project UUID of the target to scan"),
+  run_only_zap_checks: z.array(z.string()).optional()
+    .describe("Run ONLY these ZAP vulnerability checks by name (e.g. ['SQL Injection']). Use list-check-categories to see available names. All other ZAP checks are disabled."),
+  run_only_nuclei_folders: z.array(z.string()).optional()
+    .describe("Run ONLY these Nuclei template folders by name. Use list-check-categories to see available folders. All other Nuclei folders are disabled."),
   format: z.enum(["text", "json", "table"]).optional().default("json").describe("Format of command output")
 };
+
+/**
+ * List check categories tool parameters schema
+ */
+export const ListCheckCategoriesParamsSchema = {};
 
 /**
  * List scans tool parameters schema
