@@ -8,9 +8,12 @@ A Model Context Protocol (MCP) server that enables AI assistants to interact wit
 - Get detailed information about specific targets
 - Create new targets with customizable options
 - Delete targets when they are no longer needed
-- Start security scans against targets
+- Find targets and manage their additional scan paths
+- Start security scans against targets, optionally limited to specific checks
 - Track scan status and view results
 - View and filter vulnerabilities found in security scans
+- Inspect individual findings with full HTTP request/response detail (secrets redacted)
+- Manage authentication credentials (username/password, header, cookie, Playwright script) and assign them to targets
 - Discover API endpoints from source code (multiple languages)
 - Manage projects and view project details
 - Record, list, and download browser traffic for targets
@@ -224,6 +227,43 @@ Can you delete my NightVision target called "my-test-app"?
 Can you delete the target named "petstore-api" from project "security-testing"?
 ```
 
+#### `find-target`
+
+Looks up a target by name across projects. Lighter than `list-targets` — use it before `start-scan` to confirm a target exists and identify its project.
+
+Parameters:
+- `name` (string): Target name or partial name to search for
+
+Example command:
+```
+Can you find my NightVision target named "testphp" and tell me which project it's in?
+```
+
+#### `list-additional-paths`
+
+Lists the user-defined additional paths configured for a URL target. These are included in scans alongside discovered paths.
+
+Parameters:
+- `target_id` (string): UUID of the target
+
+Example command:
+```
+Can you list the additional paths configured for target 12345678-1234-1234-1234-123456789012?
+```
+
+#### `add-additional-paths`
+
+Adds user-defined paths to a URL target so they are included in future scans.
+
+Parameters:
+- `target_id` (string): UUID of the target
+- `paths` (string[]): List of URL paths to add (e.g. `["/api/users", "/admin/login"]`)
+
+Example command:
+```
+Can you add the paths /api/v2/users and /internal/health to target 12345678-1234-1234-1234-123456789012?
+```
+
 #### `start-scan`
 
 Initiates a security scan against a NightVision target. The scan runs asynchronously in the background.
@@ -235,6 +275,8 @@ Parameters:
 - `no_auth` (boolean, optional): Specify to run the scan without authentication
 - `project` (string, optional): Project name of the target
 - `project_id` (string, optional): Project UUID of the target
+- `run_only_zap_checks` (string[], optional): Run ONLY these ZAP vulnerability checks by name (e.g. `["SQL Injection"]`); all other ZAP checks are disabled. Use `list-check-categories` to see the available names.
+- `run_only_nuclei_folders` (string[], optional): Run ONLY these Nuclei template folders by name; all other Nuclei folders are disabled. Use `list-check-categories` to see the available folders.
 - `format` (enum: "text" | "json" | "table", optional, default: "json"): Format of command output
 
 Example commands:
@@ -243,6 +285,9 @@ Can you start a scan on my NightVision target called "my-test-app"?
 ```
 ```
 Can you run a NightVision scan against the "petstore-api" target using the "api-key" authentication?
+```
+```
+Run a scan on "my-test-app" that only checks for SQL Injection and Cross Site Scripting.
 ```
 
 #### `list-scans`
@@ -354,6 +399,222 @@ Example usage:
   "filter": "/api/",
   "format": "table" 
 }
+```
+
+#### `list-check-categories`
+
+Lists all available vulnerability checks (ZAP alerts and Nuclei folders) that can be used with the `run_only_zap_checks` / `run_only_nuclei_folders` parameters of `start-scan`. Fetched dynamically from the NightVision API.
+
+Parameters: none
+
+Example command:
+```
+What vulnerability checks can I run with NightVision?
+```
+
+### Findings Tools
+
+#### `list-issues`
+
+Lists security findings for a scan, including HTTP request/response pairs, evidence, payloads, and AI explanations. Sensitive headers and cookies are redacted from the output.
+
+Parameters:
+- `scan_id` (string): ID of the scan to get findings for
+- `page` (number, optional): Page number for pagination
+- `page_size` (number, optional, default: 50): Number of items per page
+- `severity` (string[], optional): Filter by severity (`CRITICAL`, `HIGH`, `MEDIUM`, `LOW`, `INFORMATIONAL`, `UNSPECIFIED`)
+- `resolution` (number[], optional): Filter by resolution: 0=open, 1=false_positive, 2=resolved, 3=excluded_false_positive
+- `kind` (number[], optional): Filter by issue kind IDs
+- `filter` (string, optional): Text filter for url_path, parameter_name, or target name
+- `format` (enum: "text" | "json" | "table", optional, default: "json"): Format of command output
+
+Example command:
+```
+Show me the high and critical findings from scan 12345678-1234-1234-1234-123456789012.
+```
+
+#### `get-issue-details`
+
+Gets full details for a single finding, including all HTTP request/response pairs (headers, body, cookies), evidence, payload, and AI explanation. Sensitive headers and cookies are redacted.
+
+Parameters:
+- `issue_id` (string): UUID of the issue to get full details for
+- `format` (enum: "text" | "json" | "table", optional, default: "json"): Format of command output
+
+Example command:
+```
+Show me the full request and response for finding 12345678-1234-1234-1234-123456789012.
+```
+
+#### `get-issue-kind-stats`
+
+Summarizes findings grouped by vulnerability type (kind) for a scan, with counts of open, false-positive, and resolved issues per kind.
+
+Parameters:
+- `scan_id` (string): ID of the scan to get issue kind statistics for
+- `filter` (string, optional): Text filter for kind names
+- `format` (enum: "text" | "json" | "table", optional, default: "json"): Format of command output
+
+Example command:
+```
+Give me a breakdown of finding types for scan 12345678-1234-1234-1234-123456789012.
+```
+
+#### `get-vulnerable-paths`
+
+Lists vulnerable URL paths for a scan, grouped by vulnerability kind.
+
+Parameters:
+- `scan_id` (string): ID of the scan to get vulnerable paths for
+- `kind` (number[], optional): Filter by issue kind IDs
+- `nuclei_template` (string[], optional): Filter by Nuclei template UUIDs
+- `resolution` (number[], optional): Filter by resolution: 0=open, 1=false_positive, 2=resolved
+- `filter` (string, optional): Text filter for paths
+- `format` (enum: "text" | "json" | "table", optional, default: "json"): Format of command output
+
+Example command:
+```
+Which paths are vulnerable in scan 12345678-1234-1234-1234-123456789012?
+```
+
+#### `get-issue-occurrences`
+
+Gets individual issue occurrences for a specific URL path and vulnerability kind, showing each payload, parameter, and HTTP status.
+
+Parameters:
+- `scan_id` (string): ID of the scan
+- `url_path` (string): URL path to get occurrences for
+- `http_method` (string): HTTP method (GET, POST, etc.)
+- `kind_id` (number, optional): Issue kind ID (required if no `nuclei_template_id`)
+- `nuclei_template_id` (string, optional): Nuclei template UUID (required if no `kind_id`)
+- `parameter_name` (string, optional): Filter by parameter name
+- `resolution` (number[], optional): Filter by resolution: 0=open, 1=false_positive, 2=resolved
+- `format` (enum: "text" | "json" | "table", optional, default: "json"): Format of command output
+
+Example command:
+```
+Show me each occurrence of the SQL Injection on /search in scan 12345678-1234-1234-1234-123456789012.
+```
+
+### Credential Tools
+
+Authentication credentials are stored per project and assigned to targets so scans can authenticate. Header and cookie values are redacted when credentials are read back.
+
+#### `create-userpass-credential`
+
+Creates a username/password credential.
+
+Parameters:
+- `name` (string): Name for the credential
+- `username` (string): Username
+- `password` (string): Password
+- `project` (string): Project UUID
+- `description` (string, optional): Description
+
+Example command:
+```
+Create a username/password credential called "test-login" in project <uuid>.
+```
+
+#### `create-header-credential`
+
+Creates a header-based credential (e.g. `Authorization: Bearer ...`).
+
+Parameters:
+- `name` (string): Name for the credential
+- `headers` (object[]): List of `{ name, value }` headers to include in authenticated requests
+- `project` (string): Project UUID
+- `description` (string, optional): Description
+
+Example command:
+```
+Create a header credential "api-bearer" with Authorization: Bearer xyz in project <uuid>.
+```
+
+#### `create-cookie-credential`
+
+Creates a cookie-based credential.
+
+Parameters:
+- `name` (string): Name for the credential
+- `cookies` (object[]): List of `{ name, value }` cookies to include in authenticated requests
+- `project` (string): Project UUID
+- `description` (string, optional): Description
+
+Example command:
+```
+Create a cookie credential "session" with cookie sid=abc123 in project <uuid>.
+```
+
+#### `assign-credential-to-targets`
+
+Assigns a credential to one or more targets so their scans authenticate with it.
+
+Parameters:
+- `credential_id` (string): UUID of the credential
+- `target_ids` (string[]): List of target UUIDs to assign the credential to
+
+Example command:
+```
+Assign credential <uuid> to targets <uuid1> and <uuid2>.
+```
+
+#### `save-playwright-script`
+
+Saves a previously recorded Playwright script as an authentication credential. Scripts must be recorded through browser interaction (`nightvision auth record ...`), not generated.
+
+Parameters:
+- `name` (string): Name for the credential (e.g. "login-flow")
+- `script_content` (string): The Playwright script content
+- `project` (string): Project UUID to save the credential in
+- `script_first_url` (string, optional): The first URL the script navigates to
+- `description` (string, optional): Description of the credential
+
+Example command:
+```
+Save this recorded Playwright login script as a credential called "login-flow" in project <uuid>.
+```
+
+#### `update-playwright-script`
+
+Updates an existing Playwright script credential.
+
+Parameters:
+- `id` (string): UUID of the credential to update
+- `name` (string, optional): New name for the credential
+- `script_content` (string, optional): Updated Playwright script content
+- `script_first_url` (string, optional): Updated first URL
+- `description` (string, optional): Updated description
+
+Example command:
+```
+Update the script for credential <uuid> with this new recording.
+```
+
+#### `get-auth-credential`
+
+Gets details of a credential by UUID, or by name + project. For script credentials, returns the full Playwright script content. Header and cookie values are shown as `[REDACTED]`.
+
+Parameters:
+- `id` (string, optional): UUID of the credential
+- `name` (string, optional): Name of the credential (requires `project_id`)
+- `project_id` (string, optional): Project UUID (required when using `name`)
+
+Example command:
+```
+Show me the details of credential "login-flow" in project <uuid>.
+```
+
+#### `list-auth-credentials`
+
+Lists authentication credentials, optionally filtered by project.
+
+Parameters:
+- `project_id` (string, optional): Project UUID to filter by
+
+Example command:
+```
+List all authentication credentials in project <uuid>.
 ```
 
 ### API Tools
