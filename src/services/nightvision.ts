@@ -1740,14 +1740,14 @@ This may be due to permissions issues. Try specifying a different output locatio
    * List additional paths for a URL target
    */
   async listAdditionalPaths(targetId: string): Promise<any> {
-    return this.apiRequest<any>(`targets/url/${targetId}/additional-paths/`, 'GET');
+    return this.apiRequest<any>(`targets/url/${encodeURIComponent(targetId)}/additional-paths/`, 'GET');
   }
 
   /**
    * Create additional paths for a URL target (bulk)
    */
   async createAdditionalPaths(targetId: string, paths: { path: string; disabled?: boolean }[]): Promise<any> {
-    return this.apiRequest<any>(`targets/url/${targetId}/additional-paths/`, 'POST', {}, paths);
+    return this.apiRequest<any>(`targets/url/${encodeURIComponent(targetId)}/additional-paths/`, 'POST', {}, paths);
   }
 
   /**
@@ -1833,7 +1833,7 @@ This may be due to permissions issues. Try specifying a different output locatio
    * Assign a credential to targets
    */
   async assignCredentialToTargets(credentialId: string, targetIds: string[]): Promise<any> {
-    return this.apiRequest<any>(`credentials/${credentialId}/assign-to-targets/`, 'POST', {}, { targets: targetIds });
+    return this.apiRequest<any>(`credentials/${encodeURIComponent(credentialId)}/assign-to-targets/`, 'POST', {}, { targets: targetIds });
   }
 
   /**
@@ -1860,14 +1860,14 @@ This may be due to permissions issues. Try specifying a different output locatio
    * Get a credential by UUID
    */
   async getCredential(id: string): Promise<any> {
-    return this.apiRequest<any>(`credentials/${id}/`, 'GET');
+    return this.apiRequest<any>(`credentials/${encodeURIComponent(id)}/`, 'GET');
   }
 
   /**
    * Get a credential by name within a project
    */
   async getCredentialByName(projectId: string, name: string): Promise<any> {
-    return this.apiRequest<any>(`projects/${projectId}/credentials/${name}/`, 'GET');
+    return this.apiRequest<any>(`projects/${encodeURIComponent(projectId)}/credentials/${encodeURIComponent(name)}/`, 'GET');
   }
 
   /**
@@ -1890,7 +1890,7 @@ This may be due to permissions issues. Try specifying a different output locatio
     script_first_url?: string;
     description?: string;
   }): Promise<any> {
-    return this.apiRequest<any>(`credentials/${id}/`, 'PUT', {}, options);
+    return this.apiRequest<any>(`credentials/${encodeURIComponent(id)}/`, 'PUT', {}, options);
   }
 
   // --- Issues / Findings ---
@@ -2024,7 +2024,7 @@ This may be due to permissions issues. Try specifying a different output locatio
     try {
       console.error(`Getting issue details for ${issueId} via API...`);
       const response = this.sanitizeResponseData(
-        await this.apiRequest<any>(`issues/${issueId}/`, 'GET')
+        await this.apiRequest<any>(`issues/${encodeURIComponent(issueId)}/`, 'GET')
       );
 
       if (format === 'text') return this.formatSingleIssueAsText(response);
