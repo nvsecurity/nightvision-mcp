@@ -141,7 +141,7 @@ export function registerFindingTools(server: McpServer): void {
     GetVulnerablePathsParamsSchema,
     async (args, _extra) => {
       try {
-        const { scan_id, kind, nuclei_template, resolution, filter, format = 'json' } = args;
+        const { scan_id, kind, nuclei_template, resolution, filter } = args;
 
         if (!nightvisionService.getToken()) {
           return {
@@ -155,8 +155,7 @@ export function registerFindingTools(server: McpServer): void {
 
         const result = await nightvisionService.getVulnerablePaths(
           scan_id,
-          { kind, nuclei_template, resolution, filter },
-          format
+          { kind, nuclei_template, resolution, filter }
         );
 
         return { content: [{ type: "text" as const, text: result }] };
@@ -180,7 +179,7 @@ export function registerFindingTools(server: McpServer): void {
     GetIssueOccurrencesParamsSchema,
     async (args, _extra) => {
       try {
-        const { scan_id, url_path, http_method, kind_id, nuclei_template_id, parameter_name, resolution, format = 'json' } = args;
+        const { scan_id, url_path, http_method, kind_id, nuclei_template_id, parameter_name, resolution } = args;
 
         if (!nightvisionService.getToken()) {
           return {
@@ -203,8 +202,7 @@ export function registerFindingTools(server: McpServer): void {
         }
 
         const result = await nightvisionService.getIssueOccurrences(
-          { scan_id, url_path, http_method, kind_id, nuclei_template_id, parameter_name, resolution },
-          format
+          { scan_id, url_path, http_method, kind_id, nuclei_template_id, parameter_name, resolution }
         );
 
         return { content: [{ type: "text" as const, text: result }] };

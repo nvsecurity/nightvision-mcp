@@ -470,7 +470,6 @@ Parameters:
 - `nuclei_template` (string[], optional): Filter by Nuclei template UUIDs
 - `resolution` (number[], optional): Filter by resolution: 0=open, 1=false_positive, 2=resolved
 - `filter` (string, optional): Text filter for paths
-- `format` (enum: "text" | "json" | "table", optional, default: "json"): Format of command output
 
 Example command:
 ```
@@ -489,7 +488,6 @@ Parameters:
 - `nuclei_template_id` (string, optional): Nuclei template UUID (required if no `kind_id`)
 - `parameter_name` (string, optional): Filter by parameter name
 - `resolution` (number[], optional): Filter by resolution: 0=open, 1=false_positive, 2=resolved
-- `format` (enum: "text" | "json" | "table", optional, default: "json"): Format of command output
 
 Example command:
 ```

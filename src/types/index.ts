@@ -302,8 +302,7 @@ export const GetVulnerablePathsParamsSchema = {
   nuclei_template: z.array(z.string()).optional().describe("Filter by nuclei template UUIDs"),
   resolution: z.array(z.number()).optional()
     .describe("Filter by resolution: 0=open, 1=false_positive, 2=resolved"),
-  filter: z.string().optional().describe("Text filter for paths"),
-  format: z.enum(["text", "json", "table"]).optional().default("json").describe("Format of command output")
+  filter: z.string().optional().describe("Text filter for paths")
 };
 
 /**
@@ -317,8 +316,7 @@ export const GetIssueOccurrencesParamsSchema = {
   nuclei_template_id: z.string().optional().describe("Nuclei template UUID (required if no kind_id)"),
   parameter_name: z.string().optional().describe("Filter by parameter name"),
   resolution: z.array(z.number()).optional()
-    .describe("Filter by resolution: 0=open, 1=false_positive, 2=resolved"),
-  format: z.enum(["text", "json", "table"]).optional().default("json").describe("Format of command output")
+    .describe("Filter by resolution: 0=open, 1=false_positive, 2=resolved")
 };
 
 /**

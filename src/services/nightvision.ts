@@ -1878,7 +1878,7 @@ This may be due to permissions issues. Try specifying a different output locatio
     if (projectIds && projectIds.length > 0) {
       params.project = projectIds;
     }
-    return this.apiRequest<any>('credentials/', 'GET', params);
+    return this.apiRequest<any>('credentials/', 'GET', params, null, false, serializeRepeatedParams);
   }
 
   /**
@@ -2060,8 +2060,7 @@ This may be due to permissions issues. Try specifying a different output locatio
       nuclei_template?: string[];
       resolution?: number[];
       filter?: string;
-    } = {},
-    _format: OutputFormat = 'json'
+    } = {}
   ): Promise<string> {
     try {
       console.error(`Getting vulnerable paths for scan ${scanId}...`);
@@ -2087,8 +2086,7 @@ This may be due to permissions issues. Try specifying a different output locatio
       nuclei_template_id?: string;
       parameter_name?: string;
       resolution?: number[];
-    },
-    _format: OutputFormat = 'json'
+    }
   ): Promise<string> {
     try {
       console.error(`Getting issue occurrences for scan ${data.scan_id}...`);
@@ -2128,7 +2126,7 @@ This may be due to permissions issues. Try specifying a different output locatio
     output += `Finding: ${issue.kind?.name || issue.nuclei_template?.name || 'Unknown'}\n`;
     output += `ID: ${issue.id}\n`;
     output += `Severity: ${issue.severity || 'N/A'}\n`;
-    output += `Resolution: ${issue.resolution || 'N/A'}\n`;
+    output += `Resolution: ${issue.resolution ?? 'N/A'}\n`;
     output += `Path: ${issue.url_path || 'N/A'}\n`;
     output += `Method: ${issue.http_method || 'N/A'}\n`;
     output += `Parameter: ${issue.parameter_name || 'N/A'} (${issue.parameter_type || 'N/A'})\n`;
@@ -2209,7 +2207,7 @@ This may be due to permissions issues. Try specifying a different output locatio
         (issue.url_path || 'N/A').substring(0, 30),
         issue.http_method || 'N/A',
         (issue.parameter_name || 'N/A').substring(0, 20),
-        (issue.resolution || 'N/A').toString(),
+        (issue.resolution ?? 'N/A').toString(),
       ]);
     }
 
