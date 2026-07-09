@@ -1,12 +1,15 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { nightvisionService } from '../services/index.js';
 import { 
-  ListTargetsParamsSchema, 
+  ListTargetsParamsSchema,
   GetTargetDetailsParamsSchema,
   Target,
   FormattedTargetList,
   CreateTargetParamsSchema,
-  DeleteTargetParamsSchema
+  DeleteTargetParamsSchema,
+  FindTargetParamsSchema,
+  ListAdditionalPathsParamsSchema,
+  AddAdditionalPathsParamsSchema
 } from '../types/index.js';
 import { matchTargetByName } from '../utils/target-matching.js';
 
@@ -432,4 +435,114 @@ export function registerTargetTools(server: McpServer): void {
       }
     }
   );
-} 
+
+  /**
+   * Find Target Tool
+   *
+   * Lightweight lookup of a target by name across projects. Returns matching
+   * targets with their project names. Much lighter than list-targets.
+   */
+  server.tool(
+    "find-target",
+    FindTargetParamsSchema,
+    async (args, _extra) => {
+      try {
+        if (!nightvisionService.getToken()) {
+          return {
+            content: [{ type: "text" as const, text: "Not authenticated. Please use the authenticate tool to set a token first." }],
+            isError: true
+          };
+        }
+
+        const matches = await nightvisionService.findTarget(args.name);
+
+        if (matches.length === 0) {
+          return {
+            content: [{ type: "text" as const, text: `No targets found matching "${args.name}".` }]
+          };
+        }
+
+        const lines = matches.map((t) =>
+          `- ${t.name} | Project: ${t.project_name} | URL: ${t.location} | Type: ${t.type}`
+        );
+
+        return {
+          content: [{
+            type: "text" as const,
+            text: `Found ${matches.length} target(s) matching "${args.name}":\n\n${lines.join('\n')}`
+          }]
+        };
+      } catch (error: any) {
+        return {
+          content: [{ type: "text" as const, text: `Failed to find target: ${error.message}` }],
+          isError: true
+        };
+      }
+    }
+  );
+
+  /**
+   * List Additional Paths Tool
+   *
+   * Lists user-defined paths configured for a URL target. These paths are
+   * included in scans alongside discovered paths.
+   */
+  server.tool(
+    "list-additional-paths",
+    ListAdditionalPathsParamsSchema,
+    async (args, _extra) => {
+      try {
+        if (!nightvisionService.getToken()) {
+          return { content: [{ type: "text" as const, text: "Not authenticated." }], isError: true };
+        }
+
+        const response = await nightvisionService.listAdditionalPaths(args.target_id);
+        const results = response?.results || response || [];
+
+        if (results.length === 0) {
+          return { content: [{ type: "text" as const, text: "No additional paths configured for this target." }] };
+        }
+
+        const lines = results.map((p: any) => `${p.disabled ? '[disabled] ' : ''}${p.path}`);
+
+        return {
+          content: [{ type: "text" as const, text: `Additional paths (${results.length}):\n\n${lines.join('\n')}` }]
+        };
+      } catch (error: any) {
+        return {
+          content: [{ type: "text" as const, text: `Failed to list additional paths: ${error.message}` }],
+          isError: true
+        };
+      }
+    }
+  );
+
+  /**
+   * Add Additional Paths Tool
+   *
+   * Adds user-defined paths to a URL target. These paths will be included in scans.
+   */
+  server.tool(
+    "add-additional-paths",
+    AddAdditionalPathsParamsSchema,
+    async (args, _extra) => {
+      try {
+        if (!nightvisionService.getToken()) {
+          return { content: [{ type: "text" as const, text: "Not authenticated." }], isError: true };
+        }
+
+        const pathObjects = args.paths.map((p) => ({ path: p, disabled: false }));
+        await nightvisionService.createAdditionalPaths(args.target_id, pathObjects);
+
+        return {
+          content: [{ type: "text" as const, text: `Added ${args.paths.length} additional path(s) to target.` }]
+        };
+      } catch (error: any) {
+        return {
+          content: [{ type: "text" as const, text: `Failed to add additional paths: ${error.message}` }],
+          isError: true
+        };
+      }
+    }
+  );
+}

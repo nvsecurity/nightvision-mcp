@@ -1,7 +1,17 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { nightvisionService } from '../services/index.js';
 import { saveToken, clearToken } from '../config/token.js';
-import { AuthenticateParamsSchema } from '../types/index.js';
+import {
+  AuthenticateParamsSchema,
+  CreateUserPassCredentialParamsSchema,
+  CreateHeaderCredentialParamsSchema,
+  CreateCookieCredentialParamsSchema,
+  AssignCredentialToTargetsParamsSchema,
+  SavePlaywrightScriptParamsSchema,
+  UpdatePlaywrightScriptParamsSchema,
+  GetAuthCredentialParamsSchema,
+  ListAuthCredentialsParamsSchema,
+} from '../types/index.js';
 import { ENVIRONMENT } from '../config/environment.js';
 
 /**
@@ -148,4 +158,284 @@ export function registerAuthTools(server: McpServer): void {
       }
     }
   );
-} 
+
+  /**
+   * Create Username/Password Credential
+   */
+  server.tool(
+    "create-userpass-credential",
+    CreateUserPassCredentialParamsSchema,
+    async (args, _extra) => {
+      try {
+        if (!nightvisionService.getToken()) {
+          return { content: [{ type: "text" as const, text: "Not authenticated." }], isError: true };
+        }
+        const result = await nightvisionService.createUserPassCredential(args);
+        return {
+          content: [{
+            type: "text" as const,
+            text: `Username/password credential created.\nID: ${result.id}\nName: ${result.name}\nProject: ${result.project_name || result.project}`
+          }]
+        };
+      } catch (error: any) {
+        return { content: [{ type: "text" as const, text: `Failed: ${error.message}` }], isError: true };
+      }
+    }
+  );
+
+  /**
+   * Create Header Credential
+   */
+  server.tool(
+    "create-header-credential",
+    CreateHeaderCredentialParamsSchema,
+    async (args, _extra) => {
+      try {
+        if (!nightvisionService.getToken()) {
+          return { content: [{ type: "text" as const, text: "Not authenticated." }], isError: true };
+        }
+        const result = await nightvisionService.createHeaderCredential(args);
+        return {
+          content: [{
+            type: "text" as const,
+            text: `Header credential created.\nID: ${result.id}\nName: ${result.name}\nHeaders: ${args.headers.map((h) => h.name).join(', ')}\nProject: ${result.project_name || result.project}`
+          }]
+        };
+      } catch (error: any) {
+        return { content: [{ type: "text" as const, text: `Failed: ${error.message}` }], isError: true };
+      }
+    }
+  );
+
+  /**
+   * Create Cookie Credential
+   */
+  server.tool(
+    "create-cookie-credential",
+    CreateCookieCredentialParamsSchema,
+    async (args, _extra) => {
+      try {
+        if (!nightvisionService.getToken()) {
+          return { content: [{ type: "text" as const, text: "Not authenticated." }], isError: true };
+        }
+        const result = await nightvisionService.createCookieCredential({
+          name: args.name,
+          cookie: args.cookies,
+          project: args.project,
+          description: args.description,
+        });
+        return {
+          content: [{
+            type: "text" as const,
+            text: `Cookie credential created.\nID: ${result.id}\nName: ${result.name}\nCookies: ${args.cookies.map((c) => c.name).join(', ')}\nProject: ${result.project_name || result.project}`
+          }]
+        };
+      } catch (error: any) {
+        return { content: [{ type: "text" as const, text: `Failed: ${error.message}` }], isError: true };
+      }
+    }
+  );
+
+  /**
+   * Assign Credential to Targets
+   */
+  server.tool(
+    "assign-credential-to-targets",
+    AssignCredentialToTargetsParamsSchema,
+    async (args, _extra) => {
+      try {
+        if (!nightvisionService.getToken()) {
+          return { content: [{ type: "text" as const, text: "Not authenticated." }], isError: true };
+        }
+        await nightvisionService.assignCredentialToTargets(args.credential_id, args.target_ids);
+        return {
+          content: [{
+            type: "text" as const,
+            text: `Credential assigned to ${args.target_ids.length} target(s).`
+          }]
+        };
+      } catch (error: any) {
+        return { content: [{ type: "text" as const, text: `Failed: ${error.message}` }], isError: true };
+      }
+    }
+  );
+
+  /**
+   * Save Playwright Script Credential
+   */
+  server.tool(
+    "save-playwright-script",
+    SavePlaywrightScriptParamsSchema,
+    async (args, _extra) => {
+      try {
+        if (!nightvisionService.getToken()) {
+          return {
+            content: [{ type: "text" as const, text: "Not authenticated. Please use the authenticate tool to set a token first." }],
+            isError: true
+          };
+        }
+
+        const result = await nightvisionService.createScriptCredential({
+          name: args.name,
+          script_content: args.script_content,
+          project: args.project,
+          script_first_url: args.script_first_url,
+          description: args.description,
+        });
+
+        return {
+          content: [{
+            type: "text" as const,
+            text: `Playwright script credential saved.\nID: ${result.id}\nName: ${result.name}\nProject: ${result.project_name || result.project}`
+          }]
+        };
+      } catch (error: any) {
+        return {
+          content: [{ type: "text" as const, text: `Failed to save script credential: ${error.message}` }],
+          isError: true
+        };
+      }
+    }
+  );
+
+  /**
+   * Update Playwright Script Credential
+   */
+  server.tool(
+    "update-playwright-script",
+    UpdatePlaywrightScriptParamsSchema,
+    async (args, _extra) => {
+      try {
+        if (!nightvisionService.getToken()) {
+          return {
+            content: [{ type: "text" as const, text: "Not authenticated. Please use the authenticate tool to set a token first." }],
+            isError: true
+          };
+        }
+
+        const { id, ...updates } = args;
+        const result = await nightvisionService.updateScriptCredential(id, updates);
+
+        return {
+          content: [{
+            type: "text" as const,
+            text: `Playwright script credential updated.\nID: ${result.id}\nName: ${result.name}`
+          }]
+        };
+      } catch (error: any) {
+        return {
+          content: [{ type: "text" as const, text: `Failed to update script credential: ${error.message}` }],
+          isError: true
+        };
+      }
+    }
+  );
+
+  /**
+   * Get Auth Credential Details (including Playwright script content)
+   */
+  server.tool(
+    "get-auth-credential",
+    GetAuthCredentialParamsSchema,
+    async (args, _extra) => {
+      try {
+        if (!nightvisionService.getToken()) {
+          return {
+            content: [{ type: "text" as const, text: "Not authenticated. Please use the authenticate tool to set a token first." }],
+            isError: true
+          };
+        }
+
+        if (!args.id && (!args.name || !args.project_id)) {
+          return {
+            content: [{ type: "text" as const, text: "Provide either 'id' (UUID) or both 'name' and 'project_id'." }],
+            isError: true
+          };
+        }
+
+        let cred: any;
+        if (args.id) {
+          cred = await nightvisionService.getCredential(args.id);
+        } else {
+          cred = await nightvisionService.getCredentialByName(args.project_id!, args.name!);
+        }
+
+        const lines = [
+          `Credential: ${cred.name}`,
+          `ID: ${cred.id}`,
+          `Type: ${cred.type}`,
+          `Project: ${cred.project_name || cred.project}`,
+        ];
+
+        if (cred.description) lines.push(`Description: ${cred.description}`);
+        if (cred.script_first_url) lines.push(`First URL: ${cred.script_first_url}`);
+
+        if (cred.script_content) {
+          lines.push('', '--- Playwright Script ---', '', cred.script_content);
+        }
+
+        if (cred.headers && cred.headers.length > 0) {
+          lines.push('', 'Headers:');
+          for (const h of cred.headers) {
+            lines.push(`  ${h.name}: [REDACTED]`);
+          }
+        }
+
+        if (cred.cookie && cred.cookie.length > 0) {
+          lines.push('', 'Cookies:');
+          for (const c of cred.cookie) {
+            lines.push(`  ${c.name}: [REDACTED]`);
+          }
+        }
+
+        return {
+          content: [{ type: "text" as const, text: lines.join('\n') }]
+        };
+      } catch (error: any) {
+        return {
+          content: [{ type: "text" as const, text: `Failed to get credential: ${error.message}` }],
+          isError: true
+        };
+      }
+    }
+  );
+
+  /**
+   * List Auth Credentials
+   */
+  server.tool(
+    "list-auth-credentials",
+    ListAuthCredentialsParamsSchema,
+    async (args, _extra) => {
+      try {
+        if (!nightvisionService.getToken()) {
+          return {
+            content: [{ type: "text" as const, text: "Not authenticated. Please use the authenticate tool to set a token first." }],
+            isError: true
+          };
+        }
+
+        const projectIds = args.project_id ? [args.project_id] : undefined;
+        const response = await nightvisionService.listCredentials(projectIds);
+        const results = response?.results || response || [];
+
+        if (results.length === 0) {
+          return { content: [{ type: "text" as const, text: "No credentials found." }] };
+        }
+
+        const lines = results.map((c: any) =>
+          `- ${c.name} | ID: ${c.id} | Type: ${c.type} | Project: ${c.project_name || c.project}`
+        );
+
+        return {
+          content: [{ type: "text" as const, text: `Credentials (${results.length}):\n\n${lines.join('\n')}` }]
+        };
+      } catch (error: any) {
+        return {
+          content: [{ type: "text" as const, text: `Failed to list credentials: ${error.message}` }],
+          isError: true
+        };
+      }
+    }
+  );
+}

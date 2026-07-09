@@ -1,12 +1,14 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { nightvisionService } from '../services/index.js';
-import { 
-  StartScanParamsSchema, 
+import {
+  StartScanParamsSchema,
   ListScansParamsSchema,
   GetScanStatusParamsSchema,
   GetScanChecksParamsSchema,
-  GetScanPathsParamsSchema
+  GetScanPathsParamsSchema,
+  ListCheckCategoriesParamsSchema
 } from '../types/index.js';
+import { getExclusionIds, getNucleiExclusionFolders, formatCheckList } from '../utils/check-catalog.js';
 
 /**
  * Register scan-related tools with the MCP server
@@ -24,14 +26,16 @@ export function registerScanTools(server: McpServer): void {
     StartScanParamsSchema,
     async (args, _extra) => {
       try {
-        const { 
-          target_name: targetName, 
-          auth, 
-          auth_id, 
-          no_auth, 
-          project, 
-          project_id, 
-          format = 'json' 
+        const {
+          target_name: targetName,
+          auth,
+          auth_id,
+          no_auth,
+          project,
+          project_id,
+          run_only_zap_checks,
+          run_only_nuclei_folders,
+          format = 'json'
         } = args;
         
         // Check if authenticated
@@ -56,16 +60,65 @@ export function registerScanTools(server: McpServer): void {
           };
         }
         
+        // Resolve inclusion-based check selection into the exclusion lists the
+        // CLI expects. Done synchronously so a bad selection fails fast rather
+        // than silently in the background scan.
+        let disableZapActiveAlerts: string[] | undefined;
+        let disableNucleiFolders: string[] | undefined;
+        if ((run_only_zap_checks && run_only_zap_checks.length > 0) ||
+            (run_only_nuclei_folders && run_only_nuclei_folders.length > 0)) {
+          try {
+            const checks = await nightvisionService.getConfiguredChecks();
+
+            if (run_only_zap_checks && run_only_zap_checks.length > 0) {
+              const { excludeIds, matchedAlerts } = getExclusionIds(checks, run_only_zap_checks);
+              if (matchedAlerts.length === 0) {
+                return {
+                  content: [{
+                    type: "text" as const,
+                    text: `No matching ZAP checks found for: ${run_only_zap_checks.join(', ')}.\n\nAvailable checks:\n${formatCheckList(checks)}`
+                  }],
+                  isError: true
+                };
+              }
+              disableZapActiveAlerts = excludeIds;
+            }
+
+            if (run_only_nuclei_folders && run_only_nuclei_folders.length > 0) {
+              const { excludeFolders, matchedFolders } = getNucleiExclusionFolders(checks, run_only_nuclei_folders);
+              if (matchedFolders.length === 0) {
+                return {
+                  content: [{
+                    type: "text" as const,
+                    text: `No matching Nuclei folders found for: ${run_only_nuclei_folders.join(', ')}.\n\nAvailable checks:\n${formatCheckList(checks)}`
+                  }],
+                  isError: true
+                };
+              }
+              disableNucleiFolders = excludeFolders;
+            }
+          } catch (error: any) {
+            return {
+              content: [{ type: "text" as const, text: `Failed to resolve check selection: ${error.message}` }],
+              isError: true
+            };
+          }
+        }
+
         try {
           // Return immediately with confirmation message
           // Don't wait for the scan to actually start
           console.error(`Starting scan for target '${targetName}' in background...`);
-          
+
           // Start the scan asynchronously, but don't wait for result
           setTimeout(() => {
             nightvisionService.startScan(
               targetName,
-              { auth, auth_id, no_auth, project, project_id },
+              {
+                auth, auth_id, no_auth, project, project_id,
+                disable_zap_active_alerts: disableZapActiveAlerts,
+                disable_nuclei_folders: disableNucleiFolders,
+              },
               format
             ).then(result => {
               // Try to extract scan ID for better UX
@@ -546,4 +599,39 @@ export function registerScanTools(server: McpServer): void {
       }
     }
   );
-} 
+
+  /**
+   * List Check Categories Tool
+   *
+   * Lists all available vulnerability checks (ZAP alerts and Nuclei folders)
+   * that can be used with the run_only_zap_checks / run_only_nuclei_folders
+   * parameters of start-scan. Fetched dynamically from the API.
+   */
+  server.tool(
+    "list-check-categories",
+    ListCheckCategoriesParamsSchema,
+    async (_args, _extra) => {
+      try {
+        if (!nightvisionService.getToken()) {
+          return {
+            content: [{ type: "text" as const, text: "Not authenticated. Please use the authenticate tool to set a token first." }],
+            isError: true
+          };
+        }
+
+        const checks = await nightvisionService.getConfiguredChecks();
+        return {
+          content: [{
+            type: "text" as const,
+            text: `Available checks for run_only_zap_checks / run_only_nuclei_folders:\n\n${formatCheckList(checks)}`
+          }]
+        };
+      } catch (error: any) {
+        return {
+          content: [{ type: "text" as const, text: `Error fetching check categories: ${error.message}` }],
+          isError: true
+        };
+      }
+    }
+  );
+}

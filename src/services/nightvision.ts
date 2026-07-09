@@ -10,6 +10,7 @@ import { extractCliVersion } from '../utils/cli-version.js';
 import { serializeRepeatedParams } from '../utils/query-params.js';
 import { scanStatusFilterCodes } from '../utils/scan-status.js';
 import { assertValidNucleiTemplatePath } from '../utils/nuclei-template.js';
+import type { ConfiguredChecks } from '../utils/check-catalog.js';
 import { formatScanChecksText, formatScanChecksTable } from '../utils/scan-check-format.js';
 import { formatScansTable } from '../utils/scan-list-format.js';
 import { formatScanPathsText, formatScanPathsTable } from '../utils/scan-path-format.js';
@@ -384,6 +385,8 @@ export class NightVisionService {
       no_auth?: boolean;
       project?: string;
       project_id?: string;
+      disable_zap_active_alerts?: string[];
+      disable_nuclei_folders?: string[];
     } = {},
     format: OutputFormat = 'json'
   ): Promise<string> {
@@ -412,7 +415,15 @@ export class NightVisionService {
     if (options.project_id) {
       args.push('-P', options.project_id);
     }
-    
+
+    if (options.disable_zap_active_alerts && options.disable_zap_active_alerts.length > 0) {
+      args.push('--disable-zap-active-alerts', options.disable_zap_active_alerts.join(','));
+    }
+
+    if (options.disable_nuclei_folders && options.disable_nuclei_folders.length > 0) {
+      args.push('--disable-nuclei-folders', options.disable_nuclei_folders.join(','));
+    }
+
     // Execute the command with standard parameters
     const result = await this.executeCommand(args, format);
     
@@ -1706,6 +1717,525 @@ This may be due to permissions issues. Try specifying a different output locatio
       
       throw new Error(`Failed to download traffic file: ${error.message}`);
     }
+  }
+
+  // --- Check catalog ---
+
+  private cachedChecks: ConfiguredChecks | null = null;
+
+  /**
+   * Fetch the configured check catalog from the API.
+   * Cached for the lifetime of the server process.
+   */
+  async getConfiguredChecks(): Promise<ConfiguredChecks> {
+    if (this.cachedChecks) return this.cachedChecks;
+    const response = await this.apiRequest<ConfiguredChecks>('common/configured-checks/', 'GET');
+    this.cachedChecks = response;
+    return response;
+  }
+
+  // --- Targets: additional paths & lookup ---
+
+  /**
+   * List additional paths for a URL target
+   */
+  async listAdditionalPaths(targetId: string): Promise<any> {
+    return this.apiRequest<any>(`targets/url/${encodeURIComponent(targetId)}/additional-paths/`, 'GET');
+  }
+
+  /**
+   * Create additional paths for a URL target (bulk)
+   */
+  async createAdditionalPaths(targetId: string, paths: { path: string; disabled?: boolean }[]): Promise<any> {
+    return this.apiRequest<any>(`targets/url/${encodeURIComponent(targetId)}/additional-paths/`, 'POST', {}, paths);
+  }
+
+  /**
+   * Lightweight target lookup by name. Uses the API filter param to avoid
+   * fetching all targets. Returns matching targets with their projects.
+   */
+  async findTarget(name: string): Promise<{ name: string; id: string; project_name: string; project_id: string; location: string; type: string }[]> {
+    const response = await this.apiRequest<any>('targets/', 'GET', {
+      filter: name,
+      page_size: 20,
+    });
+
+    const results = response?.results || [];
+    return results.map((t: any) => ({
+      name: t.name,
+      id: t.id,
+      project_name: t.project_name || t.project?.name || 'Unknown',
+      project_id: t.project || t.project_id || '',
+      location: t.location || '',
+      type: t.type || '',
+    }));
+  }
+
+  // --- Credentials ---
+
+  /**
+   * Create a username/password credential
+   */
+  async createUserPassCredential(options: {
+    name: string;
+    username: string;
+    password: string;
+    project: string;
+    description?: string;
+  }): Promise<any> {
+    const data: Record<string, any> = {
+      name: options.name,
+      username: options.username,
+      password: options.password,
+      project: options.project,
+    };
+    if (options.description) data.description = options.description;
+    return this.apiRequest<any>('credentials/username-password/', 'POST', {}, data);
+  }
+
+  /**
+   * Create a header-based credential
+   */
+  async createHeaderCredential(options: {
+    name: string;
+    headers: { name: string; value: string }[];
+    project: string;
+    description?: string;
+  }): Promise<any> {
+    const data: Record<string, any> = {
+      name: options.name,
+      headers: options.headers,
+      project: options.project,
+    };
+    if (options.description) data.description = options.description;
+    return this.apiRequest<any>('credentials/header/', 'POST', {}, data);
+  }
+
+  /**
+   * Create a cookie-based credential
+   */
+  async createCookieCredential(options: {
+    name: string;
+    cookie: { name: string; value: string }[];
+    project: string;
+    description?: string;
+  }): Promise<any> {
+    const data: Record<string, any> = {
+      name: options.name,
+      cookie: options.cookie,
+      project: options.project,
+    };
+    if (options.description) data.description = options.description;
+    return this.apiRequest<any>('credentials/cookie/', 'POST', {}, data);
+  }
+
+  /**
+   * Assign a credential to targets
+   */
+  async assignCredentialToTargets(credentialId: string, targetIds: string[]): Promise<any> {
+    return this.apiRequest<any>(`credentials/${encodeURIComponent(credentialId)}/assign-to-targets/`, 'POST', {}, { targets: targetIds });
+  }
+
+  /**
+   * Create a script-based credential (Playwright recording)
+   */
+  async createScriptCredential(options: {
+    name: string;
+    script_content: string;
+    script_first_url?: string;
+    description?: string;
+    project: string;
+  }): Promise<any> {
+    const data: Record<string, any> = {
+      name: options.name,
+      script_content: options.script_content,
+      project: options.project,
+    };
+    if (options.script_first_url) data.script_first_url = options.script_first_url;
+    if (options.description) data.description = options.description;
+    return this.apiRequest<any>('credentials/script/', 'POST', {}, data);
+  }
+
+  /**
+   * Get a credential by UUID
+   */
+  async getCredential(id: string): Promise<any> {
+    return this.apiRequest<any>(`credentials/${encodeURIComponent(id)}/`, 'GET');
+  }
+
+  /**
+   * Get a credential by name within a project
+   */
+  async getCredentialByName(projectId: string, name: string): Promise<any> {
+    return this.apiRequest<any>(`projects/${encodeURIComponent(projectId)}/credentials/${encodeURIComponent(name)}/`, 'GET');
+  }
+
+  /**
+   * List credentials for projects
+   */
+  async listCredentials(projectIds?: string[]): Promise<any> {
+    const params: Record<string, any> = {};
+    if (projectIds && projectIds.length > 0) {
+      params.project = projectIds;
+    }
+    return this.apiRequest<any>('credentials/', 'GET', params, null, false, serializeRepeatedParams);
+  }
+
+  /**
+   * Update an existing script-based credential
+   */
+  async updateScriptCredential(id: string, options: {
+    name?: string;
+    script_content?: string;
+    script_first_url?: string;
+    description?: string;
+  }): Promise<any> {
+    return this.apiRequest<any>(`credentials/${encodeURIComponent(id)}/`, 'PUT', {}, options);
+  }
+
+  // --- Issues / Findings ---
+
+  private readonly SENSITIVE_HEADERS = new Set([
+    'authorization', 'cookie', 'set-cookie', 'x-csrf-token',
+    'x-api-key', 'proxy-authorization', 'www-authenticate',
+  ]);
+
+  private redactHeaderValue(name: string, value: string): string {
+    if (this.SENSITIVE_HEADERS.has(name.toLowerCase())) {
+      return '[REDACTED]';
+    }
+    return value;
+  }
+
+  /**
+   * Sanitize sensitive headers and cookies in raw API response data.
+   * Applied so all output formats get consistent redaction.
+   */
+  private sanitizeResponseData(data: any): any {
+    if (!data) return data;
+
+    if (Array.isArray(data)) {
+      return data.map((d) => this.sanitizeResponseData(d));
+    }
+
+    if (data.results && Array.isArray(data.results)) {
+      return { ...data, results: data.results.map((d: any) => this.sanitizeResponseData(d)) };
+    }
+
+    if (data.extra_info) {
+      const extraInfo = { ...data.extra_info };
+
+      if (Array.isArray(extraInfo.http_requests)) {
+        extraInfo.http_requests = extraInfo.http_requests.map((req: any) => {
+          const sanitized = { ...req };
+          if (Array.isArray(sanitized.headers)) {
+            sanitized.headers = sanitized.headers.map((h: any) => ({
+              ...h, value: this.redactHeaderValue(h.name, h.value)
+            }));
+          }
+          if (Array.isArray(sanitized.cookies)) {
+            sanitized.cookies = sanitized.cookies.map((c: any) => ({
+              ...c, value: '[REDACTED]'
+            }));
+          }
+          return sanitized;
+        });
+      }
+
+      if (Array.isArray(extraInfo.http_responses)) {
+        extraInfo.http_responses = extraInfo.http_responses.map((resp: any) => {
+          const sanitized = { ...resp };
+          if (Array.isArray(sanitized.headers)) {
+            sanitized.headers = sanitized.headers.map((h: any) => ({
+              ...h, value: this.redactHeaderValue(h.name, h.value)
+            }));
+          }
+          return sanitized;
+        });
+      }
+
+      return { ...data, extra_info: extraInfo };
+    }
+
+    return data;
+  }
+
+  /**
+   * Generic ASCII table formatter
+   */
+  private formatAsTable(headers: string[], rows: string[][]): string {
+    if (headers.length === 0 || rows.length === 0) {
+      return 'No data to display';
+    }
+
+    const colWidths = headers.map((h, i) => {
+      const maxDataLength = Math.max(...rows.map(r => r[i]?.toString().length || 0));
+      return Math.max(h.length, maxDataLength);
+    });
+
+    const headerRow = headers.map((h, i) => h.padEnd(colWidths[i])).join(' | ');
+    const separatorRow = colWidths.map(w => '-'.repeat(w)).join('-+-');
+    const dataRows = rows.map(row =>
+      row.map((cell, i) => (cell || '').toString().padEnd(colWidths[i])).join(' | ')
+    );
+
+    return [headerRow, separatorRow, ...dataRows].join('\n');
+  }
+
+  async listIssues(
+    scanId: string,
+    options: {
+      page?: number;
+      page_size?: number;
+      severity?: string[];
+      resolution?: number[];
+      kind?: number[];
+      filter?: string;
+    } = {},
+    format: OutputFormat = 'json'
+  ): Promise<string> {
+    try {
+      console.error(`Listing issues for scan ${scanId} via API...`);
+
+      const params: Record<string, any> = { scan: scanId };
+      if (options.page) params.page = options.page;
+      params.page_size = options.page_size || 50;
+      if (options.severity) params.severity = options.severity;
+      if (options.resolution) params.resolution = options.resolution;
+      if (options.kind) params.kind = options.kind;
+      if (options.filter) params.filter = options.filter;
+
+      const response = this.sanitizeResponseData(
+        await this.apiRequest<any>('issues/', 'GET', params, null, false, serializeRepeatedParams)
+      );
+
+      if (format === 'text') return this.formatIssuesAsText(response);
+      if (format === 'table') return this.formatIssuesAsTable(response);
+      return JSON.stringify(response, null, 2);
+    } catch (error: any) {
+      throw new Error(`Failed to list issues: ${error.message}`);
+    }
+  }
+
+  async getIssueDetails(
+    issueId: string,
+    format: OutputFormat = 'json'
+  ): Promise<string> {
+    try {
+      console.error(`Getting issue details for ${issueId} via API...`);
+      const response = this.sanitizeResponseData(
+        await this.apiRequest<any>(`issues/${encodeURIComponent(issueId)}/`, 'GET')
+      );
+
+      if (format === 'text') return this.formatSingleIssueAsText(response);
+      return JSON.stringify(response, null, 2);
+    } catch (error: any) {
+      throw new Error(`Failed to get issue details: ${error.message}`);
+    }
+  }
+
+  async getIssueKindStats(
+    scanId: string,
+    options: { filter?: string } = {},
+    format: OutputFormat = 'json'
+  ): Promise<string> {
+    try {
+      console.error(`Getting issue kind stats for scan ${scanId}...`);
+      const params: Record<string, any> = { scan: scanId };
+      if (options.filter) params.filter = options.filter;
+
+      const response = await this.apiRequest<any>('issues/kind/', 'GET', params);
+
+      if (format === 'table') return this.formatIssueKindStatsAsTable(response);
+      return JSON.stringify(response, null, 2);
+    } catch (error: any) {
+      throw new Error(`Failed to get issue kind stats: ${error.message}`);
+    }
+  }
+
+  async getVulnerablePaths(
+    scanId: string,
+    options: {
+      kind?: number[];
+      nuclei_template?: string[];
+      resolution?: number[];
+      filter?: string;
+    } = {}
+  ): Promise<string> {
+    try {
+      console.error(`Getting vulnerable paths for scan ${scanId}...`);
+      const params: Record<string, any> = { scan: scanId };
+      if (options.kind) params.kind = options.kind;
+      if (options.nuclei_template) params.nuclei_template = options.nuclei_template;
+      if (options.resolution) params.resolution = options.resolution;
+      if (options.filter) params.filter = options.filter;
+
+      const response = await this.apiRequest<any>('issues/vulnerable-paths/', 'GET', params, null, false, serializeRepeatedParams);
+      return JSON.stringify(response, null, 2);
+    } catch (error: any) {
+      throw new Error(`Failed to get vulnerable paths: ${error.message}`);
+    }
+  }
+
+  async getIssueOccurrences(
+    data: {
+      scan_id: string;
+      url_path: string;
+      http_method: string;
+      kind_id?: number;
+      nuclei_template_id?: string;
+      parameter_name?: string;
+      resolution?: number[];
+    }
+  ): Promise<string> {
+    try {
+      console.error(`Getting issue occurrences for scan ${data.scan_id}...`);
+      const body: Record<string, any> = {
+        scan_id: data.scan_id,
+        url_path: data.url_path,
+        http_method: data.http_method,
+      };
+      if (data.kind_id !== undefined) body.kind_id = data.kind_id;
+      if (data.nuclei_template_id) body.nuclei_template_id = data.nuclei_template_id;
+      if (data.parameter_name) body.parameter_name = data.parameter_name;
+      if (data.resolution) body.resolution = data.resolution;
+
+      const response = this.sanitizeResponseData(
+        await this.apiRequest<any>('issues/occurrences/', 'POST', {}, body)
+      );
+      return JSON.stringify(response, null, 2);
+    } catch (error: any) {
+      throw new Error(`Failed to get issue occurrences: ${error.message}`);
+    }
+  }
+
+  private formatIssuesAsText(data: any): string {
+    const results = data?.results || [];
+    if (results.length === 0) return 'No findings found.';
+
+    let output = `Findings (${results.length} of ${data.count || results.length}):\n\n`;
+    for (let i = 0; i < results.length; i++) {
+      output += this.formatSingleIssueAsText(results[i]);
+      if (i < results.length - 1) output += '\n---\n\n';
+    }
+    return output;
+  }
+
+  private formatSingleIssueAsText(issue: any): string {
+    let output = '';
+    output += `Finding: ${issue.kind?.name || issue.nuclei_template?.name || 'Unknown'}\n`;
+    output += `ID: ${issue.id}\n`;
+    output += `Severity: ${issue.severity || 'N/A'}\n`;
+    output += `Resolution: ${issue.resolution ?? 'N/A'}\n`;
+    output += `Path: ${issue.url_path || 'N/A'}\n`;
+    output += `Method: ${issue.http_method || 'N/A'}\n`;
+    output += `Parameter: ${issue.parameter_name || 'N/A'} (${issue.parameter_type || 'N/A'})\n`;
+    output += `Payload: ${issue.payload || 'N/A'}\n`;
+    output += `Evidence: ${issue.evidence || 'N/A'}\n`;
+
+    if (issue.ai_explanation) {
+      output += `\nAI Explanation:\n${issue.ai_explanation}\n`;
+    }
+
+    const extraInfo = issue.extra_info || {};
+
+    const requests = extraInfo.http_requests || [];
+    if (requests.length > 0) {
+      output += `\n--- HTTP Requests (${requests.length}) ---\n`;
+      for (let j = 0; j < requests.length; j++) {
+        const req = requests[j];
+        output += `\nRequest ${j + 1}:\n`;
+        output += `  URL: ${req.url || 'N/A'}\n`;
+        output += `  Method: ${req.method || 'N/A'}\n`;
+        if (req.headers && req.headers.length > 0) {
+          output += `  Headers:\n`;
+          for (const h of req.headers) {
+            output += `    ${h.name}: ${this.redactHeaderValue(h.name, h.value)}\n`;
+          }
+        }
+        if (req.postData) {
+          output += `  Body: ${typeof req.postData === 'object' ? JSON.stringify(req.postData) : req.postData}\n`;
+        }
+        if (req.cookies && req.cookies.length > 0) {
+          output += `  Cookies:\n`;
+          for (const c of req.cookies) {
+            output += `    ${c.name}=[REDACTED]\n`;
+          }
+        }
+      }
+    }
+
+    const responses = extraInfo.http_responses || [];
+    if (responses.length > 0) {
+      output += `\n--- HTTP Responses (${responses.length}) ---\n`;
+      for (let j = 0; j < responses.length; j++) {
+        const resp = responses[j];
+        output += `\nResponse ${j + 1}:\n`;
+        output += `  Status: ${resp.status || 'N/A'} ${resp.statusText || ''}\n`;
+        if (resp.headers && resp.headers.length > 0) {
+          output += `  Headers:\n`;
+          for (const h of resp.headers) {
+            output += `    ${h.name}: ${this.redactHeaderValue(h.name, h.value)}\n`;
+          }
+        }
+        if (resp.content) {
+          const body = typeof resp.content === 'object'
+            ? (resp.content.text || JSON.stringify(resp.content))
+            : resp.content;
+          const truncated = body.length > 2000 ? body.substring(0, 2000) + '... [truncated]' : body;
+          output += `  Body: ${truncated}\n`;
+        }
+      }
+    }
+
+    return output;
+  }
+
+  private formatIssuesAsTable(data: any): string {
+    const results = data?.results || [];
+    if (results.length === 0) return 'No findings found.';
+
+    const headers = ['#', 'Finding', 'Severity', 'Path', 'Method', 'Parameter', 'Resolution'];
+    const rows: string[][] = [];
+
+    for (let i = 0; i < results.length; i++) {
+      const issue = results[i];
+      rows.push([
+        (i + 1).toString(),
+        (issue.kind?.name || issue.nuclei_template?.name || 'Unknown').substring(0, 35),
+        issue.severity || 'N/A',
+        (issue.url_path || 'N/A').substring(0, 30),
+        issue.http_method || 'N/A',
+        (issue.parameter_name || 'N/A').substring(0, 20),
+        (issue.resolution ?? 'N/A').toString(),
+      ]);
+    }
+
+    let output = this.formatAsTable(headers, rows);
+    if (data.count > results.length) {
+      output += `\nShowing ${results.length} of ${data.count} findings. Use page/page_size for more.\n`;
+    }
+    return output;
+  }
+
+  private formatIssueKindStatsAsTable(data: any): string {
+    const results = data?.results || data || [];
+    if (!Array.isArray(results) || results.length === 0) return 'No issue kinds found.';
+
+    const headers = ['Kind', 'Severity', 'Issues', 'Open', 'False Positive', 'Resolved'];
+    const rows: string[][] = [];
+
+    for (const kind of results) {
+      rows.push([
+        (kind.kind_name || kind.name || 'Unknown').substring(0, 35),
+        kind.severity || 'N/A',
+        (kind.issues || 0).toString(),
+        (kind.open || 0).toString(),
+        (kind.false_positive || 0).toString(),
+        (kind.resolved || 0).toString(),
+      ]);
+    }
+    return this.formatAsTable(headers, rows);
   }
 }
 

@@ -1,7 +1,7 @@
 import { createServer, connectServer } from './core/index.js';
 import { nightvisionService } from './services/index.js';
 import { loadToken } from './config/index.js';
-import { registerAuthTools, registerTargetTools, registerScanTools, registerApiTools, registerNucleiTools, registerProjectTools, registerTrafficTools } from './tools/index.js';
+import { registerAuthTools, registerTargetTools, registerScanTools, registerApiTools, registerNucleiTools, registerProjectTools, registerTrafficTools, registerFindingTools } from './tools/index.js';
 import { ENVIRONMENT } from './config/environment.js';
 import { isCliVersionBelow, MIN_CLI_VERSION } from './utils/cli-version.js';
 
@@ -52,7 +52,8 @@ async function main() {
     registerNucleiTools(server);
     registerProjectTools(server);
     registerTrafficTools(server);
-    
+    registerFindingTools(server);
+
     // Start the server
     await connectServer(server);
     
