@@ -126,7 +126,14 @@ test('isPrivateHost accepts local/private/internal hosts and rejects public ones
     // pivot and must never be auto-adopted as a scan target.
     'http://169.254.169.254/latest/meta-data/',
     'http://169.254.10.20',
-    'http://[fd00:ec2::254]/latest/meta-data/'
+    'http://[fd00:ec2::254]/latest/meta-data/',
+    // The cloud metadata service is also reachable by well-known hostname, which
+    // otherwise slips through as private (metadata.google.internal via the
+    // `.internal` suffix, instance-data via the no-dot rule). Deny those too.
+    'http://metadata.google.internal/computeMetadata/v1/',
+    'http://metadata/computeMetadata/v1/',
+    'http://instance-data/latest/meta-data/',
+    'http://instance-data.ec2.internal/latest/meta-data/'
   ]) {
     assert.equal(isPrivateHost(url), false, `${url} should be public`);
   }

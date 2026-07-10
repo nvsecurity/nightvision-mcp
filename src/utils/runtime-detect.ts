@@ -30,12 +30,22 @@ export function isPrivateHost(rawUrl: string): boolean {
   // Strip IPv6 brackets if any slipped through the URL parser.
   host = host.replace(/^\[|\]$/g, '');
 
-  // Never treat the cloud metadata endpoint (or its IPv6 alias) as a legitimate
-  // scan target, even when a repo references it. 169.254.169.254 is the canonical
-  // SSRF pivot and is nothing the guided harness should launch an attack scan
-  // against on its own. A user can still name such a host explicitly via
-  // target_url, which bypasses this filter.
-  if (host === '169.254.169.254' || host === 'fd00:ec2::254') return false;
+  // Never treat the cloud metadata service as a legitimate scan target, even when
+  // a repo references it. 169.254.169.254 (and its IPv6 alias) is the canonical
+  // SSRF pivot, and each cloud also exposes it under a well-known hostname that
+  // would otherwise slip through as private (metadata.google.internal via the
+  // `.internal` suffix, instance-data via the no-dot rule). A user can still name
+  // such a host explicitly via target_url, which bypasses this filter.
+  if (
+    host === '169.254.169.254' ||
+    host === 'fd00:ec2::254' ||
+    host === 'metadata.google.internal' ||
+    host === 'metadata' ||
+    host === 'instance-data' ||
+    host === 'instance-data.ec2.internal'
+  ) {
+    return false;
+  }
 
   if (host === 'localhost' || host === '::1' || host === '0.0.0.0') return true;
 

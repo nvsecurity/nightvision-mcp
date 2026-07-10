@@ -37,6 +37,16 @@ test('unknown scan status values stay unknown', () => {
   assert.equal(classifyScanStatus({}), 'unknown');
 });
 
+test('a transient poll error is non-terminal, so the long wait keeps polling', () => {
+  // waitForScan wraps a failed getScanStatus call as { poll_error } and feeds it
+  // back through classifyScanStatus. It must NOT read as succeeded or failed, or a
+  // single 5xx/ECONNRESET mid-scan would end the wait and drop the scan handle.
+  const state = classifyScanStatus({ poll_error: 'ECONNRESET' });
+  assert.equal(state, 'unknown');
+  assert.notEqual(state, 'succeeded');
+  assert.notEqual(state, 'failed');
+});
+
 test('detects findings on terminal scan responses', () => {
   assert.equal(scanHasFindings({ issues_count: 1 }), true);
   assert.equal(scanHasFindings({ issues_statistics: { High: 0, Low: 2 } }), true);
