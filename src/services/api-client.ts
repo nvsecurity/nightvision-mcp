@@ -84,7 +84,16 @@ export class ApiClient {
       if (axios.isAxiosError(error)) {
         const statusCode = error.response?.status;
         const errorMessage = error.response?.data?.detail || error.message;
-        throw new Error(`API request failed (${statusCode}): ${errorMessage}`);
+        const wrapped = new Error(`API request failed (${statusCode}): ${errorMessage}`) as Error & {
+          statusCode?: number;
+          isNetworkError?: boolean;
+        };
+        // Preserve the HTTP status (undefined for a pure network/DNS failure with
+        // no response) so callers can distinguish an auth rejection (401/403)
+        // from a transient connectivity problem.
+        wrapped.statusCode = statusCode;
+        wrapped.isNetworkError = !error.response;
+        throw wrapped;
       }
       throw error;
     }
@@ -123,11 +132,12 @@ export class ApiClient {
         env.NIGHTVISION_TOKEN = this.token;
       }
 
-      console.error(`Executing: ${['nightvision', ...commandArgs].join(' ')}`);
+      const cliPath = ENVIRONMENT.NIGHTVISION_CLI_PATH;
+      console.error(`Executing: ${[cliPath, ...commandArgs].join(' ')}`);
 
       // Invoke the binary directly with an argument vector (no shell), with an
       // increased buffer size (50MB)
-      const { stdout, stderr } = await execFileAsync('nightvision', commandArgs, {
+      const { stdout, stderr } = await execFileAsync(cliPath, commandArgs, {
         maxBuffer: 50 * 1024 * 1024, // 50MB buffer size (default is 1MB)
         env,
         cwd
@@ -156,10 +166,23 @@ export class ApiClient {
    */
   async isInstalled(): Promise<boolean> {
     try {
-      await this.executeCommand(['version']);
+      await execFileAsync(ENVIRONMENT.NIGHTVISION_CLI_PATH, ['version'], {
+        maxBuffer: 1024 * 1024,
+        env: { ...process.env }
+      });
       return true;
-    } catch {
-      return false;
+    } catch (error: any) {
+      // Distinguish "cannot run the binary at all" from "ran but exited non-zero".
+      // Some CLI versions fetch remote configuration even for basic commands and
+      // may exit non-zero when offline or DNS-restricted; that should surface in
+      // doctor/version checks, not prevent the MCP server from starting. But a
+      // missing (ENOENT), unexecutable (EACCES), or wrong-arch/corrupt (ENOEXEC)
+      // binary genuinely is not usable and must report not-installed.
+      const code = error?.code;
+      if (code === 'ENOENT' || code === 'EACCES' || code === 'ENOEXEC') {
+        return false;
+      }
+      return true;
     }
   }
 

@@ -13,6 +13,10 @@ import {
   ListAuthCredentialsParamsSchema,
 } from '../types/index.js';
 import { ENVIRONMENT } from '../config/environment.js';
+import { requireAuthenticatedUser, requireProjectAccess } from '../utils/auth-guard.js';
+
+const PLAYWRIGHT_AUTH_REQUIRED =
+  'Username/password target app auth and expiring session credentials must use Playwright script auth. Use save-playwright-script or run-app-security-scan with app_auth.type="playwright_script".';
 
 /**
  * Register authentication-related tools with the MCP server
@@ -44,25 +48,25 @@ export function registerAuthTools(server: McpServer): void {
             const isValid = await nightvisionService.verifyProductionAuth();
             if (!isValid) {
               return {
-                content: [{ 
-                  type: "text" as const, 
-                  text: `Created a new token (starts with: ${newToken.substring(0, 8)}...) but it couldn't be validated.\n\nThe login process may not have completed successfully. Please try again or run the following command in your terminal:\nnightvision login --api-url ${ENVIRONMENT.CURRENT_API_URL}` 
+                content: [{
+                  type: "text" as const,
+                  text: `Created a new token (starts with: ${newToken.substring(0, 8)}...) but it couldn't be validated.\n\nThe login process may not have completed successfully. Please try again or run the following command in your terminal:\n${ENVIRONMENT.NIGHTVISION_CLI_PATH} login --api-url ${ENVIRONMENT.CURRENT_API_URL}`
                 }],
                 isError: true
               };
             }
-            
+
             return {
-              content: [{ 
-                type: "text" as const, 
-                text: `Successfully created and saved a new authentication token. Token starts with: ${newToken.substring(0, 8)}...\nThis token can be used with both the NightVision CLI and API requests.` 
+              content: [{
+                type: "text" as const,
+                text: `Successfully created and saved a new authentication token. Token starts with: ${newToken.substring(0, 8)}...\nThis token can be used with both the NightVision CLI and API requests.`
               }]
             };
           } catch (error: any) {
             return {
-              content: [{ 
-                type: "text" as const, 
-                text: `Failed to create new token: ${error.message}\n\nThe NightVision CLI requires an interactive login session. Please run the following command in your terminal:\nnightvision login --api-url ${ENVIRONMENT.CURRENT_API_URL}` 
+              content: [{
+                type: "text" as const,
+                text: `Failed to create new token: ${error.message}\n\nThe NightVision CLI requires an interactive login session. Please run the following command in your terminal:\n${ENVIRONMENT.NIGHTVISION_CLI_PATH} login --api-url ${ENVIRONMENT.CURRENT_API_URL}`
               }],
               isError: true
             };
@@ -81,9 +85,9 @@ export function registerAuthTools(server: McpServer): void {
               nightvisionService.setToken(null);
               clearToken();
               return {
-                content: [{ 
-                  type: "text" as const, 
-                  text: `The provided token is not valid.\n\nPlease run the following command and then try again:\nnightvision login --api-url ${ENVIRONMENT.CURRENT_API_URL}` 
+                content: [{
+                  type: "text" as const,
+                  text: `The provided token is not valid.\n\nPlease run the following command and then try again:\n${ENVIRONMENT.NIGHTVISION_CLI_PATH} login --api-url ${ENVIRONMENT.CURRENT_API_URL}`
                 }],
                 isError: true
               };
@@ -123,9 +127,9 @@ export function registerAuthTools(server: McpServer): void {
               };
             } else {
               return {
-                content: [{ 
-                  type: "text" as const, 
-                  text: `You have a token (starts with: ${currentToken.substring(0, 8)}...) but it appears to be invalid or expired.\n\nPlease run the following command and then try again:\nnightvision login --api-url ${ENVIRONMENT.CURRENT_API_URL}` 
+                content: [{
+                  type: "text" as const,
+                  text: `You have a token (starts with: ${currentToken.substring(0, 8)}...) but it appears to be invalid or expired.\n\nPlease run the following command and then try again:\n${ENVIRONMENT.NIGHTVISION_CLI_PATH} login --api-url ${ENVIRONMENT.CURRENT_API_URL}`
                 }],
                 isError: true
               };
@@ -165,17 +169,14 @@ export function registerAuthTools(server: McpServer): void {
   server.tool(
     "create-userpass-credential",
     CreateUserPassCredentialParamsSchema,
-    async (args, _extra) => {
+    async (_args, _extra) => {
       try {
-        if (!nightvisionService.getToken()) {
-          return { content: [{ type: "text" as const, text: "Not authenticated." }], isError: true };
-        }
-        const result = await nightvisionService.createUserPassCredential(args);
         return {
           content: [{
             type: "text" as const,
-            text: `Username/password credential created.\nID: ${result.id}\nName: ${result.name}\nProject: ${result.project_name || result.project}`
-          }]
+            text: PLAYWRIGHT_AUTH_REQUIRED
+          }],
+          isError: true
         };
       } catch (error: any) {
         return { content: [{ type: "text" as const, text: `Failed: ${error.message}` }], isError: true };
@@ -191,9 +192,24 @@ export function registerAuthTools(server: McpServer): void {
     CreateHeaderCredentialParamsSchema,
     async (args, _extra) => {
       try {
-        if (!nightvisionService.getToken()) {
-          return { content: [{ type: "text" as const, text: "Not authenticated." }], isError: true };
+        if (args.credential_lifetime !== 'stable') {
+          return {
+            content: [{
+              type: "text" as const,
+              text: `Header credentials are only allowed for stable non-expiring target app credentials. ${PLAYWRIGHT_AUTH_REQUIRED}`
+            }],
+            isError: true
+          };
         }
+        const authGuard = await requireAuthenticatedUser();
+        if (!authGuard.ok) return authGuard.response;
+
+        const projectAccess = await requireProjectAccess({
+          project: args.project,
+          action: 'creating a header credential'
+        });
+        if (!projectAccess.ok) return projectAccess.response;
+
         const result = await nightvisionService.createHeaderCredential(args);
         return {
           content: [{
@@ -215,9 +231,24 @@ export function registerAuthTools(server: McpServer): void {
     CreateCookieCredentialParamsSchema,
     async (args, _extra) => {
       try {
-        if (!nightvisionService.getToken()) {
-          return { content: [{ type: "text" as const, text: "Not authenticated." }], isError: true };
+        if (args.credential_lifetime !== 'stable') {
+          return {
+            content: [{
+              type: "text" as const,
+              text: `Cookie credentials are only allowed for stable non-expiring target app credentials. ${PLAYWRIGHT_AUTH_REQUIRED}`
+            }],
+            isError: true
+          };
         }
+        const authGuard = await requireAuthenticatedUser();
+        if (!authGuard.ok) return authGuard.response;
+
+        const projectAccess = await requireProjectAccess({
+          project: args.project,
+          action: 'creating a cookie credential'
+        });
+        if (!projectAccess.ok) return projectAccess.response;
+
         const result = await nightvisionService.createCookieCredential({
           name: args.name,
           cookie: args.cookies,
@@ -244,9 +275,9 @@ export function registerAuthTools(server: McpServer): void {
     AssignCredentialToTargetsParamsSchema,
     async (args, _extra) => {
       try {
-        if (!nightvisionService.getToken()) {
-          return { content: [{ type: "text" as const, text: "Not authenticated." }], isError: true };
-        }
+        const authGuard = await requireAuthenticatedUser();
+        if (!authGuard.ok) return authGuard.response;
+
         await nightvisionService.assignCredentialToTargets(args.credential_id, args.target_ids);
         return {
           content: [{
@@ -268,12 +299,14 @@ export function registerAuthTools(server: McpServer): void {
     SavePlaywrightScriptParamsSchema,
     async (args, _extra) => {
       try {
-        if (!nightvisionService.getToken()) {
-          return {
-            content: [{ type: "text" as const, text: "Not authenticated. Please use the authenticate tool to set a token first." }],
-            isError: true
-          };
-        }
+        const authGuard = await requireAuthenticatedUser();
+        if (!authGuard.ok) return authGuard.response;
+
+        const projectAccess = await requireProjectAccess({
+          project: args.project,
+          action: 'creating a Playwright script credential'
+        });
+        if (!projectAccess.ok) return projectAccess.response;
 
         const result = await nightvisionService.createScriptCredential({
           name: args.name,
@@ -306,12 +339,8 @@ export function registerAuthTools(server: McpServer): void {
     UpdatePlaywrightScriptParamsSchema,
     async (args, _extra) => {
       try {
-        if (!nightvisionService.getToken()) {
-          return {
-            content: [{ type: "text" as const, text: "Not authenticated. Please use the authenticate tool to set a token first." }],
-            isError: true
-          };
-        }
+        const authGuard = await requireAuthenticatedUser();
+        if (!authGuard.ok) return authGuard.response;
 
         const { id, ...updates } = args;
         const result = await nightvisionService.updateScriptCredential(id, updates);
@@ -339,12 +368,8 @@ export function registerAuthTools(server: McpServer): void {
     GetAuthCredentialParamsSchema,
     async (args, _extra) => {
       try {
-        if (!nightvisionService.getToken()) {
-          return {
-            content: [{ type: "text" as const, text: "Not authenticated. Please use the authenticate tool to set a token first." }],
-            isError: true
-          };
-        }
+        const authGuard = await requireAuthenticatedUser();
+        if (!authGuard.ok) return authGuard.response;
 
         if (!args.id && (!args.name || !args.project_id)) {
           return {
@@ -357,6 +382,12 @@ export function registerAuthTools(server: McpServer): void {
         if (args.id) {
           cred = await nightvisionService.getCredential(args.id);
         } else {
+          const projectAccess = await requireProjectAccess({
+            project_id: args.project_id,
+            action: 'reading an auth credential'
+          });
+          if (!projectAccess.ok) return projectAccess.response;
+
           cred = await nightvisionService.getCredentialByName(args.project_id!, args.name!);
         }
 
@@ -408,11 +439,15 @@ export function registerAuthTools(server: McpServer): void {
     ListAuthCredentialsParamsSchema,
     async (args, _extra) => {
       try {
-        if (!nightvisionService.getToken()) {
-          return {
-            content: [{ type: "text" as const, text: "Not authenticated. Please use the authenticate tool to set a token first." }],
-            isError: true
-          };
+        const authGuard = await requireAuthenticatedUser();
+        if (!authGuard.ok) return authGuard.response;
+
+        if (args.project_id) {
+          const projectAccess = await requireProjectAccess({
+            project_id: args.project_id,
+            action: 'listing auth credentials'
+          });
+          if (!projectAccess.ok) return projectAccess.response;
         }
 
         const projectIds = args.project_id ? [args.project_id] : undefined;

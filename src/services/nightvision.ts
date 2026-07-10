@@ -8,6 +8,7 @@ import { NucleiService } from './nuclei-service.js';
 import { TrafficService } from './traffic-service.js';
 import { ApiDiscoveryService } from './api-discovery-service.js';
 import { IssueService } from './issue-service.js';
+import { ExportService } from './export-service.js';
 
 export type { OutputFormat } from './api-client.js';
 
@@ -29,6 +30,7 @@ export class NightVisionService {
   private traffic = new TrafficService(this.client);
   private apiDiscovery = new ApiDiscoveryService(this.client);
   private issues = new IssueService(this.client);
+  private exports = new ExportService(this.client);
 
   // --- Core / ApiClient ---
 
@@ -64,6 +66,14 @@ export class NightVisionService {
 
   verifyProductionAuth(...a: Parameters<AuthService['verifyProductionAuth']>) {
     return this.auth.verifyProductionAuth(...a);
+  }
+
+  getAuthenticatedUser(...a: Parameters<AuthService['getAuthenticatedUser']>) {
+    return this.auth.getAuthenticatedUser(...a);
+  }
+
+  getAuthenticatedUserResult(...a: Parameters<AuthService['getAuthenticatedUserResult']>) {
+    return this.auth.getAuthenticatedUserResult(...a);
   }
 
   ensureProductionAuth(...a: Parameters<AuthService['ensureProductionAuth']>) {
@@ -120,6 +130,10 @@ export class NightVisionService {
     return this.targets.deleteTarget(...a);
   }
 
+  updateTarget(...a: Parameters<TargetService['updateTarget']>) {
+    return this.targets.updateTarget(...a);
+  }
+
   findTarget(...a: Parameters<TargetService['findTarget']>) {
     return this.targets.findTarget(...a);
   }
@@ -172,6 +186,22 @@ export class NightVisionService {
 
   startScan(...a: Parameters<ScanService['startScan']>) {
     return this.scans.startScan(...a);
+  }
+
+  startManagedScan(...a: Parameters<ScanService['startManagedScan']>) {
+    return this.scans.startManagedScan(...a);
+  }
+
+  listManagedScanProcesses(...a: Parameters<ScanService['listManagedScanProcesses']>) {
+    return this.scans.listManagedScanProcesses(...a);
+  }
+
+  getManagedScanProcess(...a: Parameters<ScanService['getManagedScanProcess']>) {
+    return this.scans.getManagedScanProcess(...a);
+  }
+
+  cancelManagedScanProcess(...a: Parameters<ScanService['cancelManagedScanProcess']>) {
+    return this.scans.cancelManagedScanProcess(...a);
   }
 
   listScans(...a: Parameters<ScanService['listScans']>) {
@@ -252,6 +282,16 @@ export class NightVisionService {
 
   getIssueOccurrences(...a: Parameters<IssueService['getIssueOccurrences']>) {
     return this.issues.getIssueOccurrences(...a);
+  }
+
+  // --- Exports ---
+
+  exportSarif(...a: Parameters<ExportService['exportSarif']>) {
+    return this.exports.exportSarif(...a);
+  }
+
+  exportCsv(...a: Parameters<ExportService['exportCsv']>) {
+    return this.exports.exportCsv(...a);
   }
 }
 

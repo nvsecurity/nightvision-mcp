@@ -45,4 +45,8 @@ coverage/
 Thumbs.db
 
 # Local review/analysis artifacts (never committed)
-analysis/ 
+analysis/
+
+# NightVision run artifacts (manifests, generated specs, exports). These are
+# produced at runtime and contain machine-local absolute paths; never commit them.
+.nightvision/

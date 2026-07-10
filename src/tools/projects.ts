@@ -1,6 +1,7 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { nightvisionService } from '../services/index.js';
 import { z } from 'zod';
+import { requireAuthenticatedUser } from '../utils/auth-guard.js';
 
 /**
  * Project list parameters schema
@@ -50,16 +51,8 @@ export function registerProjectTools(server: McpServer): void {
       try {
         const { format = 'json' } = args;
         
-        // Check if authenticated
-        if (!nightvisionService.getToken()) {
-          return {
-            content: [{ 
-              type: "text" as const, 
-              text: "Not authenticated. Please use the authenticate tool to set a token first." 
-            }],
-            isError: true
-          };
-        }
+        const authGuard = await requireAuthenticatedUser();
+        if (!authGuard.ok) return authGuard.response;
         
         try {
           // List projects using the CLI command
@@ -155,16 +148,8 @@ export function registerProjectTools(server: McpServer): void {
           format = 'json'
         } = args;
         
-        // Check if authenticated
-        if (!nightvisionService.getToken()) {
-          return {
-            content: [{ 
-              type: "text" as const, 
-              text: "Not authenticated. Please use the authenticate tool to set a token first." 
-            }],
-            isError: true
-          };
-        }
+        const authGuard = await requireAuthenticatedUser();
+        if (!authGuard.ok) return authGuard.response;
         
         // Validate required parameters
         if (!name || name.trim() === '') {
@@ -231,4 +216,4 @@ export function registerProjectTools(server: McpServer): void {
       }
     }
   );
-} 
+}

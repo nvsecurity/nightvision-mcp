@@ -1,0 +1,16 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: nightvision-express-api-fixture
+spec:
+  rules:
+    - host: express-api.internal.example
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: nightvision-express-api-fixture
+                port:
+                  number: 9000

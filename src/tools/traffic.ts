@@ -5,6 +5,7 @@ import {
   ListTrafficParamsSchema,
   DownloadTrafficParamsSchema
 } from '../types/index.js';
+import { requireAuthenticatedUser, requireProjectAccess } from '../utils/auth-guard.js';
 import { resolveDownloadDir } from '../utils/download-path.js';
 
 /**
@@ -30,16 +31,14 @@ export function registerTrafficTools(server: McpServer): void {
           format = 'text'
         } = args;
         
-        // Check if authenticated
-        if (!nightvisionService.getToken()) {
-          return {
-            content: [{ 
-              type: "text" as const, 
-              text: "Not authenticated. Please use the authenticate tool to set a token first." 
-            }],
-            isError: true
-          };
-        }
+        const authGuard = await requireAuthenticatedUser();
+        if (!authGuard.ok) return authGuard.response;
+
+        const projectAccess = await requireProjectAccess({
+          project,
+          action: 'recording traffic'
+        });
+        if (!projectAccess.ok) return projectAccess.response;
         
         try {
           // Provide information about the browser interaction
@@ -107,16 +106,14 @@ This tool will open a browser window for you to interact with the target applica
           format = 'json'
         } = args;
         
-        // Check if authenticated
-        if (!nightvisionService.getToken()) {
-          return {
-            content: [{ 
-              type: "text" as const, 
-              text: "Not authenticated. Please use the authenticate tool to set a token first." 
-            }],
-            isError: true
-          };
-        }
+        const authGuard = await requireAuthenticatedUser();
+        if (!authGuard.ok) return authGuard.response;
+
+        const projectAccess = await requireProjectAccess({
+          project,
+          action: 'listing traffic'
+        });
+        if (!projectAccess.ok) return projectAccess.response;
         
         try {
           // List the traffic files
@@ -176,16 +173,14 @@ This tool will open a browser window for you to interact with the target applica
           format = 'text'
         } = args;
         
-        // Check if authenticated
-        if (!nightvisionService.getToken()) {
-          return {
-            content: [{ 
-              type: "text" as const, 
-              text: "Not authenticated. Please use the authenticate tool to set a token first." 
-            }],
-            isError: true
-          };
-        }
+        const authGuard = await requireAuthenticatedUser();
+        if (!authGuard.ok) return authGuard.response;
+
+        const projectAccess = await requireProjectAccess({
+          project,
+          action: 'downloading traffic'
+        });
+        if (!projectAccess.ok) return projectAccess.response;
         
         // Resolve the download directory (never prompt). A blank or non-absolute
         // request falls back to the home directory; a non-writable directory
@@ -240,4 +235,4 @@ This tool will open a browser window for you to interact with the target applica
       }
     }
   );
-} 
+}

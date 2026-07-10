@@ -1,0 +1,9 @@
+services:
+  api:
+    image: node:22
+    working_dir: /app
+    command: npm run dev
+    ports:
+      - "9000:9000"
+    volumes:
+      - .:/app

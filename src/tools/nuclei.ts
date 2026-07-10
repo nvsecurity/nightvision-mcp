@@ -8,6 +8,7 @@ import {
 } from '../types/index.js';
 import * as path from 'path';
 import * as fs from 'fs';
+import { requireAuthenticatedUser, requireProjectAccess } from '../utils/auth-guard.js';
 
 /**
  * Register nuclei-related tools with the MCP server
@@ -31,16 +32,8 @@ export function registerNucleiTools(server: McpServer): void {
           format = 'json'
         } = args;
         
-        // Check if authenticated
-        if (!nightvisionService.getToken()) {
-          return {
-            content: [{ 
-              type: "text" as const, 
-              text: "Not authenticated. Please use the authenticate tool to set a token first." 
-            }],
-            isError: true
-          };
-        }
+        const authGuard = await requireAuthenticatedUser();
+        if (!authGuard.ok) return authGuard.response;
         
         // Validate required parameters before sending to service
         if (!name || name.trim() === '') {
@@ -62,6 +55,12 @@ export function registerNucleiTools(server: McpServer): void {
             isError: true
           };
         }
+
+        const projectAccess = await requireProjectAccess({
+          project_id,
+          action: 'creating a nuclei template'
+        });
+        if (!projectAccess.ok) return projectAccess.response;
         
         try {
           // Create the nuclei template
@@ -120,16 +119,8 @@ export function registerNucleiTools(server: McpServer): void {
           format = 'json'
         } = args;
         
-        // Check if authenticated
-        if (!nightvisionService.getToken()) {
-          return {
-            content: [{ 
-              type: "text" as const, 
-              text: "Not authenticated. Please use the authenticate tool to set a token first." 
-            }],
-            isError: true
-          };
-        }
+        const authGuard = await requireAuthenticatedUser();
+        if (!authGuard.ok) return authGuard.response;
         
         try {
           // Resolve the file path (relative or absolute)
@@ -235,15 +226,15 @@ export function registerNucleiTools(server: McpServer): void {
           format = 'json'
         } = args;
         
-        // Check if authenticated
-        if (!nightvisionService.getToken()) {
-          return {
-            content: [{ 
-              type: "text" as const, 
-              text: "Not authenticated. Please use the authenticate tool to set a token first." 
-            }],
-            isError: true
-          };
+        const authGuard = await requireAuthenticatedUser();
+        if (!authGuard.ok) return authGuard.response;
+
+        if (project_id) {
+          const projectAccess = await requireProjectAccess({
+            project_id,
+            action: 'listing nuclei templates'
+          });
+          if (!projectAccess.ok) return projectAccess.response;
         }
         
         try {
@@ -307,16 +298,8 @@ export function registerNucleiTools(server: McpServer): void {
           format = 'json'
         } = args;
         
-        // Check if authenticated
-        if (!nightvisionService.getToken()) {
-          return {
-            content: [{ 
-              type: "text" as const, 
-              text: "Not authenticated. Please use the authenticate tool to set a token first." 
-            }],
-            isError: true
-          };
-        }
+        const authGuard = await requireAuthenticatedUser();
+        if (!authGuard.ok) return authGuard.response;
         
         try {
           // Assign the nuclei template to the target
@@ -356,4 +339,4 @@ export function registerNucleiTools(server: McpServer): void {
       }
     }
   );
-} 
+}

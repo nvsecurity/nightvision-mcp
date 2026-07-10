@@ -17,3 +17,128 @@ export const SCAN_STATUS_FILTER_CODES: Record<string, number[]> = {
 export function scanStatusFilterCodes(status: string): number[] {
   return SCAN_STATUS_FILTER_CODES[status] ?? [];
 }
+
+export type ScanTerminalState = 'running' | 'succeeded' | 'failed' | 'unknown';
+
+const SUCCEEDED_CODES = new Set([1]);
+const RUNNING_CODES = new Set([2, 6]);
+const FAILED_CODES = new Set([3, 4, 5]);
+
+const SUCCEEDED_NAMES = new Set([
+  'SUCCEEDED',
+  'SUCCESS',
+  'FINISHED',
+  'COMPLETED',
+  'COMPLETE',
+  'DONE'
+]);
+
+const RUNNING_NAMES = new Set([
+  'RUNNING',
+  'SCHEDULED',
+  'PENDING',
+  'QUEUED',
+  'STARTED',
+  'IN_PROGRESS',
+  'IN PROGRESS'
+]);
+
+const FAILED_NAMES = new Set([
+  'ABORTED',
+  'FAILED',
+  'FAILURE',
+  'ERROR',
+  'TIMED_OUT',
+  'TIMED OUT',
+  'TIMEOUT',
+  'CANCELED',
+  'CANCELLED'
+]);
+
+function statusValue(response: any): unknown {
+  if (!response || typeof response !== 'object') return undefined;
+
+  return (
+    response.status_value ??
+    response.status ??
+    response.state ??
+    response.scan_status ??
+    response.scan?.status_value ??
+    response.scan?.status ??
+    response.result?.status_value ??
+    response.result?.status
+  );
+}
+
+function normalizeName(value: string): string {
+  return value.trim().replace(/[\s-]+/g, '_').toUpperCase();
+}
+
+export function classifyScanStatus(response: any): ScanTerminalState {
+  const value = statusValue(response);
+
+  if (typeof value === 'number') {
+    if (SUCCEEDED_CODES.has(value)) return 'succeeded';
+    if (RUNNING_CODES.has(value)) return 'running';
+    if (FAILED_CODES.has(value)) return 'failed';
+  }
+
+  if (typeof value === 'string') {
+    const numeric = Number(value);
+    if (Number.isInteger(numeric)) {
+      if (SUCCEEDED_CODES.has(numeric)) return 'succeeded';
+      if (RUNNING_CODES.has(numeric)) return 'running';
+      if (FAILED_CODES.has(numeric)) return 'failed';
+    }
+
+    const normalized = normalizeName(value);
+    if (SUCCEEDED_NAMES.has(normalized)) return 'succeeded';
+    if (RUNNING_NAMES.has(normalized)) return 'running';
+    if (FAILED_NAMES.has(normalized)) return 'failed';
+  }
+
+  return 'unknown';
+}
+
+function positiveNumber(value: unknown): boolean {
+  if (typeof value === 'number') return value > 0;
+  if (typeof value === 'string') {
+    const numeric = Number(value);
+    return Number.isFinite(numeric) && numeric > 0;
+  }
+  return false;
+}
+
+function statsHaveFindings(value: unknown): boolean {
+  if (!value || typeof value !== 'object') return false;
+  return Object.values(value as Record<string, unknown>).some((entry) =>
+    positiveNumber(entry) || statsHaveFindings(entry)
+  );
+}
+
+export function scanHasFindings(response: any): boolean {
+  if (!response || typeof response !== 'object') return false;
+
+  const numericFields = [
+    response.issues_count,
+    response.issue_count,
+    response.findings_count,
+    response.finding_count,
+    response.vulnerabilities_count,
+    response.vulnerability_count,
+    response.scan?.issues_count,
+    response.scan?.findings_count,
+    response.result?.issues_count,
+    response.result?.findings_count
+  ];
+  if (numericFields.some(positiveNumber)) return true;
+
+  return [
+    response.issues_statistics,
+    response.unique_issues_statistics,
+    response.vulnerable_paths_statistics,
+    response.findings_statistics,
+    response.scan?.issues_statistics,
+    response.result?.issues_statistics
+  ].some(statsHaveFindings);
+}

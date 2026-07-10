@@ -10,10 +10,14 @@ A Model Context Protocol (MCP) server that enables AI assistants to interact wit
 - Delete targets when they are no longer needed
 - Find targets and manage their additional scan paths
 - Start security scans against targets, optionally limited to specific checks
+- Run a guided app security scan harness for local, private, staging, and internal apps
+- Keep local/private scan CLI processes managed while returning scan IDs to the agent
 - Track scan status and view results
+- Export scan findings to SARIF or CSV, with safeguards against empty or misleading exports
 - View and filter vulnerabilities found in security scans
 - Inspect individual findings with full HTTP request/response detail (secrets redacted)
-- Manage authentication credentials (username/password, header, cookie, Playwright script) and assign them to targets
+- Diagnose setup and authentication readiness with `doctor` and `auth-status`
+- Manage target app authentication credentials with Playwright script, stable header, and stable cookie auth
 - Discover API endpoints from source code (multiple languages)
 - Manage projects and view project details
 - Record, list, and download browser traffic for targets
@@ -62,11 +66,16 @@ available); a newer CLI is recommended. Upgrade the CLI the way you installed it
      "mcpServers": {
        "nightvision": {
          "command": "node",
-         "args": ["/absolute/path/to/build/index.js"]
+         "args": ["/absolute/path/to/build/index.js"],
+         "env": {
+           "NIGHTVISION_CLI_PATH": "/absolute/path/to/nightvision"
+         }
        }
      }
    }
    ```
+
+   `NIGHTVISION_CLI_PATH` is optional when the MCP client can already find `nightvision` on `PATH`. It is recommended for desktop clients launched outside a login shell, such as Claude for Desktop on macOS.
 
 3. Restart Claude for Desktop.
 
@@ -136,6 +145,52 @@ Can you check if I'm authenticated with NightVision?
 
 Authentication tokens are stored in `~/.nightvision/token` on your machine. This allows the server to remain authenticated between restarts.
 
+#### Environment Variables
+
+The server reads the following optional environment variables (set them in your MCP client's server config, e.g. the `env` block shown above):
+
+| Variable | Purpose |
+|:---------|:--------|
+| `NIGHTVISION_CLI_PATH` | Absolute path to the `nightvision` CLI. Optional when the CLI is already on `PATH`; recommended for desktop clients launched outside a login shell. |
+| `NIGHTVISION_DEFAULT_PROJECT` | Default NightVision project name for the guided harness when no `nightvision_project` is passed. |
+| `NIGHTVISION_CREDS_ID` | Default target-app auth credential UUID applied by `run-app-security-scan` when the caller passes no `auth`/`auth_id`. Leave unset to scan unauthenticated by default. |
+| `NIGHTVISION_API_URL` | Overrides the API base URL (default `https://api.nightvision.net/api/v1/`). Intended for self-hosted API endpoints and the test harness; it redirects all API traffic, including where your token is sent, so only point it at a NightVision endpoint you trust. |
+
+### Guided App Security Scan
+
+For local, private, staging, or internal apps, prefer the guided harness instead of asking the assistant to manually choose every primitive.
+
+Core tools:
+
+- `doctor`: checks CLI availability, CLI version, token presence, and optional token validity.
+- `auth-status`: reports whether the current MCP process has usable NightVision auth.
+- `preflight-app`: inspects a repo/app, detects language/framework hints, checks runtime reachability, suggests project/target names, and writes `.nightvision/manifest.json`.
+- `run-app-security-scan`: runs the DAST-first workflow: preflight, API Discovery when source is available, target create/update/reuse, scan start, scan ID return, and manifest writing.
+- `list-managed-scan-processes`, `get-managed-scan-process`, `cancel-managed-scan-process`: inspect or clean up managed local scan CLI processes.
+
+Example request:
+
+```
+Run a NightVision app security scan for this local API at http://127.0.0.1:8080.
+```
+
+Example dry run request:
+
+```
+Check whether this app is ready for a NightVision scan, but do not create targets or start DAST yet.
+```
+
+DAST is the expected outcome for the guided workflow. If DAST cannot run, the harness returns structured blockers and writes them to `.nightvision/manifest.json`. When you do not pass an explicit `target_name`, the harness derives a stable one of the form `<app>-local-<your OS username>` so repeated runs reuse the same NightVision target; pass `target_name` to override it.
+
+DAST scans commonly run longer than 10 minutes. The guided harness defaults to returning after scan start with the scan ID and manifest path. For local/private apps, keep the MCP server process running so the NightVision CLI relay stays alive. Poll with `get-scan-status`, `list-scans`, or `wait-for-scan`, then export results with `export-sarif` after the scan reaches a terminal status. A terminal `FAILED` status can still contain valid findings, so check `issues_count` and export available results before treating the run as unusable. Use `wait: true` only when the MCP client can keep a single tool call open for the full scan duration.
+
+Target app auth rules:
+
+- Use Playwright script auth for username/password login flows, browser login, OAuth, MFA, or expiring sessions.
+- Do not turn an expiring session cookie or bearer token into a header/cookie credential.
+- Header and cookie credentials are allowed only for stable non-expiring app credentials, such as durable service API keys.
+- Direct username/password credential creation is blocked by this MCP path. Use `save-playwright-script` or `run-app-security-scan` with `app_auth.type="playwright_script"`.
+
 ### Available Tools
 
 The server provides the following tools:
@@ -156,6 +211,72 @@ Can you create a new NightVision authentication token?
 ```
 Can you authenticate with NightVision using token "my-token-value"?
 ```
+
+#### `doctor`
+
+Checks overall setup readiness: CLI availability and version, token presence, optional token validation, and relevant environment variables. Returns structured blockers and next steps when setup is not ready.
+
+Parameters:
+- `validate_auth` (boolean, optional, default: false): Validate the saved NightVision token with the API
+- `format` (enum: "json", optional, default: "json"): Format of command output
+
+Example command:
+```
+Run the NightVision doctor check and tell me if anything is missing.
+```
+
+#### `auth-status`
+
+Reports whether the current MCP process has usable NightVision authentication, with optional live token validation.
+
+Parameters:
+- `validate` (boolean, optional, default: true): Validate the saved token with the API when present
+- `format` (enum: "json", optional, default: "json"): Format of command output
+
+#### `login-help`
+
+Returns the API URL, the exact CLI login command, and the token file location, along with token-safety guidance. Takes no parameters other than `format`.
+
+### Guided Scan Tools
+
+See the [Guided App Security Scan](#guided-app-security-scan) section above for the recommended workflow.
+
+#### `preflight-app`
+
+Inspects a repo/app without creating targets or starting scans: detects language/framework hints, checks runtime reachability, suggests project/target names, and writes `.nightvision/manifest.json`.
+
+Parameters:
+- `project_path` (string, optional): Path to the app/repo. Defaults to the MCP server working directory
+- `target_url` (string, optional): Known local or internal target URL. If omitted, the MCP attempts detection
+- `app_name` (string, optional): Application or service name override
+- `project_name` (string, optional): NightVision project name override
+- `timeout_seconds` (number, optional, default: 5): Reachability timeout per URL
+- `format` (enum: "json", optional, default: "json"): Format of command output
+
+#### `run-app-security-scan`
+
+Runs the DAST-first guided workflow: preflight, API Discovery when source is available, target create/update/reuse, scan start, scan ID return, and manifest writing.
+
+Parameters:
+- `project_path` (string, optional): Path to the app/repo. Defaults to the MCP server working directory
+- `target_url` (string, optional): Known local or internal target URL. If omitted, the MCP attempts detection
+- `app_name` (string, optional): Application or service name override
+- `nightvision_project` (string, optional): NightVision project name. Defaults to `NIGHTVISION_DEFAULT_PROJECT`
+- `nightvision_project_id` (string, optional): NightVision project UUID
+- `target_name` (string, optional): NightVision target name override
+- `auth` (string, optional): Existing NightVision target auth profile name for an authenticated scan
+- `auth_id` (string, optional): Existing NightVision target auth profile UUID
+- `no_auth` (boolean, optional): Run the scan without target app auth
+- `app_auth` (object, optional): Create a target app auth credential before scanning. `type` is one of `headers`, `cookies`, `playwright_script`; username/password login flows must use `playwright_script`. Header/cookie credentials require `credential_lifetime: "stable"`.
+- `force_private_scan` (boolean, optional, default: false): Force the CLI Smart Proxy/private scan path when automatic detection needs an override
+- `wait` (boolean, optional, default: false): Wait for scan completion. Defaults to false because DAST scans commonly run longer than 10 minutes; prefer returning the scan ID and polling later
+- `timeout_seconds` (number, optional, default: 3600): Maximum seconds to wait for scan completion when `wait` is true
+- `dry_run` (boolean, optional, default: false): Describe the workflow without creating targets or starting scans
+- `format` (enum: "json", optional, default: "json"): Format of command output
+
+#### `list-managed-scan-processes`, `get-managed-scan-process`, `cancel-managed-scan-process`
+
+Inspect or clean up the NightVision CLI processes the server keeps alive for local/private Smart Proxy relay. `get-managed-scan-process` and `cancel-managed-scan-process` take a `scan_id`; `list-managed-scan-processes` takes no parameters.
 
 #### `list-targets`
 
@@ -266,7 +387,7 @@ Can you add the paths /api/v2/users and /internal/health to target 12345678-1234
 
 #### `start-scan`
 
-Initiates a security scan against a NightVision target. The scan runs asynchronously in the background.
+Initiates a security scan against a NightVision target. The CLI is launched as a managed process (so a local/private Smart Proxy relay stays alive), and the tool waits briefly to resolve and return the scan ID. If the scan ID has not surfaced yet, it returns a `running` status with a pending process key instead of failing, and you can poll `list-scans` / `list-managed-scan-processes` to obtain the ID. This tool always returns structured JSON.
 
 Parameters:
 - `target_name` (string): Name of the target to scan
@@ -275,9 +396,9 @@ Parameters:
 - `no_auth` (boolean, optional): Specify to run the scan without authentication
 - `project` (string, optional): Project name of the target
 - `project_id` (string, optional): Project UUID of the target
+- `force_private_scan` (boolean, optional, default: false): Force the CLI Smart Proxy/private scan path; only needed when automatic private-scan detection needs an override
 - `run_only_zap_checks` (string[], optional): Run ONLY these ZAP vulnerability checks by name (e.g. `["SQL Injection"]`); all other ZAP checks are disabled. Use `list-check-categories` to see the available names.
 - `run_only_nuclei_folders` (string[], optional): Run ONLY these Nuclei template folders by name; all other Nuclei folders are disabled. Use `list-check-categories` to see the available folders.
-- `format` (enum: "text" | "json" | "table", optional, default: "json"): Format of command output
 
 Example commands:
 ```
@@ -330,6 +451,21 @@ Can you check the status of my NightVision scan with ID "12345678-1234-1234-1234
 What's the current progress of the scan I just started on target "my-webapp"?
 ```
 
+#### `wait-for-scan`
+
+Polls a scan until it reaches a terminal status or the timeout elapses. Prefer `get-scan-status` polling from the agent side unless the MCP client can keep a single tool call open for the full scan duration.
+
+Parameters:
+- `scan_id` (string): ID of the scan to wait for
+- `timeout_seconds` (number, optional, default: 3600): Maximum seconds to wait for a terminal scan status. DAST scans commonly run longer than 10 minutes.
+- `poll_interval_seconds` (number, optional, default: 30): Seconds to wait between status checks
+- `format` (enum: "json", optional, default: "json"): Format of command output
+
+Example command:
+```
+Wait for scan "12345678-1234-1234-1234-123456789012" to finish and tell me the result.
+```
+
 #### `get-scan-checks`
 
 Retrieves vulnerabilities and check results found by a specific scan. This tool allows you to see detailed information about security findings and filter results by severity, status, and other criteria.
@@ -337,10 +473,11 @@ Retrieves vulnerabilities and check results found by a specific scan. This tool 
 Parameters:
 - `scan_id` (string): ID of the scan to get vulnerability checks for
 - `page` (number, optional): Page number for pagination
-- `page_size` (number, optional, default: 100): Number of items per page (defaults to 100)
+- `page_size` (number, optional): Number of items per page
+- `name` (string, optional): Filter vulnerability checks by name
 - `check_kind` (string, optional): Filter vulnerability checks by specific kind
-- `severity` (string[], required): Array of severity levels to filter by. Valid values include: "critical", "high", "medium", "low", "info", "unknown", "unspecified"
-- `status` (number[], required): Array of status codes to filter by. Valid values include: 0 (open), 1 (closed), 2 (false positive), 3 (accepted risk)
+- `severity` (string[], optional): Array of severity levels to filter by. Valid values include: "critical", "high", "medium", "low", "info", "unknown", "unspecified". Defaults to critical, high, medium, low.
+- `status` (number[], optional): Array of status codes to filter by. Valid values include: 0 (open), 1 (closed), 2 (false positive), 3 (accepted risk). Defaults to open (0).
 - `format` (enum: "text" | "json" | "table", optional, default: "json"): Format of command output
 
 Example commands:
@@ -363,6 +500,23 @@ Example usage:
   "page_size": 100,
   "format": "table"
 }
+```
+
+#### `summarize-scan-findings`
+
+Produces a compact summary of a scan's findings grouped by severity, suitable for reporting the outcome of a scan without flooding the conversation with raw check data.
+
+Parameters:
+- `scan_id` (string): ID of the scan to summarize findings for
+- `severity` (string[], optional): Severity levels to include. Defaults to critical, high, medium, low.
+- `status` (number[], optional): Status codes to include. Defaults to open (0).
+- `page_size` (number, optional, default: 100): Number of scan checks to fetch before summarizing
+- `limit` (number, optional, default: 20): Maximum number of findings to include in the summary
+- `format` (enum: "json", optional, default: "json"): Format of command output
+
+Example command:
+```
+Summarize the findings from scan "12345678-1234-1234-1234-123456789012".
 ```
 
 #### `get-scan-paths`
@@ -494,24 +648,55 @@ Example command:
 Show me each occurrence of the SQL Injection on /search in scan 12345678-1234-1234-1234-123456789012.
 ```
 
+### Export Tools
+
+Exports require the scan to be in an exportable state: succeeded, or terminal (failed/aborted) with findings. A still-running scan, or a failed scan with no findings, returns a structured blocker instead of an empty or misleading export file.
+
+#### `export-sarif`
+
+Exports a scan's findings to a SARIF file.
+
+Parameters:
+- `scan_id` (string): ID of the scan to export to SARIF
+- `output` (string, optional): Output SARIF file path. Defaults to `.nightvision/nightvision-<scan_id>.sarif`
+- `output_file` (string, optional): Alias for `output`
+- `swagger_file` (string, optional): OpenAPI/Swagger file to include for source traceback context
+- `randomize_issue_ids` (boolean, optional, default: false): Randomize issue IDs in the SARIF export
+- `format` (enum: "json", optional, default: "json"): Format of command output
+
+Example command:
+```
+Export the SARIF results for scan "12345678-1234-1234-1234-123456789012".
+```
+
+#### `export-csv`
+
+Exports a scan's findings to a CSV file.
+
+Parameters:
+- `scan_id` (string): ID of the scan to export to CSV
+- `output` (string, optional): Output CSV file path. Defaults to `.nightvision/nightvision-<scan_id>.csv`
+- `output_file` (string, optional): Alias for `output`
+- `format` (enum: "json", optional, default: "json"): Format of command output
+
 ### Credential Tools
 
 Authentication credentials are stored per project and assigned to targets so scans can authenticate. Header and cookie values are redacted when credentials are read back.
 
 #### `create-userpass-credential`
 
-Creates a username/password credential.
+This tool is intentionally blocked. Username/password, browser login, OAuth, MFA, and expiring session flows must use Playwright script auth so NightVision can refresh authentication during the scan.
 
 Parameters:
 - `name` (string): Name for the credential
-- `username` (string): Username
-- `password` (string): Password
+- `username` (string): Deprecated
+- `password` (string): Deprecated
 - `project` (string): Project UUID
 - `description` (string, optional): Description
 
 Example command:
 ```
-Create a username/password credential called "test-login" in project <uuid>.
+Save this recorded Playwright login script as a credential called "login-flow" in project <uuid>.
 ```
 
 #### `create-header-credential`
@@ -522,11 +707,12 @@ Parameters:
 - `name` (string): Name for the credential
 - `headers` (object[]): List of `{ name, value }` headers to include in authenticated requests
 - `project` (string): Project UUID
+- `credential_lifetime` (string): Must be `stable`
 - `description` (string, optional): Description
 
 Example command:
 ```
-Create a header credential "api-bearer" with Authorization: Bearer xyz in project <uuid>.
+Create a stable header credential "api-bearer" with Authorization: Bearer xyz in project <uuid>.
 ```
 
 #### `create-cookie-credential`
@@ -537,11 +723,12 @@ Parameters:
 - `name` (string): Name for the credential
 - `cookies` (object[]): List of `{ name, value }` cookies to include in authenticated requests
 - `project` (string): Project UUID
+- `credential_lifetime` (string): Must be `stable`
 - `description` (string, optional): Description
 
 Example command:
 ```
-Create a cookie credential "session" with cookie sid=abc123 in project <uuid>.
+Create a stable cookie credential "service-session" with cookie sid=abc123 in project <uuid>.
 ```
 
 #### `assign-credential-to-targets`
@@ -1075,7 +1262,7 @@ If you see errors related to missing modules:
 
 If you see authentication errors:
 
-1. Run `nightvision login --api-url https://api.nightvision.net` in your terminal to authenticate with the CLI
+1. Run `nightvision login --api-url https://api.nightvision.net/api/v1/` in your terminal to authenticate with the CLI
 2. Check if your token is valid and not expired (tokens are stored in `~/.nightvision/token`)
 
 ### Connection Issues
@@ -1174,4 +1361,3 @@ If you're using Cursor and seeing the `A system error occurred (spawn node ENOEN
 ## License
 
 MIT 
-

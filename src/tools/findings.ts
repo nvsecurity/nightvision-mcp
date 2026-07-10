@@ -7,6 +7,7 @@ import {
   GetVulnerablePathsParamsSchema,
   GetIssueOccurrencesParamsSchema,
 } from '../types/index.js';
+import { requireAuthenticatedUser } from '../utils/auth-guard.js';
 
 /**
  * Register finding/issue detail tools with the MCP server
@@ -26,15 +27,8 @@ export function registerFindingTools(server: McpServer): void {
       try {
         const { scan_id, page, page_size, severity, resolution, kind, filter, format = 'json' } = args;
 
-        if (!nightvisionService.getToken()) {
-          return {
-            content: [{
-              type: "text" as const,
-              text: "Not authenticated. Please use the authenticate tool to set a token first."
-            }],
-            isError: true
-          };
-        }
+        const authGuard = await requireAuthenticatedUser();
+        if (!authGuard.ok) return authGuard.response;
 
         const result = await nightvisionService.listIssues(
           scan_id,
@@ -65,15 +59,8 @@ export function registerFindingTools(server: McpServer): void {
       try {
         const { issue_id, format = 'json' } = args;
 
-        if (!nightvisionService.getToken()) {
-          return {
-            content: [{
-              type: "text" as const,
-              text: "Not authenticated. Please use the authenticate tool to set a token first."
-            }],
-            isError: true
-          };
-        }
+        const authGuard = await requireAuthenticatedUser();
+        if (!authGuard.ok) return authGuard.response;
 
         const result = await nightvisionService.getIssueDetails(issue_id, format);
 
@@ -109,15 +96,8 @@ export function registerFindingTools(server: McpServer): void {
       try {
         const { scan_id, filter, format = 'json' } = args;
 
-        if (!nightvisionService.getToken()) {
-          return {
-            content: [{
-              type: "text" as const,
-              text: "Not authenticated. Please use the authenticate tool to set a token first."
-            }],
-            isError: true
-          };
-        }
+        const authGuard = await requireAuthenticatedUser();
+        if (!authGuard.ok) return authGuard.response;
 
         const result = await nightvisionService.getIssueKindStats(scan_id, { filter }, format);
 
@@ -143,15 +123,8 @@ export function registerFindingTools(server: McpServer): void {
       try {
         const { scan_id, kind, nuclei_template, resolution, filter } = args;
 
-        if (!nightvisionService.getToken()) {
-          return {
-            content: [{
-              type: "text" as const,
-              text: "Not authenticated. Please use the authenticate tool to set a token first."
-            }],
-            isError: true
-          };
-        }
+        const authGuard = await requireAuthenticatedUser();
+        if (!authGuard.ok) return authGuard.response;
 
         const result = await nightvisionService.getVulnerablePaths(
           scan_id,
@@ -181,15 +154,8 @@ export function registerFindingTools(server: McpServer): void {
       try {
         const { scan_id, url_path, http_method, kind_id, nuclei_template_id, parameter_name, resolution } = args;
 
-        if (!nightvisionService.getToken()) {
-          return {
-            content: [{
-              type: "text" as const,
-              text: "Not authenticated. Please use the authenticate tool to set a token first."
-            }],
-            isError: true
-          };
-        }
+        const authGuard = await requireAuthenticatedUser();
+        if (!authGuard.ok) return authGuard.response;
 
         if (!kind_id && !nuclei_template_id) {
           return {

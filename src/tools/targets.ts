@@ -11,6 +11,7 @@ import {
   ListAdditionalPathsParamsSchema,
   AddAdditionalPathsParamsSchema
 } from '../types/index.js';
+import { requireAuthenticatedUser, requireProjectAccess } from '../utils/auth-guard.js';
 import { matchTargetByName } from '../utils/target-matching.js';
 
 /**
@@ -30,16 +31,8 @@ export function registerTargetTools(server: McpServer): void {
       try {
         const { all, projects, format } = args;
         
-        // Check if authenticated
-        if (!nightvisionService.getToken()) {
-          return {
-            content: [{ 
-              type: "text" as const, 
-              text: "Not authenticated. Please use the authenticate tool to set a token first." 
-            }],
-            isError: true
-          };
-        }
+        const authGuard = await requireAuthenticatedUser();
+        if (!authGuard.ok) return authGuard.response;
         
         // Execute the command with specified format
         const output = await nightvisionService.listTargets(all, projects, format || "json");
@@ -103,16 +96,8 @@ export function registerTargetTools(server: McpServer): void {
       try {
         const { name, project, project_id } = args;
 
-        // Check if authenticated
-        if (!nightvisionService.getToken()) {
-          return {
-            content: [{
-              type: "text" as const,
-              text: "Not authenticated. Please use the authenticate tool to set a token first."
-            }],
-            isError: true
-          };
-        }
+        const authGuard = await requireAuthenticatedUser();
+        if (!authGuard.ok) return authGuard.response;
 
         // First list all targets to find the one with matching name
         const allTargets = await nightvisionService.listTargets(true, undefined, "json");
@@ -216,16 +201,8 @@ export function registerTargetTools(server: McpServer): void {
           format 
         } = args;
         
-        // Check if authenticated
-        if (!nightvisionService.getToken()) {
-          return {
-            content: [{ 
-              type: "text" as const, 
-              text: "Not authenticated. Please use the authenticate tool to set a token first." 
-            }],
-            isError: true
-          };
-        }
+        const authGuard = await requireAuthenticatedUser();
+        if (!authGuard.ok) return authGuard.response;
         
         // Verify that project name is provided (now required)
         if (!project) {
@@ -237,6 +214,13 @@ export function registerTargetTools(server: McpServer): void {
             isError: true
           };
         }
+
+        const projectAccess = await requireProjectAccess({
+          project,
+          project_id,
+          action: 'creating a target'
+        });
+        if (!projectAccess.ok) return projectAccess.response;
         
         // Create target with provided options
         const output = await nightvisionService.createTarget(
@@ -302,16 +286,8 @@ export function registerTargetTools(server: McpServer): void {
       try {
         const { name, format } = args;
         
-        // Check if authenticated
-        if (!nightvisionService.getToken()) {
-          return {
-            content: [{ 
-              type: "text" as const, 
-              text: "Not authenticated. Please use the authenticate tool to set a token first." 
-            }],
-            isError: true
-          };
-        }
+        const authGuard = await requireAuthenticatedUser();
+        if (!authGuard.ok) return authGuard.response;
         
         // Confirm target exists before deleting and get project info
         let project = args.project, project_id = args.project_id;
@@ -387,6 +363,13 @@ export function registerTargetTools(server: McpServer): void {
             };
           }
         }
+
+        const projectAccess = await requireProjectAccess({
+          project,
+          project_id,
+          action: 'deleting a target'
+        });
+        if (!projectAccess.ok) return projectAccess.response;
         
         // Delete the target
         const output = await nightvisionService.deleteTarget(
@@ -447,12 +430,8 @@ export function registerTargetTools(server: McpServer): void {
     FindTargetParamsSchema,
     async (args, _extra) => {
       try {
-        if (!nightvisionService.getToken()) {
-          return {
-            content: [{ type: "text" as const, text: "Not authenticated. Please use the authenticate tool to set a token first." }],
-            isError: true
-          };
-        }
+        const authGuard = await requireAuthenticatedUser();
+        if (!authGuard.ok) return authGuard.response;
 
         const matches = await nightvisionService.findTarget(args.name);
 
@@ -492,9 +471,8 @@ export function registerTargetTools(server: McpServer): void {
     ListAdditionalPathsParamsSchema,
     async (args, _extra) => {
       try {
-        if (!nightvisionService.getToken()) {
-          return { content: [{ type: "text" as const, text: "Not authenticated." }], isError: true };
-        }
+        const authGuard = await requireAuthenticatedUser();
+        if (!authGuard.ok) return authGuard.response;
 
         const response = await nightvisionService.listAdditionalPaths(args.target_id);
         const results = response?.results || response || [];
@@ -527,9 +505,8 @@ export function registerTargetTools(server: McpServer): void {
     AddAdditionalPathsParamsSchema,
     async (args, _extra) => {
       try {
-        if (!nightvisionService.getToken()) {
-          return { content: [{ type: "text" as const, text: "Not authenticated." }], isError: true };
-        }
+        const authGuard = await requireAuthenticatedUser();
+        if (!authGuard.ok) return authGuard.response;
 
         const pathObjects = args.paths.map((p) => ({ path: p, disabled: false }));
         await nightvisionService.createAdditionalPaths(args.target_id, pathObjects);
