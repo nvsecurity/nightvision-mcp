@@ -59,6 +59,25 @@ test('countSourceLinked counts only findings with a source location', () => {
   assert.equal(countSourceLinked(extractSourceFindings(SARIF)), 1);
 });
 
+test('extractSourceFindings does not count the web-root "/" as a source location', () => {
+  // NightVision uses uri "/" for findings it cannot map to a handler (missing
+  // headers, weak auth). That must read as file:null, not source-linked.
+  const sarif = {
+    runs: [{
+      results: [{
+        ruleId: 'missing-header',
+        level: 'warning',
+        message: { text: 'Missing Strict-Transport-Security header' },
+        locations: [{ physicalLocation: { artifactLocation: { uri: '/' } } }]
+      }]
+    }]
+  };
+  const findings = extractSourceFindings(sarif);
+  assert.equal(findings[0].file, null);
+  assert.equal(findings[0].line, null);
+  assert.equal(countSourceLinked(findings), 0);
+});
+
 test('extractSourceFindings tolerates an empty or malformed SARIF', () => {
   assert.deepEqual(extractSourceFindings({}), []);
   assert.deepEqual(extractSourceFindings(null), []);

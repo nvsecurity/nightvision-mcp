@@ -67,6 +67,15 @@ function ruleNameLookup(rules: SarifRule[]): (result: SarifResult) => string | n
  * report "SQL injection at routes/users.js:42" instead of just a severity count.
  * Findings with no source location are still returned (file/line null) so nothing
  * is hidden.
+ *
+ * For remediation, what a finding carries varies by class. Request-level findings
+ * (injection, XSS) get a real file/line (the DAST-observable ENTRY point, i.e. the
+ * endpoint handler, not always the sink) and a `message` with the endpoint,
+ * vulnerable parameter, and proof-of-concept payload; fix them by opening file:line
+ * and following that parameter to the sink. Response/config-level findings (missing
+ * headers, weak auth, error disclosure) have file null (NightVision emits the web
+ * root "/", filtered above) and are fixed in the app's security config. The SARIF
+ * carries no patch (`fixes`/`codeFlows` empty), so this is a locate-and-fix aid.
  */
 export function extractSourceFindings(sarif: unknown, limit = 20): SourceFinding[] {
   const log = sarif as SarifLog;
@@ -80,13 +89,18 @@ export function extractSourceFindings(sarif: unknown, limit = 20): SourceFinding
       const loc = result.locations?.[0]?.physicalLocation;
       const uri = loc?.artifactLocation?.uri;
       const startLine = loc?.region?.startLine;
+      // NightVision emits uri "/" (the target web root) for findings it cannot map
+      // to a specific source handler: site-wide/response-level issues like missing
+      // security headers, weak auth method, or error disclosure. That is NOT a
+      // source location, so do not count it as source-linked or the count lies.
+      const hasSource = typeof uri === 'string' && uri.trim().length > 0 && uri !== '/';
       findings.push({
         rule: result.ruleId ?? null,
         rule_name: nameOf(result),
         level: result.level ?? null,
         message: result.message?.text ?? null,
-        file: typeof uri === 'string' && uri.trim() ? uri : null,
-        line: typeof startLine === 'number' ? startLine : null
+        file: hasSource ? uri : null,
+        line: hasSource && typeof startLine === 'number' ? startLine : null
       });
     }
   }
