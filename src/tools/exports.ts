@@ -1,10 +1,12 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { mkdir } from 'fs/promises';
+import { mkdir, readFile } from 'fs/promises';
 import path from 'path';
 import { nightvisionService } from '../services/index.js';
 import { ExportCsvParamsSchema, ExportSarifParamsSchema } from '../types/index.js';
 import { requireAuthenticatedUser } from '../utils/auth-guard.js';
 import { classifyScanStatus, scanHasFindings } from '../utils/scan-status.js';
+import { findDiscoveredSpec } from '../utils/discovered-spec.js';
+import { extractSourceFindings, countSourceLinked } from '../utils/sarif-findings.js';
 import { jsonText } from '../utils/tool-response.js';
 
 function defaultSarifPath(scanId: string): string {
@@ -85,12 +87,29 @@ export function registerExportTools(server: McpServer): void {
         const outputPath = path.resolve(process.cwd(), output || outputFile || defaultSarifPath(scanId));
         await mkdir(path.dirname(outputPath), { recursive: true });
 
+        // Attach the discovered OpenAPI spec by default so findings trace back to
+        // an endpoint and a source file:line (Code Traceback). Without this, a
+        // caller on the common wait:false path would export SARIF with no spec and
+        // silently lose the source linkage that is the whole point.
+        const specFile = swagger_file || findDiscoveredSpec(process.cwd()) || undefined;
+
         const raw = await nightvisionService.exportSarif(
           scanId,
           outputPath,
-          { swagger_file, randomize_issue_ids },
+          { swagger_file: specFile, randomize_issue_ids },
           'json'
         );
+
+        // Read back the SARIF we just wrote and surface the source-linked findings
+        // (rule + file:line) directly in the tool output, so the moat is visible in
+        // the response instead of only inside a file a viewer has to open.
+        let sourceFindings: ReturnType<typeof extractSourceFindings> = [];
+        try {
+          sourceFindings = extractSourceFindings(JSON.parse(await readFile(outputPath, 'utf8')));
+        } catch {
+          // A missing/unreadable SARIF is already reflected by the export result;
+          // do not fail the tool over the convenience read-back.
+        }
 
         return jsonText({
           ok: true,
@@ -98,6 +117,10 @@ export function registerExportTools(server: McpServer): void {
           data: {
             scan_id: scanId,
             sarif_path: outputPath,
+            spec_attached: specFile ?? null,
+            source_linked: !!specFile,
+            source_linked_count: countSourceLinked(sourceFindings),
+            findings: sourceFindings,
             raw_output: raw
           }
         });

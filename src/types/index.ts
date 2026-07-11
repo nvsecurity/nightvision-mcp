@@ -278,7 +278,7 @@ export const ApiDiscoveryParamsSchema = {
  */
 export const PreflightAppParamsSchema = {
   project_path: z.string().optional().describe("Path to the app/repo. Defaults to the MCP server working directory"),
-  target_url: z.string().optional().describe("Known local or internal target URL. If omitted, the MCP attempts detection"),
+  target_url: z.string().optional().describe("The running app URL to scan, e.g. http://127.0.0.1:8080. The agent running this harness knows it; the harness does not guess. Required to start a scan"),
   app_name: z.string().optional().describe("Application or service name override"),
   project_name: z.string().optional().describe("NightVision project name override"),
   timeout_seconds: z.number().optional().default(5).describe("Reachability timeout per URL"),
@@ -290,7 +290,7 @@ export const PreflightAppParamsSchema = {
  */
 export const RunAppSecurityScanParamsSchema = {
   project_path: z.string().optional().describe("Path to the app/repo. Defaults to the MCP server working directory"),
-  target_url: z.string().optional().describe("Known local or internal target URL. If omitted, the MCP attempts detection"),
+  target_url: z.string().optional().describe("The running app URL to scan, e.g. http://127.0.0.1:8080. The agent running this harness knows it; the harness does not guess. Required to start a scan"),
   app_name: z.string().optional().describe("Application or service name override"),
   nightvision_project: z.string().optional().describe("NightVision project name. Defaults to NIGHTVISION_DEFAULT_PROJECT"),
   nightvision_project_id: z.string().uuid().optional().describe("NightVision project UUID"),

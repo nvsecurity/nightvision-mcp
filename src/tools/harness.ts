@@ -1,6 +1,6 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { existsSync, statSync } from 'fs';
-import { mkdir, unlink } from 'fs/promises';
+import { mkdir, readFile, unlink } from 'fs/promises';
 import path from 'path';
 import { nightvisionService } from '../services/index.js';
 import { RunAppSecurityScanParamsSchema, type Target } from '../types/index.js';
@@ -9,11 +9,12 @@ import { detectLanguages, type NightVisionLanguage } from '../utils/language-det
 import { writeManifest } from '../utils/manifest.js';
 import { languageOutputPath } from '../utils/output-naming.js';
 import { localTargetName } from '../utils/project-target-naming.js';
-import { detectRuntimeUrl } from '../utils/runtime-detect.js';
+import { resolveTargetUrl } from '../utils/runtime-detect.js';
 import { getRepoMetadata } from '../utils/repo-metadata.js';
 import { requireProjectAccess } from '../utils/auth-guard.js';
 import { extractScanId } from '../utils/scan-id.js';
 import { classifyScanStatus, scanHasFindings } from '../utils/scan-status.js';
+import { extractSourceFindings, countSourceLinked, type SourceFinding } from '../utils/sarif-findings.js';
 import { matchTargetByName } from '../utils/target-matching.js';
 import { jsonText } from '../utils/tool-response.js';
 
@@ -481,7 +482,7 @@ export function registerHarnessTools(server: McpServer): void {
 
         const repo = getRepoMetadata(projectPath);
         const language = detectLanguages(projectPath);
-        const runtime = await detectRuntimeUrl(projectPath, args.target_url);
+        const runtime = await resolveTargetUrl(args.target_url);
         const appName = args.app_name || repo.repo_name;
         const targetName = args.target_name || localTargetName(repo.repo_name, appName);
         const tokenPresent = !!nightvisionService.getToken();
@@ -508,13 +509,11 @@ export function registerHarnessTools(server: McpServer): void {
           blockers.push('invalid_or_expired_token');
         }
 
-        if (!runtime.target_url) {
+        if (!args.target_url) {
+          blockers.push('target_url_required');
+          warnings.push('Pass target_url set to the running app URL (for example http://127.0.0.1:8080). The agent knows this; the harness does not guess it.');
+        } else if (!runtime.target_url) {
           blockers.push('runtime_url_not_reachable');
-        } else if (runtime.confidence === 'low') {
-          const reason = runtime.source === 'detected_common_port'
-            ? `No repo-referenced URL was reachable; adopted ${runtime.target_url} from a common dev port.`
-            : `Adopted ${runtime.target_url} from repo config (compose/package/k8s), but it resolves to a public host rather than a local/private one.`;
-          warnings.push(`${reason} Confirm this is the app you intend to scan, or pass target_url explicitly, before trusting the findings.`);
         }
 
         if (!projectChoice.name) {
@@ -580,7 +579,6 @@ export function registerHarnessTools(server: McpServer): void {
             frameworks: language.frameworks,
             package_manager: language.package_manager,
             target_url: runtime.target_url,
-            runtime_source: runtime.source,
             checked_urls: runtime.checked_urls
           },
           nightvision: {
@@ -757,6 +755,7 @@ export function registerHarnessTools(server: McpServer): void {
         const waitResult = await waitForScan(scanId, args.timeout_seconds);
         let sarifPath: string | null = null;
         let sarifRaw: unknown = null;
+        let sourceFindings: SourceFinding[] = [];
 
         if (waitResult.state !== 'timeout') {
           sarifPath = path.join(projectPath, '.nightvision', `nightvision-${scanId}.sarif`);
@@ -764,10 +763,12 @@ export function registerHarnessTools(server: McpServer): void {
             const rawExport = await nightvisionService.exportSarif(
               scanId,
               sarifPath,
+              // Attach the discovered spec so findings carry a source file:line.
               { swagger_file: discovery.attached_spec_file || undefined },
               'json'
             );
             sarifRaw = parseJson(rawExport);
+            sourceFindings = extractSourceFindings(JSON.parse(await readFile(sarifPath, 'utf8')));
           } catch (error: any) {
             warnings.push(`Scan completed but SARIF export failed: ${error.message}`);
             sarifPath = null;
@@ -789,7 +790,9 @@ export function registerHarnessTools(server: McpServer): void {
             wait: waitResult,
             has_findings: hasFindings,
             sarif_path: sarifPath,
-            sarif_raw_output: sarifRaw
+            sarif_raw_output: sarifRaw,
+            source_linked_count: countSourceLinked(sourceFindings),
+            source_findings: sourceFindings
           },
           completed_at: new Date().toISOString(),
           warnings

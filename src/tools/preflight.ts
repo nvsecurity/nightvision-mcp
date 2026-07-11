@@ -6,7 +6,7 @@ import { PreflightAppParamsSchema } from '../types/index.js';
 import { detectLanguages } from '../utils/language-detect.js';
 import { writeManifest } from '../utils/manifest.js';
 import { localTargetName } from '../utils/project-target-naming.js';
-import { detectRuntimeUrl } from '../utils/runtime-detect.js';
+import { resolveTargetUrl } from '../utils/runtime-detect.js';
 import { getRepoMetadata } from '../utils/repo-metadata.js';
 import { jsonText } from '../utils/tool-response.js';
 
@@ -45,7 +45,7 @@ export function registerPreflightTools(server: McpServer): void {
 
         const repo = getRepoMetadata(projectPath);
         const language = detectLanguages(projectPath);
-        const runtime = await detectRuntimeUrl(projectPath, args.target_url, args.timeout_seconds);
+        const runtime = await resolveTargetUrl(args.target_url, args.timeout_seconds);
         const appName = args.app_name || repo.repo_name;
         const nightvisionProject = args.project_name || process.env.NIGHTVISION_DEFAULT_PROJECT || null;
         const targetName = localTargetName(repo.repo_name, appName);
@@ -66,7 +66,10 @@ export function registerPreflightTools(server: McpServer): void {
           warnings.push(`Could not reach the NightVision API to validate authentication: ${authResult.message}`);
         }
 
-        if (!runtime.target_url) {
+        if (!args.target_url) {
+          blockers.push('target_url_required');
+          warnings.push('Pass target_url set to the running app URL (for example http://127.0.0.1:8080). The agent knows this; the harness does not guess it.');
+        } else if (!runtime.target_url) {
           blockers.push('runtime_url_not_reachable');
         }
 
@@ -87,7 +90,6 @@ export function registerPreflightTools(server: McpServer): void {
             frameworks: language.frameworks,
             package_manager: language.package_manager,
             target_url: runtime.target_url,
-            runtime_source: runtime.source,
             checked_urls: runtime.checked_urls
           },
           nightvision: {

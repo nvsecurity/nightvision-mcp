@@ -247,7 +247,7 @@ Inspects a repo/app without creating targets or starting scans: detects language
 
 Parameters:
 - `project_path` (string, optional): Path to the app/repo. Defaults to the MCP server working directory
-- `target_url` (string, optional): Known local or internal target URL. If omitted, the MCP attempts detection
+- `target_url` (string): The running app URL to scan, e.g. `http://127.0.0.1:8080`. The agent driving this harness knows it; the harness does not guess. Required to start a scan
 - `app_name` (string, optional): Application or service name override
 - `project_name` (string, optional): NightVision project name override
 - `timeout_seconds` (number, optional, default: 5): Reachability timeout per URL
@@ -259,7 +259,7 @@ Runs the DAST-first guided workflow: preflight, API Discovery when source is ava
 
 Parameters:
 - `project_path` (string, optional): Path to the app/repo. Defaults to the MCP server working directory
-- `target_url` (string, optional): Known local or internal target URL. If omitted, the MCP attempts detection
+- `target_url` (string): The running app URL to scan, e.g. `http://127.0.0.1:8080`. The agent driving this harness knows it; the harness does not guess. Required to start a scan
 - `app_name` (string, optional): Application or service name override
 - `nightvision_project` (string, optional): NightVision project name. Defaults to `NIGHTVISION_DEFAULT_PROJECT`
 - `nightvision_project_id` (string, optional): NightVision project UUID
@@ -654,13 +654,13 @@ Exports require the scan to be in an exportable state: succeeded, or terminal (f
 
 #### `export-sarif`
 
-Exports a scan's findings to a SARIF file.
+Exports a scan's findings to a SARIF file. When no `swagger_file` is given, the discovered spec at `.nightvision/openapi.yml` (or `openapi_<lang>.yml`) is attached automatically, so findings carry source traceback (endpoint plus source file:line) by default rather than only when the caller remembers to pass a spec. The response also returns the source-linked findings it parsed back from the SARIF (`findings`, `source_linked_count`, `source_linked`), so an agent can report "finding X at file:line" without opening a viewer.
 
 Parameters:
 - `scan_id` (string): ID of the scan to export to SARIF
 - `output` (string, optional): Output SARIF file path. Defaults to `.nightvision/nightvision-<scan_id>.sarif`
 - `output_file` (string, optional): Alias for `output`
-- `swagger_file` (string, optional): OpenAPI/Swagger file to include for source traceback context
+- `swagger_file` (string, optional): OpenAPI/Swagger file for source traceback. Defaults to the discovered spec in `.nightvision/` when omitted
 - `randomize_issue_ids` (boolean, optional, default: false): Randomize issue IDs in the SARIF export
 - `format` (enum: "json", optional, default: "json"): Format of command output
 
