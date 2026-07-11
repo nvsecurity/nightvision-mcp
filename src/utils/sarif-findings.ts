@@ -77,7 +77,7 @@ function ruleNameLookup(rules: SarifRule[]): (result: SarifResult) => string | n
  * root "/", filtered above) and are fixed in the app's security config. The SARIF
  * carries no patch (`fixes`/`codeFlows` empty), so this is a locate-and-fix aid.
  */
-export function extractSourceFindings(sarif: unknown, limit = 20): SourceFinding[] {
+export function extractSourceFindings(sarif: unknown, limit = Number.MAX_SAFE_INTEGER): SourceFinding[] {
   const log = sarif as SarifLog;
   const runs = Array.isArray(log?.runs) ? log.runs : [];
   const findings: SourceFinding[] = [];

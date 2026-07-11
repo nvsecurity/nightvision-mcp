@@ -78,6 +78,20 @@ test('extractSourceFindings does not count the web-root "/" as a source location
   assert.equal(countSourceLinked(findings), 0);
 });
 
+test('extractSourceFindings returns all findings by default (no silent 20-cap)', () => {
+  // Regression: the default limit used to be 20, so a 34-finding scan reported
+  // only 20 and the source-linked count was computed on the truncated set.
+  const results = Array.from({ length: 25 }, (_unused, i) => ({
+    ruleId: 'x', level: 'warning', message: { text: 'm' },
+    locations: [{ physicalLocation: { artifactLocation: { uri: `f${i}.js` }, region: { startLine: i + 1 } } }]
+  }));
+  const sarif = { runs: [{ results }] };
+  const all = extractSourceFindings(sarif);
+  assert.equal(all.length, 25);
+  assert.equal(countSourceLinked(all), 25);
+  assert.equal(extractSourceFindings(sarif, 10).length, 10, 'an explicit limit still caps');
+});
+
 test('extractSourceFindings tolerates an empty or malformed SARIF', () => {
   assert.deepEqual(extractSourceFindings({}), []);
   assert.deepEqual(extractSourceFindings(null), []);

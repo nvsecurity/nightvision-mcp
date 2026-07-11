@@ -756,6 +756,7 @@ export function registerHarnessTools(server: McpServer): void {
         let sarifPath: string | null = null;
         let sarifRaw: unknown = null;
         let sourceFindings: SourceFinding[] = [];
+        let allSourceFindings: SourceFinding[] = [];
 
         if (waitResult.state !== 'timeout') {
           sarifPath = path.join(projectPath, '.nightvision', `nightvision-${scanId}.sarif`);
@@ -768,7 +769,8 @@ export function registerHarnessTools(server: McpServer): void {
               'json'
             );
             sarifRaw = parseJson(rawExport);
-            sourceFindings = extractSourceFindings(JSON.parse(await readFile(sarifPath, 'utf8')));
+            allSourceFindings = extractSourceFindings(JSON.parse(await readFile(sarifPath, 'utf8')));
+            sourceFindings = allSourceFindings.slice(0, 50);
           } catch (error: any) {
             warnings.push(`Scan completed but SARIF export failed: ${error.message}`);
             sarifPath = null;
@@ -791,8 +793,10 @@ export function registerHarnessTools(server: McpServer): void {
             has_findings: hasFindings,
             sarif_path: sarifPath,
             sarif_raw_output: sarifRaw,
-            source_linked_count: countSourceLinked(sourceFindings),
-            source_findings: sourceFindings
+            total_findings: allSourceFindings.length,
+            source_linked_count: countSourceLinked(allSourceFindings),
+            source_findings: sourceFindings,
+            source_findings_truncated: allSourceFindings.length > sourceFindings.length
           },
           completed_at: new Date().toISOString(),
           warnings

@@ -103,13 +103,17 @@ export function registerExportTools(server: McpServer): void {
         // Read back the SARIF we just wrote and surface the source-linked findings
         // (rule + file:line) directly in the tool output, so the moat is visible in
         // the response instead of only inside a file a viewer has to open.
-        let sourceFindings: ReturnType<typeof extractSourceFindings> = [];
+        let allFindings: ReturnType<typeof extractSourceFindings> = [];
         try {
-          sourceFindings = extractSourceFindings(JSON.parse(await readFile(outputPath, 'utf8')));
+          allFindings = extractSourceFindings(JSON.parse(await readFile(outputPath, 'utf8')));
         } catch {
           // A missing/unreadable SARIF is already reflected by the export result;
           // do not fail the tool over the convenience read-back.
         }
+        // Counts are over ALL findings; the returned list is bounded for size, with
+        // source-linked findings first, so the totals never lie about a truncated set.
+        const DISPLAY_LIMIT = 50;
+        const findings = allFindings.slice(0, DISPLAY_LIMIT);
 
         return jsonText({
           ok: true,
@@ -119,8 +123,10 @@ export function registerExportTools(server: McpServer): void {
             sarif_path: outputPath,
             spec_attached: specFile ?? null,
             source_linked: !!specFile,
-            source_linked_count: countSourceLinked(sourceFindings),
-            findings: sourceFindings,
+            total_findings: allFindings.length,
+            source_linked_count: countSourceLinked(allFindings),
+            findings,
+            findings_truncated: allFindings.length > findings.length,
             raw_output: raw
           }
         });
