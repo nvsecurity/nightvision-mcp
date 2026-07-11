@@ -12,22 +12,51 @@ interface SarifLocation {
 
 interface SarifResult {
   ruleId?: string;
+  ruleIndex?: number;
   level?: string;
   message?: { text?: string };
   locations?: SarifLocation[];
   properties?: Record<string, any>;
 }
 
+interface SarifRule {
+  id?: string;
+  name?: string;
+  shortDescription?: { text?: string };
+}
+
 interface SarifLog {
-  runs?: Array<{ results?: SarifResult[] }>;
+  runs?: Array<{
+    results?: SarifResult[];
+    tool?: { driver?: { rules?: SarifRule[] } };
+  }>;
 }
 
 export interface SourceFinding {
   rule: string | null;
+  rule_name: string | null;
   level: string | null;
   message: string | null;
   file: string | null;
   line: number | null;
+}
+
+function ruleNameLookup(rules: SarifRule[]): (result: SarifResult) => string | null {
+  const byId = new Map<string, string>();
+  for (const rule of rules) {
+    const name = rule.name || rule.shortDescription?.text;
+    if (rule.id && name) byId.set(rule.id, name);
+  }
+  return (result) => {
+    // Prefer the catalog name (e.g. "SQL Injection - PostgreSQL") over the bare
+    // ruleId (e.g. "119") so a report reads as a vulnerability, not a number.
+    if (result.ruleId && byId.has(result.ruleId)) return byId.get(result.ruleId)!;
+    if (typeof result.ruleIndex === 'number' && rules[result.ruleIndex]) {
+      const rule = rules[result.ruleIndex];
+      return rule.name || rule.shortDescription?.text || null;
+    }
+    return null;
+  };
 }
 
 /**
@@ -46,12 +75,14 @@ export function extractSourceFindings(sarif: unknown, limit = 20): SourceFinding
 
   for (const run of runs) {
     const results = Array.isArray(run?.results) ? run.results : [];
+    const nameOf = ruleNameLookup(Array.isArray(run?.tool?.driver?.rules) ? run.tool!.driver!.rules! : []);
     for (const result of results) {
       const loc = result.locations?.[0]?.physicalLocation;
       const uri = loc?.artifactLocation?.uri;
       const startLine = loc?.region?.startLine;
       findings.push({
         rule: result.ruleId ?? null,
+        rule_name: nameOf(result),
         level: result.level ?? null,
         message: result.message?.text ?? null,
         file: typeof uri === 'string' && uri.trim() ? uri : null,

@@ -5,9 +5,13 @@ import { extractSourceFindings, countSourceLinked } from './sarif-findings.js';
 const SARIF = {
   runs: [
     {
+      tool: { driver: { rules: [
+        { id: '119', name: 'SQL Injection - PostgreSQL' },
+        { id: 'missing-header', shortDescription: { text: 'Missing Security Header' } }
+      ] } },
       results: [
         {
-          ruleId: 'sql-injection',
+          ruleId: '119',
           level: 'error',
           message: { text: 'SQL injection in the users query' },
           locations: [
@@ -33,10 +37,16 @@ const SARIF = {
 test('extractSourceFindings maps a finding to its source file and line', () => {
   const findings = extractSourceFindings(SARIF);
   assert.equal(findings.length, 2);
-  const sqli = findings.find((f) => f.rule === 'sql-injection');
+  const sqli = findings.find((f) => f.rule === '119');
   assert.equal(sqli?.file, 'src/routes/users.js');
   assert.equal(sqli?.line, 42);
   assert.equal(sqli?.level, 'error');
+});
+
+test('extractSourceFindings resolves the human-readable rule name from the catalog', () => {
+  const findings = extractSourceFindings(SARIF);
+  assert.equal(findings.find((f) => f.rule === '119')?.rule_name, 'SQL Injection - PostgreSQL');
+  assert.equal(findings.find((f) => f.rule === 'missing-header')?.rule_name, 'Missing Security Header');
 });
 
 test('extractSourceFindings surfaces source-linked findings first', () => {
