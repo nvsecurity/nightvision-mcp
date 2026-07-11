@@ -24,10 +24,8 @@ test('returns null when no scan id is present', () => {
 
 test('does not mistake another UUID in structured pending output for the scan id', () => {
   const PROJECT_ID = '99999999-8888-4777-a666-555544443333';
-  // The managed-scan pending payload sets id/scan_id to null on purpose, but the
-  // rest of the JSON still carries other UUIDs (project_id, CLI progress output
-  // in the stdout tail). A bare-UUID scan over the blob would wrongly return one
-  // of those; on successful JSON parse we must trust only the labeled id fields.
+  // Bare UUIDs embedded in prose, with no "Scan ID:" label and no bare-uuid
+  // stdout line, must NOT be returned (would grab the project/target id).
   const pending = JSON.stringify({
     id: null,
     extracted_id: null,
@@ -36,5 +34,41 @@ test('does not mistake another UUID in structured pending output for the scan id
     raw: { stdout_tail: `resolved target ${SCAN_ID} in project ${PROJECT_ID}` }
   });
   assert.equal(extractScanId(pending), null);
+});
+
+test('recovers the LABELED scan id from a managed-scan pending payload', () => {
+  // Real shape: the wrapper reports id/extracted_id null, but the CLI printed
+  // "Scan ID: <uuid>" (and the bare id to stdout). Recover it instead of blocking.
+  const TARGET_ID = 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee';
+  const CRED_ID = 'bbbbbbbb-cccc-4ddd-8eee-ffffffffffff';
+  const PROJECT_ID = '99999999-8888-4777-a666-555544443333';
+  const pending = JSON.stringify({
+    id: null,
+    extracted_id: null,
+    scan_id_pending: true,
+    project_id: PROJECT_ID,
+    raw: {
+      stdout_tail: `${SCAN_ID}\n`,
+      stderr_tail: `INFO Scan Details:\n  │ Scan ID: ${SCAN_ID}\n  │ Target ID: ${TARGET_ID}\n  │ Credentials: ${CRED_ID}\n`
+    }
+  });
+  assert.equal(extractScanId(pending), SCAN_ID);
+});
+
+test('the labeled scan id wins over other UUIDs in the same log', () => {
+  const TARGET_ID = 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee';
+  const pending = JSON.stringify({
+    id: null,
+    raw: { stderr_tail: `Target ID: ${TARGET_ID}\nScan ID: ${SCAN_ID}\n` }
+  });
+  assert.equal(extractScanId(pending), SCAN_ID);
+});
+
+test('recovers a bare scan id printed alone on the stdout tail', () => {
+  const pending = JSON.stringify({
+    id: null,
+    raw: { stdout_tail: `\n${SCAN_ID}\n` }
+  });
+  assert.equal(extractScanId(pending), SCAN_ID);
 });
 
