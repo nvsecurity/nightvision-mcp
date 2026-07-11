@@ -9,12 +9,12 @@ import { findDiscoveredSpec } from '../utils/discovered-spec.js';
 import { extractSourceFindings, countSourceLinked } from '../utils/sarif-findings.js';
 import { jsonText } from '../utils/tool-response.js';
 
-function defaultSarifPath(scanId: string): string {
-  return path.resolve(process.cwd(), '.nightvision', `nightvision-${scanId}.sarif`);
+function defaultSarifPath(scanId: string, baseDir: string): string {
+  return path.resolve(baseDir, '.nightvision', `nightvision-${scanId}.sarif`);
 }
 
-function defaultCsvPath(scanId: string): string {
-  return path.resolve(process.cwd(), '.nightvision', `nightvision-${scanId}.csv`);
+function defaultCsvPath(scanId: string, baseDir: string): string {
+  return path.resolve(baseDir, '.nightvision', `nightvision-${scanId}.csv`);
 }
 
 /**
@@ -69,6 +69,7 @@ export function registerExportTools(server: McpServer): void {
       try {
         const {
           scan_id: scanId,
+          project_path: projectPath,
           output,
           output_file: outputFile,
           swagger_file,
@@ -84,14 +85,20 @@ export function registerExportTools(server: McpServer): void {
           return notExportableResponse(scanId, 'sarif', exportability.state, exportability.parsed);
         }
 
-        const outputPath = path.resolve(process.cwd(), output || outputFile || defaultSarifPath(scanId));
+        // Resolve everything from the scanned app's source directory, not the shell
+        // cwd. When the agent runs from the developer's home directory, cwd has no
+        // .nightvision spec, so auto-attach would silently miss it and the SARIF
+        // would come back with source_linked:false even though discovery produced a
+        // spec in the repo. Defaulting to cwd preserves old behavior when unset.
+        const baseDir = projectPath ? path.resolve(projectPath) : process.cwd();
+        const outputPath = path.resolve(baseDir, output || outputFile || defaultSarifPath(scanId, baseDir));
         await mkdir(path.dirname(outputPath), { recursive: true });
 
         // Attach the discovered OpenAPI spec by default so findings trace back to
         // an endpoint and a source file:line (Code Traceback). Without this, a
         // caller on the common wait:false path would export SARIF with no spec and
         // silently lose the source linkage that is the whole point.
-        const specFile = swagger_file || findDiscoveredSpec(process.cwd()) || undefined;
+        const specFile = swagger_file || findDiscoveredSpec(baseDir) || undefined;
 
         const raw = await nightvisionService.exportSarif(
           scanId,
@@ -150,6 +157,7 @@ export function registerExportTools(server: McpServer): void {
       try {
         const {
           scan_id: scanId,
+          project_path: projectPath,
           output,
           output_file: outputFile
         } = args;
@@ -163,7 +171,8 @@ export function registerExportTools(server: McpServer): void {
           return notExportableResponse(scanId, 'csv', exportability.state, exportability.parsed);
         }
 
-        const outputPath = path.resolve(process.cwd(), output || outputFile || defaultCsvPath(scanId));
+        const baseDir = projectPath ? path.resolve(projectPath) : process.cwd();
+        const outputPath = path.resolve(baseDir, output || outputFile || defaultCsvPath(scanId, baseDir));
         await mkdir(path.dirname(outputPath), { recursive: true });
 
         const raw = await nightvisionService.exportCsv(scanId, outputPath, 'json');

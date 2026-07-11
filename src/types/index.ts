@@ -163,9 +163,10 @@ export const SummarizeScanFindingsParamsSchema = {
  */
 export const ExportSarifParamsSchema = {
   scan_id: z.string().describe("ID of the scan to export to SARIF"),
-  output: z.string().optional().describe("Output SARIF file path. Defaults to .nightvision/nightvision-<scan_id>.sarif"),
+  project_path: z.string().optional().describe("App SOURCE directory that was scanned. The discovered OpenAPI spec (.nightvision/openapi.yml) is resolved from here to attach source traceback, and the default output path is under here. Set this to the same project_path used for the scan; do NOT rely on the shell cwd, which is often the home directory and has no spec."),
+  output: z.string().optional().describe("Output SARIF file path. Defaults to <project_path>/.nightvision/nightvision-<scan_id>.sarif"),
   output_file: z.string().optional().describe("Alias for output"),
-  swagger_file: z.string().optional().describe("Optional OpenAPI/Swagger file to include for source traceback context"),
+  swagger_file: z.string().optional().describe("Explicit OpenAPI/Swagger file for source traceback. Overrides the spec auto-resolved from project_path."),
   randomize_issue_ids: z.boolean().optional().default(false).describe("Randomize issue IDs in the SARIF export"),
   format: z.enum(["json"]).optional().default("json").describe("Format of command output")
 };
@@ -175,7 +176,8 @@ export const ExportSarifParamsSchema = {
  */
 export const ExportCsvParamsSchema = {
   scan_id: z.string().describe("ID of the scan to export to CSV"),
-  output: z.string().optional().describe("Output CSV file path. Defaults to .nightvision/nightvision-<scan_id>.csv"),
+  project_path: z.string().optional().describe("App source directory that was scanned; the default output path is under here. Set this rather than relying on the shell cwd (often the home directory)."),
+  output: z.string().optional().describe("Output CSV file path. Defaults to <project_path>/.nightvision/nightvision-<scan_id>.csv"),
   output_file: z.string().optional().describe("Alias for output"),
   format: z.enum(["json"]).optional().default("json").describe("Format of command output")
 };
