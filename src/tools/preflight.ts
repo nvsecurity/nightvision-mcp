@@ -3,6 +3,7 @@ import { statSync } from 'fs';
 import path from 'path';
 import { nightvisionService } from '../services/index.js';
 import { PreflightAppParamsSchema } from '../types/index.js';
+import { isNonAppSourcePath } from '../utils/app-source-path.js';
 import { detectLanguages } from '../utils/language-detect.js';
 import { writeManifest } from '../utils/manifest.js';
 import { localTargetName } from '../utils/project-target-naming.js';
@@ -40,6 +41,18 @@ export function registerPreflightTools(server: McpServer): void {
               message: `Project path is not a readable directory: ${projectPath}`
             },
             blockers: ['project_path_not_found']
+          });
+        }
+
+        if (isNonAppSourcePath(projectPath)) {
+          return jsonText({
+            ok: false,
+            status: 'blocked',
+            error: {
+              code: 'PROJECT_PATH_NOT_APP_SOURCE',
+              message: `project_path resolved to "${projectPath}", which is your home or filesystem-root directory, not an app source tree. Pass project_path set to the app's actual source directory so API Discovery inspects the repo rather than the home directory.`
+            },
+            blockers: ['project_path_not_app_source']
           });
         }
 

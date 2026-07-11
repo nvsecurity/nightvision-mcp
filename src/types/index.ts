@@ -26,7 +26,7 @@ export const AuthenticateParamsSchema = {
  */
 export const ListTargetsParamsSchema = {
   all: z.boolean().optional().describe("Specify to get targets against all projects"),
-  projects: z.array(z.string()).optional().describe("Project names to filter the target list"),
+  projects: z.array(z.string()).optional().describe("Project name(s) to scope the target list to. IMPORTANT: without this (and without `all`), the list is NOT project-scoped. Target names are unique only within a project, so pass the project name here to avoid matching a same-named target in another project."),
   format: z.enum(["text", "json", "table"]).optional().default("json").describe("Format of command output")
 };
 
@@ -277,7 +277,7 @@ export const ApiDiscoveryParamsSchema = {
  * Preflight app tool parameters schema
  */
 export const PreflightAppParamsSchema = {
-  project_path: z.string().optional().describe("Path to the app/repo. Defaults to the MCP server working directory"),
+  project_path: z.string().optional().describe("Absolute path to the app's SOURCE directory (the repo you are scanning). Set this explicitly; do not rely on the default working directory, which is often the shell's home directory and has no app source. API Discovery inspects this path."),
   target_url: z.string().optional().describe("The running app URL to scan, e.g. http://127.0.0.1:8080. The agent running this harness knows it; the harness does not guess. Required to start a scan"),
   app_name: z.string().optional().describe("Application or service name override"),
   project_name: z.string().optional().describe("NightVision project name override"),
@@ -289,7 +289,7 @@ export const PreflightAppParamsSchema = {
  * Guided app security scan tool parameters schema
  */
 export const RunAppSecurityScanParamsSchema = {
-  project_path: z.string().optional().describe("Path to the app/repo. Defaults to the MCP server working directory"),
+  project_path: z.string().optional().describe("Absolute path to the app's SOURCE directory (the repo you just built or changed). Set this explicitly; do not rely on the default working directory, which is often the shell's home directory and has no app source. API Discovery and source-linking read from this path, so a wrong path means the scan exercises no endpoints and findings lose their source file:line."),
   target_url: z.string().optional().describe("The running app URL to scan, e.g. http://127.0.0.1:8080. The agent running this harness knows it; the harness does not guess. Required to start a scan"),
   app_name: z.string().optional().describe("Application or service name override"),
   nightvision_project: z.string().optional().describe("NightVision project name. Defaults to NIGHTVISION_DEFAULT_PROJECT"),

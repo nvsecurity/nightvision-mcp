@@ -4,6 +4,7 @@ import { mkdir, readFile, unlink } from 'fs/promises';
 import path from 'path';
 import { nightvisionService } from '../services/index.js';
 import { RunAppSecurityScanParamsSchema, type Target } from '../types/index.js';
+import { isNonAppSourcePath } from '../utils/app-source-path.js';
 import { resolveActualOutputFile } from '../utils/discover-output-path.js';
 import { detectLanguages, type NightVisionLanguage } from '../utils/language-detect.js';
 import { writeManifest } from '../utils/manifest.js';
@@ -480,6 +481,18 @@ export function registerHarnessTools(server: McpServer): void {
           });
         }
 
+        if (isNonAppSourcePath(projectPath)) {
+          return jsonText({
+            ok: false,
+            status: 'blocked',
+            error: {
+              code: 'PROJECT_PATH_NOT_APP_SOURCE',
+              message: `project_path resolved to "${projectPath}", which is your home or filesystem-root directory, not an app source tree. API Discovery and source-linking read from project_path; run from there and the scan would exercise no endpoints and lose the source file:line traceback. Pass project_path set to the app's actual source directory (the repo you just built or changed).`
+            },
+            blockers: ['project_path_not_app_source']
+          });
+        }
+
         const repo = getRepoMetadata(projectPath);
         const language = detectLanguages(projectPath);
         const runtime = await resolveTargetUrl(args.target_url);
@@ -780,6 +793,20 @@ export function registerHarnessTools(server: McpServer): void {
         const hasFindings = scanHasFindings(waitResult.last_status);
         if (waitResult.state === 'failed' && hasFindings) {
           warnings.push('Scan reached a failed terminal status but produced findings. Exported available results and marked this run partial.');
+        }
+
+        // Coverage floor: a scan that succeeds but produces zero findings AND had no
+        // fresh spec from source almost certainly exercised no endpoints (stale/empty
+        // spec, or the target was scanned as a bare WEB target). That is a setup
+        // failure disguised as a clean result, so flag it instead of letting the app
+        // read as secure. When API Discovery did generate a spec, zero findings is a
+        // real result and is not flagged.
+        const coverageSuspect =
+          waitResult.state === 'succeeded' &&
+          allSourceFindings.length === 0 &&
+          discovery.status !== 'success';
+        if (coverageSuspect) {
+          warnings.push(`Scan completed with 0 findings, but API Discovery did not produce a spec from source (status: ${discovery.status}). The scan likely exercised no endpoints (stale/empty spec or wrong target type), not that the app is clean. Re-run run-app-security-scan with project_path set to the app's source directory so discovery regenerates the spec, and confirm coverage before reporting the app as secure.`);
         }
 
         const manifestPath = await writeManifest(projectPath, {
