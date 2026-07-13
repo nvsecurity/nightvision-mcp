@@ -8,6 +8,7 @@ import {
   GetIssueOccurrencesParamsSchema,
 } from '../types/index.js';
 import { requireAuthenticatedUser } from '../utils/auth-guard.js';
+import { wrapUntrusted } from '../utils/untrusted.js';
 
 /**
  * Register finding/issue detail tools with the MCP server
@@ -36,7 +37,7 @@ export function registerFindingTools(server: McpServer): void {
           format
         );
 
-        return { content: [{ type: "text" as const, text: result }] };
+        return { content: [{ type: "text" as const, text: wrapUntrusted(result) }] };
       } catch (error: any) {
         return {
           content: [{ type: "text" as const, text: `Failed to list issues: ${error.message}` }],
@@ -64,7 +65,7 @@ export function registerFindingTools(server: McpServer): void {
 
         const result = await nightvisionService.getIssueDetails(issue_id, format);
 
-        return { content: [{ type: "text" as const, text: result }] };
+        return { content: [{ type: "text" as const, text: wrapUntrusted(result) }] };
       } catch (error: any) {
         if (error.message.includes('404') || error.message.includes('not found')) {
           return {
@@ -131,7 +132,7 @@ export function registerFindingTools(server: McpServer): void {
           { kind, nuclei_template, resolution, filter }
         );
 
-        return { content: [{ type: "text" as const, text: result }] };
+        return { content: [{ type: "text" as const, text: wrapUntrusted(result) }] };
       } catch (error: any) {
         return {
           content: [{ type: "text" as const, text: `Failed to get vulnerable paths: ${error.message}` }],
@@ -171,7 +172,7 @@ export function registerFindingTools(server: McpServer): void {
           { scan_id, url_path, http_method, kind_id, nuclei_template_id, parameter_name, resolution }
         );
 
-        return { content: [{ type: "text" as const, text: result }] };
+        return { content: [{ type: "text" as const, text: wrapUntrusted(result) }] };
       } catch (error: any) {
         return {
           content: [{ type: "text" as const, text: `Failed to get issue occurrences: ${error.message}` }],

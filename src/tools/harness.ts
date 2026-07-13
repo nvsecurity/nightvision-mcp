@@ -18,6 +18,7 @@ import { classifyScanStatus, scanHasFindings } from '../utils/scan-status.js';
 import { extractSourceFindings, countSourceLinked, type SourceFinding } from '../utils/sarif-findings.js';
 import { matchTargetByName } from '../utils/target-matching.js';
 import { jsonText } from '../utils/tool-response.js';
+import { UNTRUSTED_NOTICE } from '../utils/untrusted.js';
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -852,6 +853,10 @@ export function registerHarnessTools(server: McpServer): void {
           ok: true,
           status: waitResult.state === 'timeout' || waitResult.state === 'failed' ? 'partial' : warnings.length > 0 ? 'partial' : 'success',
           data: {
+            // Findings, raw_output and sarif_raw_output below are captured from
+            // the scanned target and are attacker-influenced. This advisory tells
+            // a consuming agent to treat that content as data, not instructions.
+            security_notice: UNTRUSTED_NOTICE,
             ...baseManifest,
             api_discovery: discovery,
             target,
