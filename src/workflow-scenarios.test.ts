@@ -135,6 +135,8 @@ interface ApiConfig {
   checks?: any[];
   // Scans returned by the list endpoint (used by managed-scan baseline/lookup).
   listScans?: any[];
+  // Targets returned by the target lookup endpoint. Empty means the harness creates one.
+  targets?: any[];
 }
 
 async function fakeApi(config: ApiConfig): Promise<{ server: Server; url: string; captured: { checkParams: string[] } } | null> {
@@ -162,7 +164,7 @@ async function fakeApi(config: ApiConfig): Promise<{ server: Server; url: string
     }
 
     if (u.startsWith('/api/v1/targets/')) {
-      res.end(JSON.stringify({ results: [] }));
+      res.end(JSON.stringify({ results: config.targets || [] }));
       return;
     }
 
@@ -312,6 +314,96 @@ test('scenario: "scan the app I just built" runs the full workflow and produces 
     const sarif = await call(client, 'export-sarif', { scan_id: 'scan-123', output: path.join(baseDir, 'out.sarif') });
     assert.equal(sarif.payload.ok, true);
     assert.equal(sarif.payload.data.sarif_path, path.join(baseDir, 'out.sarif'));
+  } finally {
+    child.kill('SIGKILL');
+    app.server.close();
+    api.server.close();
+  }
+});
+
+test('scenario: an EXISTING target gets its fresh spec uploaded by swagger extract itself, before the scan starts', { timeout: 30000, skip }, async (t) => {
+  const baseDir = mkdtempSync(path.join(os.tmpdir(), 'nv-sc-existing-'));
+  const { binDir, logPath } = fakeCli(baseDir);
+  const projectPath = makeApp(baseDir);
+  const app = await startLocalApp();
+  if (!app) return t.skip('loopback blocked');
+  const api = await fakeApi({
+    // The target already exists, so `swagger extract --target` can upload onto it.
+    targets: [{ id: 'target-1', name: 'demo-api', project: 'project-1', project_name: 'Demo Project', location: 'http://localhost:1', type: 'OPENAPI' }],
+    scanStatus: { id: 'scan-123', status: 'RUNNING', status_value: 2 }
+  });
+  if (!api) { app.server.close(); return t.skip('loopback blocked'); }
+  const child = spawnServer(baseDir, binDir, logPath, { token: 't', apiUrl: api.url });
+
+  try {
+    const client = await init(child);
+    const started = await call(client, 'run-app-security-scan', {
+      project_path: projectPath, target_url: app.url, nightvision_project: 'Demo Project',
+      target_name: 'demo-api', no_auth: true
+    });
+    assert.equal(started.payload.ok, true);
+    assert.equal(started.payload.data.api_discovery.status, 'success');
+    assert.equal(started.payload.data.api_discovery.spec_uploaded, true);
+
+    const lines = readFileSync(logPath, 'utf8').trim().split('\n');
+    const extract = lines.find((l) => l.startsWith('swagger extract'));
+    assert.ok(extract, 'swagger extract should have run');
+
+    // The fresh spec is uploaded by extract itself, onto the existing target.
+    assert.match(extract!, /--target demo-api/);
+    assert.ok(!extract!.includes('--no-upload'), `extract must not skip the upload: ${extract}`);
+
+    // And it is NOT pushed a second time by a separate target update (-f is --spec-file).
+    const update = lines.find((l) => l.startsWith('target update'));
+    if (update) {
+      assert.ok(
+        !/(?:^| )(?:-f|--spec-file) /.test(update),
+        `spec should not be pushed twice: ${update}`
+      );
+    }
+
+    // Ordering is what matters: the spec lands BEFORE the scan starts.
+    const extractIdx = lines.findIndex((l) => l.startsWith('swagger extract'));
+    const scanIdx = lines.findIndex((l) => l.startsWith('scan'));
+    assert.ok(scanIdx > extractIdx, 'DAST must start only after API discovery uploaded the spec');
+  } finally {
+    child.kill('SIGKILL');
+    app.server.close();
+    api.server.close();
+  }
+});
+
+test('scenario: a NEW target still gets its spec at create time (extract cannot upload to a target that does not exist yet)', { timeout: 30000, skip }, async (t) => {
+  const baseDir = mkdtempSync(path.join(os.tmpdir(), 'nv-sc-newtarget-'));
+  const { binDir, logPath } = fakeCli(baseDir);
+  const projectPath = makeApp(baseDir);
+  const app = await startLocalApp();
+  if (!app) return t.skip('loopback blocked');
+  const api = await fakeApi({ targets: [], scanStatus: { id: 'scan-123', status: 'RUNNING', status_value: 2 } });
+  if (!api) { app.server.close(); return t.skip('loopback blocked'); }
+  const child = spawnServer(baseDir, binDir, logPath, { token: 't', apiUrl: api.url });
+
+  try {
+    const client = await init(child);
+    const started = await call(client, 'run-app-security-scan', {
+      project_path: projectPath, target_url: app.url, nightvision_project: 'Demo Project',
+      target_name: 'brand-new-api', no_auth: true
+    });
+    assert.equal(started.payload.ok, true);
+    assert.equal(started.payload.data.api_discovery.spec_uploaded, false);
+
+    const lines = readFileSync(logPath, 'utf8').trim().split('\n');
+    const extract = lines.find((l) => l.startsWith('swagger extract'))!;
+
+    // No target to upload onto yet, so extract stays local...
+    assert.ok(extract.includes('--no-upload'), `extract should not try to upload: ${extract}`);
+    assert.ok(!extract.includes('--target'), `extract must not name a target that does not exist: ${extract}`);
+
+    // ...and the spec is attached when the target is created (-f is --spec-file), as type API.
+    const create = lines.find((l) => l.startsWith('target create'));
+    assert.ok(create, 'target create should have run');
+    assert.match(create!, /(?:^| )(?:-f|--spec-file) \S+openapi/);
+    assert.match(create!, /(?:^| )(?:-t|--type) API/);
   } finally {
     child.kill('SIGKILL');
     app.server.close();

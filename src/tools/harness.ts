@@ -246,7 +246,11 @@ async function removeIfExists(file: string): Promise<void> {
   }
 }
 
-async function runApiDiscovery(projectPath: string, languages: NightVisionLanguage[]) {
+async function runApiDiscovery(
+  projectPath: string,
+  languages: NightVisionLanguage[],
+  uploadTarget: { name: string; project: string; projectId: string | null } | null = null
+) {
   const outputBase = path.join(projectPath, '.nightvision', 'openapi.yml');
 
   if (languages.length === 0) {
@@ -255,6 +259,7 @@ async function runApiDiscovery(projectPath: string, languages: NightVisionLangua
       status: 'skipped' as const,
       spec_files: [] as string[],
       attached_spec_file: null as string | null,
+      spec_uploaded: false,
       raw_output: null as unknown,
       warning: 'No supported source language was detected, so API Discovery was skipped.'
     };
@@ -267,12 +272,23 @@ async function runApiDiscovery(projectPath: string, languages: NightVisionLangua
       ...languages.map((language) => languageOutputPath(outputBase, language))
     ].map(removeIfExists));
 
+    // `swagger extract --target` uploads the spec it just generated straight onto the
+    // target, so the scan cannot race a separate push. It only works on a target that
+    // already exists: the CLI errors with "The specified Target does not exist under the
+    // Project" otherwise, so a brand-new target still gets its spec at create time.
     const raw = await nightvisionService.discoverApi(
       [projectPath],
       {
         lang: languages.length === 1 ? languages[0] : languages,
         output: outputBase,
-        no_upload: true
+        ...(uploadTarget
+          ? {
+              target: uploadTarget.name,
+              project: uploadTarget.project,
+              project_id: uploadTarget.projectId || undefined,
+              no_upload: false
+            }
+          : { no_upload: true })
       },
       'text',
       projectPath
@@ -284,6 +300,12 @@ async function runApiDiscovery(projectPath: string, languages: NightVisionLangua
       status: specFiles.length > 0 ? 'success' as const : 'no_spec' as const,
       spec_files: specFiles,
       attached_spec_file: specFiles[0] || null,
+      // Only trust the extract-side upload when it produced exactly one spec. With several
+      // languages the CLI extracts once per language, so each would upload in turn and the
+      // last would win on the server while attached_spec_file (what export-sarif uses for
+      // source linking) is the first. In that case fall back to one explicit, deterministic
+      // push of attached_spec_file so the scanned spec and the source-linked spec agree.
+      spec_uploaded: !!uploadTarget && specFiles.length === 1,
       raw_output: raw,
       warning: specFiles.length > 1
         ? 'Multiple OpenAPI specs were generated. The first spec is attached to the NightVision target.'
@@ -297,6 +319,7 @@ async function runApiDiscovery(projectPath: string, languages: NightVisionLangua
       status: 'failed' as const,
       spec_files: [] as string[],
       attached_spec_file: null as string | null,
+      spec_uploaded: false,
       raw_output: null as unknown,
       warning: `API Discovery failed, so the scan will run as a WEB target: ${error.message}`
     };
@@ -308,13 +331,20 @@ async function ensureTarget(
   url: string,
   projectName: string,
   projectId: string | null,
-  specFile: string | null
+  specFile: string | null,
+  resolved?: { existing: Target | null; warnings: string[]; specUploaded: boolean }
 ): Promise<TargetResolution> {
-  const warnings: string[] = [];
+  const warnings: string[] = resolved ? [...resolved.warnings] : [];
 
-  const existing = await findExistingTarget(name, projectName, projectId, warnings);
+  // API Discovery may have already pushed this spec via `swagger extract --target`. Pushing
+  // it a second time here would be redundant, so only send spec_file when it did not.
+  const pendingSpec = resolved?.specUploaded ? null : specFile;
+
+  const existing = resolved
+    ? resolved.existing
+    : await findExistingTarget(name, projectName, projectId, warnings);
   if (existing) {
-    return updateExistingTarget(existing, name, url, projectName, projectId, specFile, warnings);
+    return updateExistingTarget(existing, name, url, projectName, projectId, pendingSpec, warnings);
   }
 
   let rawCreate: string;
@@ -649,7 +679,24 @@ export function registerHarnessTools(server: McpServer): void {
           });
         }
 
-        const discovery = await runApiDiscovery(projectPath, language.languages);
+        // Resolve the target before discovery: `swagger extract --target` uploads the spec
+        // it generates, but only onto a target that already exists. A target we are about to
+        // create instead receives its spec at create time, below.
+        const targetWarnings: string[] = [];
+        const existingTarget = await findExistingTarget(
+          targetName,
+          projectChoice.name!,
+          projectChoice.id,
+          targetWarnings
+        );
+
+        const discovery = await runApiDiscovery(
+          projectPath,
+          language.languages,
+          existingTarget
+            ? { name: targetName, project: projectChoice.name!, projectId: projectChoice.id }
+            : null
+        );
         if (discovery.warning) {
           warnings.push(discovery.warning);
         }
@@ -675,7 +722,12 @@ export function registerHarnessTools(server: McpServer): void {
           runtime.target_url!,
           projectChoice.name!,
           projectChoice.id,
-          discovery.attached_spec_file
+          discovery.attached_spec_file,
+          {
+            existing: existingTarget,
+            warnings: targetWarnings,
+            specUploaded: discovery.spec_uploaded
+          }
         );
         warnings.push(...target.warnings);
 
