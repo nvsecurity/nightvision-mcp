@@ -654,15 +654,16 @@ Exports require the scan to be in an exportable state: succeeded, or terminal (f
 
 #### `export-sarif`
 
-Exports a scan's findings to a SARIF file. When no `swagger_file` is given, the discovered spec at `.nightvision/openapi.yml` (or `openapi_<lang>.yml`) is attached automatically, so findings carry source traceback (endpoint plus source file:line) by default rather than only when the caller remembers to pass a spec. The response also returns the source-linked findings it parsed back from the SARIF (`findings`, `source_linked_count`, `source_linked`), so an agent can report "finding X at file:line" without opening a viewer.
+Exports a scan's findings to a SARIF file. Pass the same `project_path` used for the scan so the export can resolve the discovered spec at `.nightvision/openapi.yml` (or `openapi_<lang>.yml`) and attach source traceback. The response also returns the source-linked findings it parsed back from the SARIF (`findings`, `source_linked_count`, `source_linked`), so an agent can report "finding X at file:line" without opening a viewer.
 
 What a finding carries for remediation varies by class. Request-level findings (injection, XSS, and similar) carry a source `file`/`line` plus a `message` with the endpoint, vulnerable parameter, and proof-of-concept payload, enough to locate and fix. The `file`/`line` is the DAST-observable entry point (the endpoint handler), not necessarily the sink, so remediation means opening that line and following the reported parameter into the code that uses it. Response/config-level findings (missing headers, weak auth, error disclosure) come back with `file` null (NightVision emits the web root `/` for these, which is filtered out) or, when they do carry a line, it points at the handler the response was observed through rather than the fix location; fix these in the app's security config, not at the reported line. The SARIF does not include a patch (`fixes`/`codeFlows` are empty); this is a locate-and-fix aid, not an auto-fix.
 
 Parameters:
 - `scan_id` (string): ID of the scan to export to SARIF
-- `output` (string, optional): Output SARIF file path. Defaults to `.nightvision/nightvision-<scan_id>.sarif`
+- `project_path` (string, optional): App source directory used for the scan. Resolves the discovered spec and default output path from this directory; use the same value passed to `run-app-security-scan`
+- `output` (string, optional): Output SARIF file path. Defaults to `<project_path>/.nightvision/nightvision-<scan_id>.sarif`
 - `output_file` (string, optional): Alias for `output`
-- `swagger_file` (string, optional): OpenAPI/Swagger file for source traceback. Defaults to the discovered spec in `.nightvision/` when omitted
+- `swagger_file` (string, optional): Explicit OpenAPI/Swagger file for source traceback. Overrides the spec resolved from `project_path`
 - `randomize_issue_ids` (boolean, optional, default: false): Randomize issue IDs in the SARIF export
 - `format` (enum: "json", optional, default: "json"): Format of command output
 
@@ -677,7 +678,8 @@ Exports a scan's findings to a CSV file.
 
 Parameters:
 - `scan_id` (string): ID of the scan to export to CSV
-- `output` (string, optional): Output CSV file path. Defaults to `.nightvision/nightvision-<scan_id>.csv`
+- `project_path` (string, optional): App source directory used for the scan. Resolves the default output path from this directory; use the same value passed to `run-app-security-scan`
+- `output` (string, optional): Output CSV file path. Defaults to `<project_path>/.nightvision/nightvision-<scan_id>.csv`
 - `output_file` (string, optional): Alias for `output`
 - `format` (enum: "json", optional, default: "json"): Format of command output
 
