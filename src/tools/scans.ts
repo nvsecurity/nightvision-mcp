@@ -275,24 +275,24 @@ export function registerScanTools(server: McpServer): void {
         const pollMs = Math.max(0, poll_interval_seconds * 1000);
         let lastStatus: unknown = null;
 
+        let lastPollError: string | null = null;
         while (Date.now() - startTime <= timeoutMs) {
-          const raw = await nightvisionService.getScanStatus(scanId, 'json');
           let parsed: any;
 
           try {
+            const raw = await nightvisionService.getScanStatus(scanId, 'json');
             parsed = JSON.parse(raw);
           } catch (error: any) {
-            return jsonText({
-              ok: false,
-              status: 'error',
-              error: {
-                code: 'SCAN_STATUS_PARSE_ERROR',
-                message: `Could not parse NightVision scan status as JSON: ${error.message}`,
-                details: { raw_output: neutralizeFenceMarkers(raw) }
-              }
-            });
+            // A transient poll failure (network/5xx from getScanStatus, or a
+            // partial/non-JSON status body) must not abort a potentially
+            // hour-long wait. Record it and keep polling, matching the harness
+            // waitForScan helper, instead of returning a terminal failure.
+            lastPollError = error?.message || String(error);
+            await sleep(pollMs);
+            continue;
           }
 
+          lastPollError = null;
           lastStatus = parsed;
           const state = classifyScanStatus(parsed);
           const elapsedSeconds = Math.round((Date.now() - startTime) / 1000);
@@ -323,10 +323,6 @@ export function registerScanTools(server: McpServer): void {
             });
           }
 
-          if (pollMs === 0) {
-            break;
-          }
-
           await sleep(pollMs);
         }
 
@@ -336,7 +332,7 @@ export function registerScanTools(server: McpServer): void {
           error: {
             code: 'SCAN_TIMEOUT',
             message: 'NightVision scan did not complete before the wait timeout.',
-            details: { last_status: lastStatus }
+            details: { last_status: lastStatus, last_poll_error: lastPollError }
           },
           blockers: ['scan_timeout']
         });

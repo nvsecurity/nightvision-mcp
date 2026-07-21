@@ -116,7 +116,7 @@ export const GetScanStatusParamsSchema = {
 export const WaitForScanParamsSchema = {
   scan_id: z.string().describe("ID of the scan to wait for"),
   timeout_seconds: z.number().optional().default(3600).describe("Maximum seconds to wait for a terminal scan status. DAST scans commonly run longer than 10 minutes."),
-  poll_interval_seconds: z.number().optional().default(30).describe("Seconds to wait between status checks"),
+  poll_interval_seconds: z.number().positive().optional().default(30).describe("Seconds to wait between status checks"),
   format: z.enum(["json"]).optional().default("json").describe("Format of command output")
 };
 
