@@ -43,9 +43,19 @@ export function registerAuthTools(server: McpServer): void {
             nightvisionService.setToken(newToken);
             saveToken(newToken);
             
-            // Verify the token works 
-            const isValid = await nightvisionService.verifyProductionAuth();
-            if (!isValid) {
+            // Verify the token works. Distinguish a transient outage from a real
+            // rejection so a network blip does not read as a failed login.
+            const result = await nightvisionService.getAuthenticatedUserResult(true);
+            if (result.status === 'error') {
+              return {
+                content: [{
+                  type: "text" as const,
+                  text: `Created and saved a new token (starts with: ${newToken.substring(0, 8)}...) but could not verify it right now because the NightVision API was unreachable: ${result.message}\n\nThe token was kept; retry shortly rather than re-running login.`
+                }],
+                isError: true
+              };
+            }
+            if (result.status !== 'authenticated') {
               return {
                 content: [{
                   type: "text" as const,
@@ -77,62 +87,69 @@ export function registerAuthTools(server: McpServer): void {
           nightvisionService.setToken(token);
           saveToken(token);
           
-          // Validate the token
-          try {
-            const isValid = await nightvisionService.verifyProductionAuth();
-            if (!isValid) {
-              nightvisionService.setToken(null);
-              clearToken();
-              return {
-                content: [{
-                  type: "text" as const,
-                  text: `The provided token is not valid.\n\nPlease run the following command and then try again:\n${ENVIRONMENT.NIGHTVISION_CLI_PATH} login --api-url ${ENVIRONMENT.CURRENT_API_URL}`
-                }],
-                isError: true
-              };
-            }
-            
+          // Validate the token, distinguishing a transient outage (keep the token
+          // and retry) from a real rejection (clear it and re-login). A 5xx or
+          // network failure must not wipe a good token or claim it is invalid.
+          const result = await nightvisionService.getAuthenticatedUserResult(true);
+          if (result.status === 'error') {
             return {
-              content: [{ 
-                type: "text" as const, 
-                text: `Successfully authenticated. Token starts with: ${token.substring(0, 8)}...` 
-              }]
-            };
-          } catch (error) {
-            nightvisionService.setToken(null); // Reset if validation fails
-            clearToken();
-            return {
-              content: [{ 
-                type: "text" as const, 
-                text: `Authentication failed: Invalid token.` 
+              content: [{
+                type: "text" as const,
+                text: `Saved the provided token but could not verify it right now because the NightVision API was unreachable: ${result.message}\n\nThe token was kept; retry shortly rather than re-authenticating.`
               }],
               isError: true
             };
           }
+          if (result.status !== 'authenticated') {
+            nightvisionService.setToken(null);
+            clearToken();
+            return {
+              content: [{
+                type: "text" as const,
+                text: `The provided token is not valid.\n\nPlease run the following command and then try again:\n${ENVIRONMENT.NIGHTVISION_CLI_PATH} login --api-url ${ENVIRONMENT.CURRENT_API_URL}`
+              }],
+              isError: true
+            };
+          }
+
+          return {
+            content: [{
+              type: "text" as const,
+              text: `Successfully authenticated. Token starts with: ${token.substring(0, 8)}...`
+            }]
+          };
         }
         
         // Check authentication status if no parameters provided
         if (!token && !create_new) {
           const currentToken = nightvisionService.getToken();
           if (currentToken) {
-            // Verify the token works
-            const isValid = await nightvisionService.verifyProductionAuth();
-            if (isValid) {
-              return {
-                content: [{ 
-                  type: "text" as const, 
-                  text: `Authenticated successfully. Token starts with: ${currentToken.substring(0, 8)}...` 
-                }]
-              };
-            } else {
+            // Verify the token works, distinguishing an outage from expiry.
+            const result = await nightvisionService.getAuthenticatedUserResult(true);
+            if (result.status === 'authenticated') {
               return {
                 content: [{
                   type: "text" as const,
-                  text: `You have a token (starts with: ${currentToken.substring(0, 8)}...) but it appears to be invalid or expired.\n\nPlease run the following command and then try again:\n${ENVIRONMENT.NIGHTVISION_CLI_PATH} login --api-url ${ENVIRONMENT.CURRENT_API_URL}`
+                  text: `Authenticated successfully. Token starts with: ${currentToken.substring(0, 8)}...`
+                }]
+              };
+            }
+            if (result.status === 'error') {
+              return {
+                content: [{
+                  type: "text" as const,
+                  text: `You have a token (starts with: ${currentToken.substring(0, 8)}...) but could not verify it right now because the NightVision API was unreachable: ${result.message}\n\nRetry shortly; do not re-authenticate solely because of this.`
                 }],
                 isError: true
               };
             }
+            return {
+              content: [{
+                type: "text" as const,
+                text: `You have a token (starts with: ${currentToken.substring(0, 8)}...) but it appears to be invalid or expired.\n\nPlease run the following command and then try again:\n${ENVIRONMENT.NIGHTVISION_CLI_PATH} login --api-url ${ENVIRONMENT.CURRENT_API_URL}`
+              }],
+              isError: true
+            };
           } else {
             return {
               content: [{ 
