@@ -67,10 +67,15 @@ export function summarizeScanChecks(response: ScanChecksResponse, limit = 20) {
     return aRank - bRank;
   });
 
-  const severity_counts: Record<string, number> = {};
+  // This tallies only the checks on this page. Unlike total_count/truncated
+  // (which reflect the SERVER total via response.count), the CLI hands us one
+  // page and no per-severity aggregate for the full set, so we cannot produce a
+  // true severity total here. Named page_severity_counts so it is not misread as
+  // one when total_count says there are more findings than this page holds.
+  const page_severity_counts: Record<string, number> = {};
   for (const check of results) {
     const key = severityKey(check.severity);
-    severity_counts[key] = (severity_counts[key] || 0) + 1;
+    page_severity_counts[key] = (page_severity_counts[key] || 0) + 1;
   }
 
   const findings = sorted.slice(0, Math.max(0, limit)).map((check) => ({
@@ -85,12 +90,16 @@ export function summarizeScanChecks(response: ScanChecksResponse, limit = 20) {
     ai_explanation: firstString(check.ai_explanation, check.explanation)
   }));
 
+  const total_count = response?.count ?? results.length;
   return {
-    total_count: response?.count ?? results.length,
+    total_count,
     returned_count: results.length,
     summarized_count: findings.length,
-    severity_counts,
+    page_severity_counts,
     findings,
-    truncated: findings.length < results.length
+    // truncated reflects the SERVER total, not just this page: it is true when
+    // the summary omits any finding, whether dropped by the display limit or by
+    // server-side pagination (results is one page; total_count is the API total).
+    truncated: findings.length < total_count
   };
 }

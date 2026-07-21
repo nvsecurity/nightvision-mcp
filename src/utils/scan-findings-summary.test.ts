@@ -14,7 +14,7 @@ test('summarizeScanChecks sorts by severity and counts returned findings', () =>
 
   assert.equal(summary.total_count, 3);
   assert.equal(summary.returned_count, 3);
-  assert.deepEqual(summary.severity_counts, { low: 1, critical: 1, high: 1 });
+  assert.deepEqual(summary.page_severity_counts, { low: 1, critical: 1, high: 1 });
   assert.deepEqual(summary.findings.map((finding) => finding.id), ['critical-1', 'high-1', 'low-1']);
 });
 
@@ -43,6 +43,26 @@ test('summarizeScanChecks includes endpoint and evidence only when returned by t
     evidence: 'database error',
     ai_explanation: null
   });
+});
+
+test('summarizeScanChecks marks truncated when the server total exceeds the returned page', () => {
+  // One page of 2 is returned while the server reports 500 total. The summary
+  // keeps the whole page, but must not claim it has every finding.
+  const summary = summarizeScanChecks({
+    count: 500,
+    results: [
+      { id: 'one', severity: 'critical' },
+      { id: 'two', severity: 'high' }
+    ]
+  });
+
+  assert.equal(summary.total_count, 500);
+  assert.equal(summary.returned_count, 2);
+  assert.equal(summary.summarized_count, 2);
+  assert.equal(summary.truncated, true);
+  // page_severity_counts tallies only this page (2), never the 500 server total,
+  // so its name must not be read as a full breakdown.
+  assert.deepEqual(summary.page_severity_counts, { critical: 1, high: 1 });
 });
 
 test('summarizeScanChecks respects the summary limit', () => {
