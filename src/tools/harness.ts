@@ -487,6 +487,39 @@ async function waitForScan(scanId: string, timeoutSeconds: number): Promise<Wait
 }
 
 /**
+ * Coverage floor: a scan that succeeds but produces zero findings AND had no
+ * fresh spec from source almost certainly exercised no endpoints (stale/empty
+ * spec, or the target was scanned as a bare WEB target). That is a setup failure
+ * disguised as a clean result.
+ *
+ * A scan is only flagged when BOTH independent finding sources agree there are
+ * none: the TRUE finding total from the scan status (hasFindings) AND the
+ * source-linked set read back from SARIF (hasSourceFindings). Requiring both
+ * avoids two false positives: a scan whose SARIF export/read-back failed but
+ * that DID find issues (hasFindings true), and a scan with real SARIF findings
+ * whose status total drifted to zero (hasSourceFindings true).
+ *
+ * @param scanState Terminal state classification of the scan.
+ * @param hasFindings True finding total from the scan status.
+ * @param hasSourceFindings Whether the SARIF read-back yielded any source-linked
+ *   findings.
+ * @param discoveryStatus API Discovery outcome ("success" when a spec was
+ *   generated from source).
+ */
+export function isCoverageSuspect(
+  scanState: string,
+  hasFindings: boolean,
+  hasSourceFindings: boolean,
+  discoveryStatus: string
+): boolean {
+  // Only flag no-coverage when BOTH independent finding sources agree there are
+  // none (the scan-status total AND the SARIF source-linked set), so status-body
+  // drift, or a failed SARIF read-back on a scan that DID find issues, does not
+  // produce a false "suspect" warning that contradicts real findings.
+  return scanState === 'succeeded' && !hasFindings && !hasSourceFindings && discoveryStatus !== 'success';
+}
+
+/**
  * Register the guided app security scan harness.
  */
 export function registerHarnessTools(server: McpServer): void {
@@ -852,16 +885,18 @@ export function registerHarnessTools(server: McpServer): void {
           warnings.push('Scan reached a failed terminal status but produced findings. Exported available results and marked this run partial.');
         }
 
-        // Coverage floor: a scan that succeeds but produces zero findings AND had no
-        // fresh spec from source almost certainly exercised no endpoints (stale/empty
-        // spec, or the target was scanned as a bare WEB target). That is a setup
-        // failure disguised as a clean result, so flag it instead of letting the app
-        // read as secure. When API Discovery did generate a spec, zero findings is a
-        // real result and is not flagged.
-        const coverageSuspect =
-          waitResult.state === 'succeeded' &&
-          allSourceFindings.length === 0 &&
-          discovery.status !== 'success';
+        // Coverage floor: flag a succeeded scan that reports no findings and had
+        // no fresh spec from source (see isCoverageSuspect). Requires BOTH the
+        // scan-status total (hasFindings) and the source-linked SARIF set
+        // (allSourceFindings) to be empty, so neither a failed SARIF read-back
+        // nor a drifted zero status-total on a scan that DID find issues is
+        // mistaken for a suspect zero-coverage run.
+        const coverageSuspect = isCoverageSuspect(
+          waitResult.state,
+          hasFindings,
+          allSourceFindings.length > 0,
+          discovery.status
+        );
         if (coverageSuspect) {
           warnings.push(`Scan completed with 0 findings, but API Discovery did not produce a spec from source (status: ${discovery.status}). The scan likely exercised no endpoints (stale/empty spec or wrong target type), not that the app is clean. Re-run run-app-security-scan with project_path set to the app's source directory so discovery regenerates the spec, and confirm coverage before reporting the app as secure.`);
         }
@@ -875,6 +910,7 @@ export function registerHarnessTools(server: McpServer): void {
             raw_output: parseJson(scanRaw),
             wait: waitResult,
             has_findings: hasFindings,
+            coverage_suspect: coverageSuspect,
             sarif_path: sarifPath,
             sarif_raw_output: sarifRaw,
             total_findings: allSourceFindings.length,
@@ -921,6 +957,7 @@ export function registerHarnessTools(server: McpServer): void {
               raw_output: parseJson(scanRaw),
               wait: waitResult,
               has_findings: hasFindings,
+              coverage_suspect: coverageSuspect,
               sarif_path: sarifPath,
               sarif_raw_output: sarifRaw
             },
