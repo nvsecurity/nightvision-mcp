@@ -58,6 +58,43 @@ interface ManagedScanProcess {
 }
 
 /**
+ * Options that map to `nightvision scan` CLI flags, shared by the direct and
+ * managed scan paths so the flag set is defined in one place.
+ */
+export interface ScanCliOptions {
+  auth?: string;
+  auth_id?: string;
+  no_auth?: boolean;
+  project?: string;
+  project_id?: string;
+  force_private_scan?: boolean;
+  disable_zap_active_alerts?: string[];
+  disable_nuclei_folders?: string[];
+}
+
+/**
+ * Build the `nightvision scan <target> ...` argument vector from the shared scan
+ * options. Both startScan and startManagedScan use this so the flags and their
+ * order stay identical between the two paths.
+ */
+function buildScanArgs(targetName: string, options: ScanCliOptions): string[] {
+  const args = ['scan', targetName];
+  if (options.auth) args.push('-c', options.auth);
+  if (options.auth_id) args.push('-C', options.auth_id);
+  if (options.no_auth) args.push('--no-auth');
+  if (options.project) args.push('-p', options.project);
+  if (options.project_id) args.push('-P', options.project_id);
+  if (options.force_private_scan) args.push('--force-private-scan');
+  if (options.disable_zap_active_alerts && options.disable_zap_active_alerts.length > 0) {
+    args.push('--disable-zap-active-alerts', options.disable_zap_active_alerts.join(','));
+  }
+  if (options.disable_nuclei_folders && options.disable_nuclei_folders.length > 0) {
+    args.push('--disable-nuclei-folders', options.disable_nuclei_folders.join(','));
+  }
+  return args;
+}
+
+/**
  * Scan lifecycle, status, checks and paths.
  */
 export class ScanService {
@@ -75,55 +112,13 @@ export class ScanService {
    */
   async startScan(
     targetName: string,
-    options: {
-      auth?: string;
-      auth_id?: string;
-      no_auth?: boolean;
-      project?: string;
-      project_id?: string;
-      force_private_scan?: boolean;
-      disable_zap_active_alerts?: string[];
-      disable_nuclei_folders?: string[];
-    } = {},
+    options: ScanCliOptions = {},
     format: OutputFormat = 'json'
   ): Promise<string> {
     // We won't try to auto-detect the project
     // Users should provide project info explicitly
 
-    const args = ['scan', targetName];
-
-    // Add optional parameters
-    if (options.auth) {
-      args.push('-c', options.auth);
-    }
-
-    if (options.auth_id) {
-      args.push('-C', options.auth_id);
-    }
-
-    if (options.no_auth) {
-      args.push('--no-auth');
-    }
-
-    if (options.project) {
-      args.push('-p', options.project);
-    }
-
-    if (options.project_id) {
-      args.push('-P', options.project_id);
-    }
-
-    if (options.force_private_scan) {
-      args.push('--force-private-scan');
-    }
-
-    if (options.disable_zap_active_alerts && options.disable_zap_active_alerts.length > 0) {
-      args.push('--disable-zap-active-alerts', options.disable_zap_active_alerts.join(','));
-    }
-
-    if (options.disable_nuclei_folders && options.disable_nuclei_folders.length > 0) {
-      args.push('--disable-nuclei-folders', options.disable_nuclei_folders.join(','));
-    }
+    const args = buildScanArgs(targetName, options);
 
     // Execute the command with standard parameters
     const result = await this.client.executeCommand(args, format);
@@ -165,33 +160,11 @@ export class ScanService {
    */
   async startManagedScan(
     targetName: string,
-    options: {
-      auth?: string;
-      auth_id?: string;
-      no_auth?: boolean;
-      project?: string;
-      project_id?: string;
-      force_private_scan?: boolean;
-      disable_zap_active_alerts?: string[];
-      disable_nuclei_folders?: string[];
-    } = {},
+    options: ScanCliOptions = {},
     format: OutputFormat = 'json',
     timeoutMs = 120_000
   ): Promise<string> {
-    const args = ['scan', targetName];
-
-    if (options.auth) args.push('-c', options.auth);
-    if (options.auth_id) args.push('-C', options.auth_id);
-    if (options.no_auth) args.push('--no-auth');
-    if (options.project) args.push('-p', options.project);
-    if (options.project_id) args.push('-P', options.project_id);
-    if (options.force_private_scan) args.push('--force-private-scan');
-    if (options.disable_zap_active_alerts && options.disable_zap_active_alerts.length > 0) {
-      args.push('--disable-zap-active-alerts', options.disable_zap_active_alerts.join(','));
-    }
-    if (options.disable_nuclei_folders && options.disable_nuclei_folders.length > 0) {
-      args.push('--disable-nuclei-folders', options.disable_nuclei_folders.join(','));
-    }
+    const args = buildScanArgs(targetName, options);
 
     const commandArgs = [...args, '-F', format, '--api-url', ENVIRONMENT.CURRENT_API_URL];
     const env = { ...process.env };
