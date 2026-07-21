@@ -53,3 +53,19 @@ test('detects findings on terminal scan responses', () => {
   assert.equal(scanHasFindings({ unique_issues_statistics: { High: '3' } }), true);
   assert.equal(scanHasFindings({ issues_count: 0, issues_statistics: { High: 0 } }), false);
 });
+
+test('non-count numeric fields in a statistics object do not read as findings', () => {
+  // A statistics object may carry path totals or other non-severity numerics; a
+  // zero-finding scan must stay zero-finding so the coverage floor still warns.
+  assert.equal(
+    scanHasFindings({ vulnerable_paths_statistics: { total_paths: 100, scanned: 100, High: 0, Low: 0 } }),
+    false
+  );
+  // A real finding under a severity key still counts alongside such numerics.
+  assert.equal(
+    scanHasFindings({ vulnerable_paths_statistics: { total_paths: 100, Critical: 1 } }),
+    true
+  );
+  // A nested severity wrapper is still descended into.
+  assert.equal(scanHasFindings({ issues_statistics: { by_severity: { High: 2 } } }), true);
+});

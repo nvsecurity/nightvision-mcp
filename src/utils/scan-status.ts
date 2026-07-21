@@ -109,11 +109,34 @@ function positiveNumber(value: unknown): boolean {
   return false;
 }
 
+// The statistics objects are severity->count maps (e.g. `{ High: 2, Low: 0 }`).
+// Only these severity buckets denote findings; a non-count numeric that a
+// statistics object may also carry (a `total_paths`/`scanned` path total, a
+// duration, an id) must NOT read as a finding, or a genuinely zero-finding scan
+// would be reported as having findings and suppress the coverage floor's
+// zero-coverage warning.
+const SEVERITY_KEYS = new Set([
+  'critical',
+  'high',
+  'medium',
+  'low',
+  'info',
+  'informational',
+  'unknown',
+  'unspecified'
+]);
+
 function statsHaveFindings(value: unknown): boolean {
   if (!value || typeof value !== 'object') return false;
-  return Object.values(value as Record<string, unknown>).some((entry) =>
-    positiveNumber(entry) || statsHaveFindings(entry)
-  );
+  return Object.entries(value as Record<string, unknown>).some(([key, entry]) => {
+    // Count a positive number only when it sits under a known severity key.
+    // Any other key is still descended into (a nested `by_severity` wrapper is
+    // supported) but its own scalar value never counts.
+    if (SEVERITY_KEYS.has(key.trim().toLowerCase()) && positiveNumber(entry)) {
+      return true;
+    }
+    return statsHaveFindings(entry);
+  });
 }
 
 export function scanHasFindings(response: any): boolean {
