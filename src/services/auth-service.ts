@@ -7,10 +7,39 @@ import { serializeRepeatedParams } from '../utils/query-params.js';
 // Promisify execFile for cleaner async/await usage
 const execFileAsync = promisify(execFile);
 
+export interface AuthenticatedUserContext {
+  id: string | null;
+  email: string | null;
+  name: string | null;
+  organization: unknown;
+  roles: unknown;
+  raw: unknown;
+}
+
+/**
+ * Outcome of validating the current token with the API.
+ * - authenticated: a valid user was returned.
+ * - unauthenticated: the token is missing, invalid, or rejected (401/403).
+ * - error: the check could not be completed (network/DNS/5xx). The token may
+ *   still be valid; the caller should not tell the user to re-authenticate.
+ */
+export type AuthCheckResult =
+  | { status: 'authenticated'; user: AuthenticatedUserContext }
+  | { status: 'unauthenticated' }
+  | { status: 'error'; message: string };
+
+interface CachedUserContext {
+  token: string;
+  expiresAt: number;
+  user: AuthenticatedUserContext;
+}
+
 /**
  * Authentication and credential operations.
  */
 export class AuthService {
+  private userCache: CachedUserContext | null = null;
+
   constructor(private client: ApiClient) {}
 
   /**
@@ -24,7 +53,7 @@ export class AuthService {
       // First, attempt to login to NightVision CLI (interactive process)
       try {
         console.error("Attempting to login to NightVision before creating a new token...");
-        await execFileAsync('nightvision', ['login', '--api-url', ENVIRONMENT.CURRENT_API_URL]);
+        await execFileAsync(ENVIRONMENT.NIGHTVISION_CLI_PATH, ['login', '--api-url', ENVIRONMENT.CURRENT_API_URL]);
         console.error("Login completed successfully.");
       } catch (loginError: any) {
         console.error(`Login attempt encountered an error: ${loginError.message}`);
@@ -43,7 +72,7 @@ export class AuthService {
       const newToken = output.trim().split('\n').pop()?.trim() || '';
 
       if (!newToken) {
-        throw new Error('Failed to create new token. Please manually run: nightvision login --api-url ' + ENVIRONMENT.CURRENT_API_URL);
+        throw new Error(`Failed to create new token. Please manually run: ${ENVIRONMENT.NIGHTVISION_CLI_PATH} login --api-url ${ENVIRONMENT.CURRENT_API_URL}`);
       }
 
       // Simple validation of the token format (should be a long string)
@@ -56,7 +85,7 @@ export class AuthService {
       return newToken;
     } catch (error: any) {
       // If token creation failed, provide specific instructions
-      throw new Error(`${error.message}\n\nPlease manually run the following command in your terminal to authenticate:\nnightvision login --api-url ${ENVIRONMENT.CURRENT_API_URL}`);
+      throw new Error(`${error.message}\n\nPlease manually run the following command in your terminal to authenticate:\n${ENVIRONMENT.NIGHTVISION_CLI_PATH} login --api-url ${ENVIRONMENT.CURRENT_API_URL}`);
     }
   }
 
@@ -65,25 +94,93 @@ export class AuthService {
    * @returns True if authenticated, false otherwise
    */
   async verifyProductionAuth(): Promise<boolean> {
+    return !!(await this.getAuthenticatedUser());
+  }
+
+  /**
+   * Return the authenticated NightVision user context after validating the
+   * current token with the API.
+   */
+  async getAuthenticatedUser(forceRefresh = false): Promise<AuthenticatedUserContext | null> {
     try {
-      // Check if we have a token
-      if (!this.client.getToken()) {
-        return false;
-      }
-
-      try {
-        // Make an API request to check authentication
-        const response = await this.client.apiRequest<any>('user/me/');
-
-        // Check for nested user object with ID
-        return !!(response.user && response.user.id);
-      } catch (error) {
-        console.error(`Token validation failed: ${error}`);
-        return false;
-      }
+      return await this.fetchUserContext(forceRefresh);
     } catch (error) {
-      console.error(`Failed to verify authentication: ${error}`);
-      return false;
+      console.error(`Token validation failed: ${error}`);
+      this.userCache = null;
+      return null;
+    }
+  }
+
+  /**
+   * Core token validation. Returns the user context, null when the token is
+   * missing or the API returns no user, and THROWS on a transport/HTTP error
+   * (the thrown error carries statusCode/isNetworkError from the api client).
+   */
+  private async fetchUserContext(forceRefresh: boolean): Promise<AuthenticatedUserContext | null> {
+    const token = this.client.getToken();
+    if (!token) {
+      this.userCache = null;
+      return null;
+    }
+
+    const now = Date.now();
+    if (!forceRefresh && this.userCache?.token === token && this.userCache.expiresAt > now) {
+      return this.userCache.user;
+    }
+
+    const response = await this.client.apiRequest<any>('user/me/');
+    const user = response?.user || response;
+    if (!user?.id) {
+      this.userCache = null;
+      return null;
+    }
+
+    const context: AuthenticatedUserContext = {
+      id: user.id || null,
+      email: user.email || user.username || null,
+      name: user.name || user.full_name || null,
+      organization: response?.organization || response?.org || user.organization || user.org || null,
+      roles: response?.roles || user.roles || null,
+      raw: response
+    };
+    this.userCache = {
+      token,
+      expiresAt: now + 60_000,
+      user: context
+    };
+    return context;
+  }
+
+  /**
+   * Validate the current token and return a typed outcome that distinguishes an
+   * auth rejection from a connectivity error. Guards use this so a transient
+   * network blip is not misreported to the user as an expired token.
+   */
+  async getAuthenticatedUserResult(forceRefresh = false): Promise<AuthCheckResult> {
+    const token = this.client.getToken();
+    if (!token) {
+      this.userCache = null;
+      return { status: 'unauthenticated' };
+    }
+
+    const now = Date.now();
+    if (!forceRefresh && this.userCache?.token === token && this.userCache.expiresAt > now) {
+      return { status: 'authenticated', user: this.userCache.user };
+    }
+
+    try {
+      const user = await this.fetchUserContext(true);
+      return user
+        ? { status: 'authenticated', user }
+        : { status: 'unauthenticated' };
+    } catch (error: any) {
+      const statusCode: number | undefined = error?.statusCode;
+      // A concrete auth rejection means the token really is bad.
+      if (statusCode === 401 || statusCode === 403) {
+        return { status: 'unauthenticated' };
+      }
+      // Anything else (no response, 5xx, DNS) is a connectivity/service error.
+      return { status: 'error', message: error?.message || String(error) };
     }
   }
 
@@ -101,29 +198,9 @@ export class AuthService {
     // If not authenticated, we need to guide the user to login
     console.error('\n⚠️  Not authenticated.');
     console.error('Please run the following command to login:');
-    console.error(`$ nightvision login --api-url ${ENVIRONMENT.CURRENT_API_URL}\n`);
+    console.error(`$ ${ENVIRONMENT.NIGHTVISION_CLI_PATH} login --api-url ${ENVIRONMENT.CURRENT_API_URL}\n`);
 
     return false;
-  }
-
-  /**
-   * Create a username/password credential
-   */
-  async createUserPassCredential(options: {
-    name: string;
-    username: string;
-    password: string;
-    project: string;
-    description?: string;
-  }): Promise<any> {
-    const data: Record<string, any> = {
-      name: options.name,
-      username: options.username,
-      password: options.password,
-      project: options.project,
-    };
-    if (options.description) data.description = options.description;
-    return this.client.apiRequest<any>('credentials/username-password/', 'POST', {}, data);
   }
 
   /**

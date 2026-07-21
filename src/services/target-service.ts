@@ -91,6 +91,59 @@ export class TargetService {
   }
 
   /**
+   * Update an existing target.
+   */
+  async updateTarget(
+    name: string,
+    options: {
+      project?: string;
+      project_id?: string;
+      url?: string;
+      spec_file?: string;
+      spec_url?: string;
+      exclude_url?: string[];
+      exclude_xpath?: string[];
+    } = {},
+    format: OutputFormat = 'json'
+  ): Promise<string> {
+    const args = ['target', 'update', name];
+
+    if (options.project) {
+      args.push('-p', options.project);
+    }
+
+    if (options.project_id) {
+      args.push('-P', options.project_id);
+    }
+
+    if (options.url) {
+      args.push('-u', options.url);
+    }
+
+    if (options.spec_file) {
+      args.push('--spec-file', options.spec_file);
+    }
+
+    if (options.spec_url) {
+      args.push('--spec-url', options.spec_url);
+    }
+
+    if (options.exclude_url && options.exclude_url.length > 0) {
+      for (const pattern of options.exclude_url) {
+        args.push('--exclude-url', pattern);
+      }
+    }
+
+    if (options.exclude_xpath && options.exclude_xpath.length > 0) {
+      for (const xpath of options.exclude_xpath) {
+        args.push('--exclude-xpath', xpath);
+      }
+    }
+
+    return this.client.executeCommand(args, format);
+  }
+
+  /**
    * Delete a target
    * @param name Name of the target to delete
    * @param options Additional options for target deletion

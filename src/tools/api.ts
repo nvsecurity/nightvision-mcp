@@ -1,6 +1,7 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { nightvisionService } from '../services/index.js';
 import { ApiDiscoveryParamsSchema } from '../types/index.js';
+import { requireAuthenticatedUser, requireProjectAccess } from '../utils/auth-guard.js';
 
 /**
  * Register API-related tools with the MCP server
@@ -28,19 +29,27 @@ export function registerApiTools(server: McpServer): void {
     ApiDiscoveryParamsSchema,
     async (params, _extra) => {
       try {
-        // Make sure the user is authenticated
-        if (!nightvisionService.getToken()) {
-          return {
-            content: [{ 
-              type: "text" as const, 
-              text: "Not authenticated. Please use the authenticate tool to set a token first." 
-            }],
-            isError: true
-          };
-        }
+        const auth = await requireAuthenticatedUser();
+        if (!auth.ok) return auth.response;
 
         // Extract params from request
         const { source_paths, langs, output, exclude, target, target_id, project, project_id, version, no_upload, dump_code } = params;
+
+        // project/project_id name the UPLOAD DESTINATION. no_upload defaults to
+        // true, so without an explicit upload the CLI extracts locally and never
+        // touches the project, leaving the label inert. Authorizing an inert
+        // label would make a purely local extract depend on the API being
+        // reachable (a transient outage would then block it) and would surface a
+        // confusing "project access denied" for an operation that uploads
+        // nothing. Gate the guard on the effective upload condition instead.
+        if (!no_upload && (project || project_id)) {
+          const projectAccess = await requireProjectAccess({
+            project,
+            project_id,
+            action: 'running API Discovery with NightVision project upload'
+          });
+          if (!projectAccess.ok) return projectAccess.response;
+        }
         
         // Check if output path is provided
         if (!output) {
@@ -133,11 +142,11 @@ export function registerApiTools(server: McpServer): void {
         return {
           content: [{ 
             type: "text" as const, 
-            text: `Error discovering API endpoints: ${error.message}` 
+            text: `Error discovering API endpoints: ${error.message}`
           }],
           isError: true
         };
       }
     }
   );
-} 
+}

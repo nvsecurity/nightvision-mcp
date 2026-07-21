@@ -4,6 +4,7 @@ import { z } from 'zod';
  * Common MCP tool response structure
  */
 export interface McpResponse {
+  [key: string]: unknown;
   content: Array<{
     type: "text";
     text: string;
@@ -25,7 +26,7 @@ export const AuthenticateParamsSchema = {
  */
 export const ListTargetsParamsSchema = {
   all: z.boolean().optional().describe("Specify to get targets against all projects"),
-  projects: z.array(z.string()).optional().describe("Project names to filter the target list"),
+  projects: z.array(z.string()).optional().describe("Project name(s) to scope the target list to. IMPORTANT: without this (and without `all`), the list is NOT project-scoped. Target names are unique only within a project, so pass the project name here to avoid matching a same-named target in another project."),
   format: z.enum(["text", "json", "table"]).optional().default("json").describe("Format of command output")
 };
 
@@ -74,11 +75,12 @@ export const StartScanParamsSchema = {
   no_auth: z.boolean().optional().describe("Set this flag to indicate not to include auth to the scan"),
   project: z.string().optional().describe("Project Name of the target to scan"),
   project_id: z.string().uuid().optional().describe("Project UUID of the target to scan"),
+  force_private_scan: z.boolean().optional().default(false).describe("Force the CLI Smart Proxy/private scan path only when automatic private-scan detection needs an override"),
   run_only_zap_checks: z.array(z.string()).optional()
     .describe("Run ONLY these ZAP vulnerability checks by name (e.g. ['SQL Injection']). Use list-check-categories to see available names. All other ZAP checks are disabled."),
   run_only_nuclei_folders: z.array(z.string()).optional()
-    .describe("Run ONLY these Nuclei template folders by name. Use list-check-categories to see available folders. All other Nuclei folders are disabled."),
-  format: z.enum(["text", "json", "table"]).optional().default("json").describe("Format of command output")
+    .describe("Run ONLY these Nuclei template folders by name. Use list-check-categories to see available folders. All other Nuclei folders are disabled.")
+  // Note: start-scan always returns structured JSON, so no output-format param.
 };
 
 /**
@@ -109,6 +111,24 @@ export const GetScanStatusParamsSchema = {
 };
 
 /**
+ * Wait for scan tool parameters schema
+ */
+export const WaitForScanParamsSchema = {
+  scan_id: z.string().describe("ID of the scan to wait for"),
+  timeout_seconds: z.number().optional().default(3600).describe("Maximum seconds to wait for a terminal scan status. DAST scans commonly run longer than 10 minutes."),
+  poll_interval_seconds: z.number().positive().optional().default(30).describe("Seconds to wait between status checks"),
+  format: z.enum(["json"]).optional().default("json").describe("Format of command output")
+};
+
+/**
+ * Managed scan process status tool parameters schema
+ */
+export const ManagedScanProcessParamsSchema = {
+  scan_id: z.string().describe("ID of the managed scan process to inspect or cancel"),
+  format: z.enum(["json"]).optional().default("json").describe("Format of command output")
+};
+
+/**
  * Get scan checks (vulnerabilities) tool parameters schema
  */
 export const GetScanChecksParamsSchema = {
@@ -117,11 +137,72 @@ export const GetScanChecksParamsSchema = {
   page_size: z.number().optional().describe("Number of items per page"),
   name: z.string().optional().describe("Filter vulnerability checks by name"),
   check_kind: z.string().optional().describe("Filter vulnerability checks by specific kind"),
-  severity: z.array(z.enum(["critical", "high", "medium", "low", "info", "unknown", "unspecified"])).describe("Filter vulnerabilities by severity levels (can specify multiple)"),
+  severity: z.array(z.enum(["critical", "high", "medium", "low", "info", "unknown", "unspecified"])).optional().describe("Filter vulnerabilities by severity levels (defaults to critical, high, medium, low)"),
   status: z.array(z.number().refine(val => [0, 1, 2, 3].includes(val), {
     message: "Status must be one of: 0, 1, 2, 3"
-  })).describe("Filter vulnerabilities by status codes: 0, 1, 2, 3"),
+  })).optional().describe("Filter vulnerabilities by status codes: 0, 1, 2, 3 (defaults to open status 0)"),
   format: z.enum(["text", "json", "table"]).optional().default("json").describe("Format of command output")
+};
+
+/**
+ * Summarize scan findings tool parameters schema
+ */
+export const SummarizeScanFindingsParamsSchema = {
+  scan_id: z.string().describe("ID of the scan to summarize findings for"),
+  severity: z.array(z.enum(["critical", "high", "medium", "low", "info", "unknown", "unspecified"])).optional().describe("Severity levels to include (defaults to critical, high, medium, low)"),
+  status: z.array(z.number().refine(val => [0, 1, 2, 3].includes(val), {
+    message: "Status must be one of: 0, 1, 2, 3"
+  })).optional().describe("Status codes to include (defaults to open status 0)"),
+  page_size: z.number().optional().default(100).describe("Number of scan checks to fetch before summarizing"),
+  limit: z.number().optional().default(20).describe("Maximum number of findings to include in the summary"),
+  format: z.enum(["json"]).optional().default("json").describe("Format of command output")
+};
+
+/**
+ * Export SARIF tool parameters schema
+ */
+export const ExportSarifParamsSchema = {
+  scan_id: z.string().describe("ID of the scan to export to SARIF"),
+  project_path: z.string().optional().describe("App SOURCE directory that was scanned. The discovered OpenAPI spec (.nightvision/openapi.yml) is resolved from here to attach source traceback, and the default output path is under here. Set this to the same project_path used for the scan; do NOT rely on the shell cwd, which is often the home directory and has no spec."),
+  output: z.string().optional().describe("Output SARIF file path. Defaults to <project_path>/.nightvision/nightvision-<scan_id>.sarif"),
+  output_file: z.string().optional().describe("Alias for output"),
+  swagger_file: z.string().optional().describe("Explicit OpenAPI/Swagger file for source traceback. Overrides the spec auto-resolved from project_path."),
+  randomize_issue_ids: z.boolean().optional().default(false).describe("Randomize issue IDs in the SARIF export"),
+  format: z.enum(["json"]).optional().default("json").describe("Format of command output")
+};
+
+/**
+ * Export CSV tool parameters schema
+ */
+export const ExportCsvParamsSchema = {
+  scan_id: z.string().describe("ID of the scan to export to CSV"),
+  project_path: z.string().optional().describe("App source directory that was scanned; the default output path is under here. Set this rather than relying on the shell cwd (often the home directory)."),
+  output: z.string().optional().describe("Output CSV file path. Defaults to <project_path>/.nightvision/nightvision-<scan_id>.csv"),
+  output_file: z.string().optional().describe("Alias for output"),
+  format: z.enum(["json"]).optional().default("json").describe("Format of command output")
+};
+
+/**
+ * Doctor/onboarding tool parameters schema
+ */
+export const DoctorParamsSchema = {
+  validate_auth: z.boolean().optional().default(false).describe("Validate the saved NightVision token with the API. Defaults to false to avoid network calls during basic diagnostics."),
+  format: z.enum(["json"]).optional().default("json").describe("Format of command output")
+};
+
+/**
+ * Auth status tool parameters schema
+ */
+export const AuthStatusParamsSchema = {
+  validate: z.boolean().optional().default(true).describe("Validate the saved NightVision token with the API when present"),
+  format: z.enum(["json"]).optional().default("json").describe("Format of command output")
+};
+
+/**
+ * Login help tool parameters schema
+ */
+export const LoginHelpParamsSchema = {
+  format: z.enum(["json"]).optional().default("json").describe("Format of command output")
 };
 
 /**
@@ -192,6 +273,54 @@ export const ApiDiscoveryParamsSchema = {
   version: z.string().optional().default("0.1").describe("Version for the OpenAPI specs"),
   no_upload: z.boolean().optional().default(true).describe("Skip creation of a new target in the Nightvision API"),
   dump_code: z.boolean().optional().describe("Include code snippets in the generated spec")
+};
+
+/**
+ * Preflight app tool parameters schema
+ */
+export const PreflightAppParamsSchema = {
+  project_path: z.string().optional().describe("Absolute path to the app's SOURCE directory (the repo you are scanning). Set this explicitly; do not rely on the default working directory, which is often the shell's home directory and has no app source. API Discovery inspects this path."),
+  target_url: z.string().optional().describe("The running app URL to scan, e.g. http://127.0.0.1:8080. The agent running this harness knows it; the harness does not guess. Required to start a scan"),
+  app_name: z.string().optional().describe("Application or service name override"),
+  project_name: z.string().optional().describe("NightVision project name override"),
+  timeout_seconds: z.number().optional().default(5).describe("Reachability timeout per URL"),
+  format: z.enum(["json"]).optional().default("json").describe("Format of command output")
+};
+
+/**
+ * Guided app security scan tool parameters schema
+ */
+export const RunAppSecurityScanParamsSchema = {
+  project_path: z.string().optional().describe("Absolute path to the app's SOURCE directory (the repo you just built or changed). Set this explicitly; do not rely on the default working directory, which is often the shell's home directory and has no app source. API Discovery and source-linking read from this path, so a wrong path means the scan exercises no endpoints and findings lose their source file:line."),
+  target_url: z.string().optional().describe("The running app URL to scan, e.g. http://127.0.0.1:8080. The agent running this harness knows it; the harness does not guess. Required to start a scan"),
+  app_name: z.string().optional().describe("Application or service name override"),
+  nightvision_project: z.string().optional().describe("NightVision project name. Defaults to NIGHTVISION_DEFAULT_PROJECT"),
+  nightvision_project_id: z.string().uuid().optional().describe("NightVision project UUID"),
+  target_name: z.string().optional().describe("NightVision target name override"),
+  auth: z.string().optional().describe("NightVision target auth profile name for authenticated scan"),
+  auth_id: z.string().uuid().optional().describe("NightVision target auth profile UUID"),
+  no_auth: z.boolean().optional().describe("Run scan without target app auth"),
+  app_auth: z.object({
+    type: z.enum(["headers", "cookies", "playwright_script"]).describe("Type of NightVision target app authentication credential to create before scanning. Username/password login flows must be represented as Playwright script auth."),
+    name: z.string().optional().describe("Credential name. Defaults to <target_name>-auth"),
+    description: z.string().optional().describe("Credential description"),
+    credential_lifetime: z.enum(["stable", "session", "unknown"]).optional().default("unknown").describe("For headers/cookies, set stable only for non-expiring or managed app credentials. Use playwright_script for username/password login flows or expiring session cookies/tokens."),
+    headers: z.array(z.object({
+      name: z.string().describe("HTTP header name"),
+      value: z.string().describe("HTTP header value")
+    })).optional().describe("Headers for header-based target app auth"),
+    cookies: z.array(z.object({
+      name: z.string().describe("Cookie name"),
+      value: z.string().describe("Cookie value")
+    })).optional().describe("Cookies for cookie-based target app auth"),
+    script_content: z.string().optional().describe("Playwright script content for script-based target app auth"),
+    script_first_url: z.string().optional().describe("First URL for Playwright script target app auth")
+  }).optional().describe("Create a NightVision target app auth credential before scanning when Claude/user knows the app credentials. Never use this for NightVision account auth."),
+  force_private_scan: z.boolean().optional().default(false).describe("Force the CLI Smart Proxy/private scan path only when automatic private-scan detection needs an override"),
+  wait: z.boolean().optional().default(false).describe("Wait for scan completion. Defaults to false because DAST scans commonly run longer than 10 minutes; prefer returning the scan ID and polling later."),
+  timeout_seconds: z.number().optional().default(3600).describe("Maximum seconds to wait for scan completion when wait is true"),
+  dry_run: z.boolean().optional().default(false).describe("Describe the workflow without creating targets or starting scans"),
+  format: z.enum(["json"]).optional().default("json").describe("Format of command output")
 };
 
 /**
@@ -320,17 +449,6 @@ export const GetIssueOccurrencesParamsSchema = {
 };
 
 /**
- * Create username/password credential tool parameters schema
- */
-export const CreateUserPassCredentialParamsSchema = {
-  name: z.string().describe("Name for the credential"),
-  username: z.string().describe("Username"),
-  password: z.string().describe("Password"),
-  project: z.string().describe("Project UUID"),
-  description: z.string().optional().describe("Description")
-};
-
-/**
  * Create header-based credential tool parameters schema
  */
 export const CreateHeaderCredentialParamsSchema = {
@@ -340,6 +458,7 @@ export const CreateHeaderCredentialParamsSchema = {
     value: z.string().describe("Header value (e.g. 'Bearer xyz')")
   })).describe("List of headers to include in authenticated requests"),
   project: z.string().describe("Project UUID"),
+  credential_lifetime: z.enum(["stable", "session", "unknown"]).optional().default("unknown").describe("Must be stable for header auth. Use Playwright script auth for username/password login flows or expiring session tokens."),
   description: z.string().optional().describe("Description")
 };
 
@@ -353,6 +472,7 @@ export const CreateCookieCredentialParamsSchema = {
     value: z.string().describe("Cookie value")
   })).describe("List of cookies to include in authenticated requests"),
   project: z.string().describe("Project UUID"),
+  credential_lifetime: z.enum(["stable", "session", "unknown"]).optional().default("unknown").describe("Must be stable for cookie auth. Use Playwright script auth for username/password login flows or expiring session cookies."),
   description: z.string().optional().describe("Description")
 };
 
@@ -422,4 +542,4 @@ export const ListAdditionalPathsParamsSchema = {
 export const AddAdditionalPathsParamsSchema = {
   target_id: z.string().describe("UUID of the target"),
   paths: z.array(z.string()).describe("List of URL paths to add (e.g. ['/api/users', '/admin/login'])")
-}; 
+};

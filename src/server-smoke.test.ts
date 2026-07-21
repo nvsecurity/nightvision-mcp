@@ -121,7 +121,12 @@ test('server boots, advertises the tools capability, and lists the tool set', {
       'authenticate', 'list-targets', 'get-target-details', 'create-target',
       'delete-target', 'start-scan', 'list-scans', 'get-scan-checks',
       'discover-api', 'list-projects', 'upload-nuclei-template',
-      'record-traffic', 'download-traffic'
+      'record-traffic', 'download-traffic', 'wait-for-scan',
+      'summarize-scan-findings', 'export-sarif', 'export-csv',
+      'preflight-app', 'run-app-security-scan', 'doctor', 'auth-status',
+      'login-help',
+      'list-managed-scan-processes', 'get-managed-scan-process',
+      'cancel-managed-scan-process'
     ]) {
       assert.ok(names.includes(expected), `tools/list is missing "${expected}" (got ${names.length} tools)`);
     }
@@ -132,8 +137,10 @@ test('server boots, advertises the tools capability, and lists the tool set', {
     assert.ok(gtd.inputSchema.required.includes('name'), 'get-target-details requires name');
 
     const checks = tools.find((t: any) => t.name === 'get-scan-checks');
-    assert.ok(checks.inputSchema.required.includes('severity'), 'get-scan-checks requires severity');
-    assert.ok(checks.inputSchema.required.includes('status'), 'get-scan-checks requires status');
+    const checksRequired = checks.inputSchema.required ?? [];
+    assert.ok(checksRequired.includes('scan_id'), 'get-scan-checks requires scan_id');
+    assert.equal(checksRequired.includes('severity'), false, 'get-scan-checks severity defaults for agent use');
+    assert.equal(checksRequired.includes('status'), false, 'get-scan-checks status defaults for agent use');
   } finally {
     child.kill('SIGKILL');
   }
