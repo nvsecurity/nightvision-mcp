@@ -35,7 +35,14 @@ export function registerApiTools(server: McpServer): void {
         // Extract params from request
         const { source_paths, langs, output, exclude, target, target_id, project, project_id, version, no_upload, dump_code } = params;
 
-        if (project || project_id) {
+        // project/project_id name the UPLOAD DESTINATION. no_upload defaults to
+        // true, so without an explicit upload the CLI extracts locally and never
+        // touches the project, leaving the label inert. Authorizing an inert
+        // label would make a purely local extract depend on the API being
+        // reachable (a transient outage would then block it) and would surface a
+        // confusing "project access denied" for an operation that uploads
+        // nothing. Gate the guard on the effective upload condition instead.
+        if (!no_upload && (project || project_id)) {
           const projectAccess = await requireProjectAccess({
             project,
             project_id,
