@@ -27,6 +27,13 @@ test('a still-running scan is NOT exportable', () => {
   assert.equal(r.state, 'running');
 });
 
+test('a RUNNING scan reporting partial findings is NOT exportable', () => {
+  const r = evaluateExportability(JSON.stringify({ status: 'RUNNING', issues_count: 4 }));
+  assert.equal(r.state, 'running');
+  assert.equal(r.hasFindings, true);
+  assert.equal(r.exportable, false);
+});
+
 test('a scan with findings surfaced only in statistics is exportable', () => {
   const r = evaluateExportability(JSON.stringify({
     status: 'ABORTED',

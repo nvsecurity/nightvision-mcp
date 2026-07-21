@@ -40,7 +40,7 @@ export function evaluateExportability(statusRaw: string): {
   }
   const state = classifyScanStatus(parsed);
   const hasFindings = scanHasFindings(parsed);
-  const exportable = state === 'succeeded' || state === 'unknown' || hasFindings;
+  const exportable = state === 'succeeded' || state === 'unknown' || (hasFindings && state !== 'running');
   return { exportable, state, hasFindings, parsed };
 }
 
