@@ -102,7 +102,7 @@ export function registerFindingTools(server: McpServer): void {
 
         const result = await nightvisionService.getIssueKindStats(scan_id, { filter }, format);
 
-        return { content: [{ type: "text" as const, text: result }] };
+        return { content: [{ type: "text" as const, text: wrapUntrusted(result) }] };
       } catch (error: any) {
         return {
           content: [{ type: "text" as const, text: `Failed to get issue kind stats: ${error.message}` }],

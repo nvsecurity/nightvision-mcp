@@ -8,6 +8,7 @@ import { classifyScanStatus, scanHasFindings } from '../utils/scan-status.js';
 import { findDiscoveredSpec } from '../utils/discovered-spec.js';
 import { extractSourceFindings, countSourceLinked } from '../utils/sarif-findings.js';
 import { jsonText } from '../utils/tool-response.js';
+import { neutralizeFenceMarkers } from '../utils/untrusted.js';
 
 function defaultSarifPath(scanId: string, baseDir: string): string {
   return path.resolve(baseDir, '.nightvision', `nightvision-${scanId}.sarif`);
@@ -100,19 +101,22 @@ export function registerExportTools(server: McpServer): void {
         // silently lose the source linkage that is the whole point.
         const specFile = swagger_file || findDiscoveredSpec(baseDir) || undefined;
 
-        const raw = await nightvisionService.exportSarif(
+        // SARIF/CLI export output is target-derived (attacker-influenced), so defang
+        // any forged untrusted-data fence markers before surfacing it to the agent,
+        // matching the harness SARIF read-back.
+        const raw = neutralizeFenceMarkers(await nightvisionService.exportSarif(
           scanId,
           outputPath,
           { swagger_file: specFile, randomize_issue_ids },
           'json'
-        );
+        ));
 
         // Read back the SARIF we just wrote and surface the source-linked findings
         // (rule + file:line) directly in the tool output, so the moat is visible in
         // the response instead of only inside a file a viewer has to open.
         let allFindings: ReturnType<typeof extractSourceFindings> = [];
         try {
-          allFindings = extractSourceFindings(JSON.parse(await readFile(outputPath, 'utf8')));
+          allFindings = extractSourceFindings(JSON.parse(neutralizeFenceMarkers(await readFile(outputPath, 'utf8'))));
         } catch {
           // A missing/unreadable SARIF is already reflected by the export result;
           // do not fail the tool over the convenience read-back.
@@ -175,7 +179,7 @@ export function registerExportTools(server: McpServer): void {
         const outputPath = path.resolve(baseDir, output || outputFile || defaultCsvPath(scanId, baseDir));
         await mkdir(path.dirname(outputPath), { recursive: true });
 
-        const raw = await nightvisionService.exportCsv(scanId, outputPath, 'json');
+        const raw = neutralizeFenceMarkers(await nightvisionService.exportCsv(scanId, outputPath, 'json'));
 
         return jsonText({
           ok: true,

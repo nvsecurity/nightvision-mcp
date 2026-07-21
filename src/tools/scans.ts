@@ -17,6 +17,7 @@ import { extractScanId } from '../utils/scan-id.js';
 import { summarizeScanChecks } from '../utils/scan-findings-summary.js';
 import { classifyScanStatus } from '../utils/scan-status.js';
 import { jsonText } from '../utils/tool-response.js';
+import { wrapUntrusted, neutralizeFenceMarkers } from '../utils/untrusted.js';
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -172,7 +173,7 @@ export function registerScanTools(server: McpServer): void {
               error: {
                 code: 'SCAN_ID_NOT_FOUND',
                 message: 'NightVision scan was started, but no scan ID was returned by the CLI or API.',
-                details: { raw_output: result }
+                details: { raw_output: neutralizeFenceMarkers(result) }
               },
               blockers: ['scan_id_not_found']
             });
@@ -287,7 +288,7 @@ export function registerScanTools(server: McpServer): void {
               error: {
                 code: 'SCAN_STATUS_PARSE_ERROR',
                 message: `Could not parse NightVision scan status as JSON: ${error.message}`,
-                details: { raw_output: raw }
+                details: { raw_output: neutralizeFenceMarkers(raw) }
               }
             });
           }
@@ -710,11 +711,13 @@ export function registerScanTools(server: McpServer): void {
             format
           );
           
-          // Return the formatted output
+          // Return the formatted output. Scan checks carry attacker-influenceable
+          // scan data (finding titles, evidence), so fence it as untrusted like
+          // the sibling findings tools rather than returning it raw.
           return {
-            content: [{ 
-              type: "text" as const, 
-              text: result 
+            content: [{
+              type: "text" as const,
+              text: wrapUntrusted(result)
             }]
           };
         } catch (error: any) {
@@ -801,7 +804,7 @@ export function registerScanTools(server: McpServer): void {
             error: {
               code: 'SCAN_FINDINGS_PARSE_ERROR',
               message: `Could not parse NightVision scan findings as JSON: ${error.message}`,
-              details: { raw_output: raw }
+              details: { raw_output: neutralizeFenceMarkers(raw) }
             }
           });
         }
@@ -817,7 +820,7 @@ export function registerScanTools(server: McpServer): void {
               page_size,
               limit
             },
-            summary: summarizeScanChecks(parsed, limit)
+            summary: wrapUntrusted(JSON.stringify(summarizeScanChecks(parsed, limit), null, 2))
           }
         });
       } catch (error: any) {

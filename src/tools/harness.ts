@@ -18,7 +18,7 @@ import { classifyScanStatus, scanHasFindings } from '../utils/scan-status.js';
 import { extractSourceFindings, countSourceLinked, type SourceFinding } from '../utils/sarif-findings.js';
 import { matchTargetByName } from '../utils/target-matching.js';
 import { jsonText } from '../utils/tool-response.js';
-import { UNTRUSTED_NOTICE } from '../utils/untrusted.js';
+import { UNTRUSTED_NOTICE, neutralizeFenceMarkers } from '../utils/untrusted.js';
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -731,7 +731,9 @@ export function registerHarnessTools(server: McpServer): void {
         );
         warnings.push(...target.warnings);
 
-        const scanRaw = await nightvisionService.startManagedScan(
+        // Defang any forged untrusted-data fence markers in the scan CLI output
+        // at the source, so every raw_output derived from it below is safe.
+        const scanRaw = neutralizeFenceMarkers(await nightvisionService.startManagedScan(
           targetName,
           {
             auth: typeof appAuth.auth === 'string' ? appAuth.auth : undefined,
@@ -742,7 +744,7 @@ export function registerHarnessTools(server: McpServer): void {
             force_private_scan: !!args.force_private_scan
           },
           'json'
-        );
+        ));
         const scanId = extractScanId(scanRaw);
 
         if (!scanId) {
@@ -834,8 +836,10 @@ export function registerHarnessTools(server: McpServer): void {
               { swagger_file: discovery.attached_spec_file || undefined },
               'json'
             );
-            sarifRaw = parseJson(rawExport);
-            allSourceFindings = extractSourceFindings(JSON.parse(await readFile(sarifPath, 'utf8')));
+            // SARIF message.text carries scanned-target content, so defang forged
+            // fence markers before the raw export and source findings are surfaced.
+            sarifRaw = parseJson(neutralizeFenceMarkers(rawExport));
+            allSourceFindings = extractSourceFindings(JSON.parse(neutralizeFenceMarkers(await readFile(sarifPath, 'utf8'))));
             sourceFindings = allSourceFindings.slice(0, 50);
           } catch (error: any) {
             warnings.push(`Scan completed but SARIF export failed: ${error.message}`);

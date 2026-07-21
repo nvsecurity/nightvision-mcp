@@ -13,6 +13,7 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { UNTRUSTED_OPEN } from './utils/untrusted.js';
 import { spawn, type ChildProcess } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { chmodSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
@@ -576,7 +577,12 @@ test('scenario: get-scan-checks with an explicit empty severity list still filte
 
   try {
     const client = await init(child);
-    await call(client, 'get-scan-checks', { scan_id: 'scan-9', severity: [], status: [] });
+    // get-scan-checks returns untrusted-fenced scan data (not raw JSON), so drive
+    // the tool directly rather than through call()'s JSON.parse.
+    const response = await client.rpc('tools/call', { name: 'get-scan-checks', arguments: { scan_id: 'scan-9', severity: [], status: [] } }, 30000);
+    const text = response.result?.content?.[0]?.text;
+    assert.equal(typeof text, 'string', 'get-scan-checks should return text');
+    assert.ok(text.includes(UNTRUSTED_OPEN), 'scan-checks output is fenced as untrusted');
     // The request the server actually made must carry the default severity
     // filters, not an empty (unfiltered) query.
     const q = api!.captured.checkParams.join('&');
