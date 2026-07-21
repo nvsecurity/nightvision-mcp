@@ -636,8 +636,13 @@ export function registerHarnessTools(server: McpServer): void {
             action: 'running a guided app security scan'
           });
           if (!projectAccess.ok) {
-            blockers.push('project_access_denied');
-            warnings.push(`Could not verify access to NightVision project "${projectChoice.name}".`);
+            // Forward the guard's classified blocker so an API outage during
+            // project resolution reads as nightvision_api_unavailable (retry),
+            // not project_access_denied (a permissions problem).
+            blockers.push(projectAccess.blocker);
+            warnings.push(projectAccess.blocker === 'nightvision_api_unavailable'
+              ? `Could not verify access to NightVision project "${projectChoice.name}" because the API was unreachable. Retry shortly; do not re-authenticate.`
+              : `Could not verify access to NightVision project "${projectChoice.name}".`);
           } else if (!projectChoice.id && projectAccess.project?.id) {
             projectChoice.id = projectAccess.project.id;
           }

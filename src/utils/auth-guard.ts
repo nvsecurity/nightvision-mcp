@@ -17,7 +17,10 @@ export type AuthGuardResult =
 
 export type ProjectGuardResult =
   | { ok: true; project: Record<string, any> | null }
-  | { ok: false; response: ReturnType<typeof jsonText> };
+  // `blocker` is the classified blocker code, so a caller that accumulates its
+  // own blockers (rather than forwarding `response`) does not lose the
+  // outage-vs-access-denied distinction.
+  | { ok: false; response: ReturnType<typeof jsonText>; blocker: string };
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -89,6 +92,35 @@ function projectsFrom(raw: unknown): Record<string, any>[] {
   return [];
 }
 
+// A transient API outage (5xx or a network/DNS failure) is not a permission
+// problem. Detect it so project resolution reports nightvision_api_unavailable
+// (retry, do not re-auth) instead of PROJECT_ACCESS_DENIED, matching how
+// requireAuthenticatedUser treats a token-validation outage.
+function looksLikeServiceOutage(error: any): boolean {
+  const status = typeof error?.statusCode === 'number'
+    ? error.statusCode
+    : typeof error?.response?.status === 'number'
+      ? error.response.status
+      : undefined;
+  if (status !== undefined) return status >= 500;
+  // Include the CLI's stderr (surfaced by executeCommand) so a connectivity
+  // failure on the CLI-backed project lookup is classified, not just axios errors.
+  const msg = `${String(error?.message ?? error ?? '')} ${String(error?.stderr ?? '')}`;
+  // A socket-level EACCES ("dial tcp <ip>:443: connect: permission denied") is a
+  // network egress block, not a project-access rejection. Classify it as an
+  // outage before the rejection guard below can match the bare "permission denied".
+  if (/\bEACCES\b/i.test(msg) || (/permission denied/i.test(msg) && /dial tcp|connect:/i.test(msg))) {
+    return true;
+  }
+  // Explicit access-rejection language wins, so a plain not-found (or a project
+  // whose name happens to contain a network token) is never misread as an outage.
+  if (/not found|does not exist|no such project|unauthorized|not authorized|forbidden|permission denied/i.test(msg)) {
+    return false;
+  }
+  if (/status code\s+5\d\d/i.test(msg)) return true;
+  return /ECONNREFUSED|ECONNRESET|ETIMEDOUT|ENOTFOUND|EAI_AGAIN|socket hang up|network error|fetch failed|timed?\s?out|unreachable|connection (refused|reset)|no such host|i\/o timeout|context deadline exceeded|server misbehaving|tls handshake|dial tcp|internal server error|bad gateway|service unavailable|gateway timeout/i.test(msg);
+}
+
 async function findProjectById(projectId: string): Promise<Record<string, any> | null> {
   const raw = await nightvisionService.executeCommand(['project', 'list'], 'json');
   let parsed: unknown;
@@ -119,7 +151,8 @@ export async function requireProjectAccess(options: {
           message: `A NightVision project is required before ${options.action}. Pass project or project_id.`
         },
         blockers: ['nightvision_project_required']
-      })
+      }),
+      blocker: 'nightvision_project_required'
     };
   }
 
@@ -133,7 +166,11 @@ export async function requireProjectAccess(options: {
       // first, then fall back to name lookup so such projects are not denied.
       project = await findProjectById(projectName);
       if (!project) {
-        project = await nightvisionService.getProjectByName(projectName).catch(() => null);
+        // Let a lookup error propagate to the outer catch so an outage on this
+        // fallback is classified (nightvision_api_unavailable) rather than
+        // swallowed to null and reported as PROJECT_ACCESS_DENIED. A genuine
+        // not-found still reaches the outer catch and stays access-denied.
+        project = await nightvisionService.getProjectByName(projectName);
       }
     } else {
       project = await nightvisionService.getProjectByName(projectName!);
@@ -150,12 +187,20 @@ export async function requireProjectAccess(options: {
             message: `Cannot access NightVision project ${projectName || projectId}. Check the project identifier and user permissions.`
           },
           blockers: ['project_access_denied']
-        })
+        }),
+        blocker: 'project_access_denied'
       };
     }
 
     return { ok: true, project };
   } catch (error: any) {
+    if (looksLikeServiceOutage(error)) {
+      return {
+        ok: false,
+        response: serviceUnavailable(`Could not resolve NightVision project ${projectName || projectId} because the API was unreachable: ${error.message}`),
+        blocker: 'nightvision_api_unavailable'
+      };
+    }
     return {
       ok: false,
       response: jsonText({
@@ -166,7 +211,8 @@ export async function requireProjectAccess(options: {
           message: `Cannot access NightVision project ${projectName || projectId}: ${error.message}`
         },
         blockers: ['project_access_denied']
-      })
+      }),
+      blocker: 'project_access_denied'
     };
   }
 }

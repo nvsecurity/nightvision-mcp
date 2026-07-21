@@ -157,7 +157,16 @@ export class ApiClient {
       return stdout;
     } catch (error: any) {
       console.error(`Failed to execute NightVision command: ${error.message}`);
-      throw new Error(`NightVision command failed: ${error.message}`);
+      // Preserve the CLI's own stderr and exit code on the thrown error so
+      // callers can tell a connectivity/5xx failure from a real rejection.
+      // execFile truncates stderr inside error.message, so surface it directly.
+      const wrapped = new Error(`NightVision command failed: ${error.message}`) as Error & {
+        stderr?: string;
+        cliExitCode?: unknown;
+      };
+      wrapped.stderr = typeof error?.stderr === 'string' ? error.stderr : undefined;
+      wrapped.cliExitCode = error?.code;
+      throw wrapped;
     }
   }
 
