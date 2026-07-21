@@ -99,7 +99,14 @@ export function registerExportTools(server: McpServer): void {
         // an endpoint and a source file:line (Code Traceback). Without this, a
         // caller on the common wait:false path would export SARIF with no spec and
         // silently lose the source linkage that is the whole point.
-        const specFile = swagger_file || findDiscoveredSpec(baseDir) || undefined;
+        const discovered = swagger_file ? null : findDiscoveredSpec(baseDir);
+        const specFile = swagger_file || discovered?.path || undefined;
+        const specWarnings: string[] = [];
+        if (discovered?.ambiguous && discovered.path) {
+          // Match the harness: use the first spec and warn, rather than attaching
+          // nothing, so a polyglot repo still gets (flagged) source linking.
+          specWarnings.push(`Multiple OpenAPI specs were found under .nightvision (${discovered.candidates.map((p) => path.basename(p)).join(', ')}). The first (${path.basename(discovered.path)}) was used for source linking; pass swagger_file to select a specific spec.`);
+        }
 
         // SARIF/CLI export output is target-derived (attacker-influenced), so defang
         // any forged untrusted-data fence markers before surfacing it to the agent,
@@ -138,6 +145,7 @@ export function registerExportTools(server: McpServer): void {
             source_linked_count: countSourceLinked(allFindings),
             findings,
             findings_truncated: allFindings.length > findings.length,
+            warnings: specWarnings,
             raw_output: raw
           }
         });
