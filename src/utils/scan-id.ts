@@ -28,7 +28,7 @@ function idFromObject(value: any): string | null {
 // accepted, even when the managed-scan wrapper still reports id/extracted_id as
 // pending. The label makes this unambiguous, unlike a bare-UUID scan that could
 // grab the project/target id from the same log, so it is safe to trust.
-const LABELED_SCAN_ID_RE = /Scan ID:\s*([0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})/i;
+const LABELED_SCAN_ID_RE = /\bScan ID:\s*([0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})/i;
 
 function idFromCliStreams(value: any): string | null {
   if (!value || typeof value !== 'object') return null;

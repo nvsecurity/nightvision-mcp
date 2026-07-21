@@ -72,3 +72,22 @@ test('recovers a bare scan id printed alone on the stdout tail', () => {
   assert.equal(extractScanId(pending), SCAN_ID);
 });
 
+test('does not treat "rescan id:" as the labeled "Scan ID:" marker', () => {
+  // The label is anchored with a left word boundary, so a longer word ending in
+  // "scan" (e.g. "rescan id:") must NOT match and leak an unrelated UUID.
+  const OTHER_ID = 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee';
+  const pending = JSON.stringify({
+    id: null,
+    raw: { stderr_tail: `rescan id: ${OTHER_ID}\n` }
+  });
+  assert.equal(extractScanId(pending), null);
+});
+
+test('matches the labeled scan id even at the start of a line', () => {
+  const pending = JSON.stringify({
+    id: null,
+    raw: { stderr_tail: `Scan ID: ${SCAN_ID}\n` }
+  });
+  assert.equal(extractScanId(pending), SCAN_ID);
+});
+

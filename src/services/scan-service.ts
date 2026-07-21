@@ -466,8 +466,9 @@ export class ScanService {
     // in a scans/<uuid> API path. A bare "first UUID anywhere" match is unsafe
     // because CLI progress output prints target/project/credential UUIDs too; in
     // that case we return null and let the list-scans baseline diff find the real
-    // scan id instead.
-    const labeled = output.match(new RegExp(`scan[_-]?id["']?\\s*[:=]\\s*["']?(${UUID_RE})`, 'i'));
+    // scan id instead. The leading \b keeps a label like "target_scan_id=<uuid>"
+    // or "rescan_id=<uuid>" from matching the "scan_id" substring.
+    const labeled = output.match(new RegExp(`\\bscan[_-]?id["']?\\s*[:=]\\s*["']?(${UUID_RE})`, 'i'));
     if (labeled) return labeled[1];
 
     const urlPath = output.match(new RegExp(`scans/(${UUID_RE})`, 'i'));
