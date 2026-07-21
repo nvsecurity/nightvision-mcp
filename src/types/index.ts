@@ -449,17 +449,6 @@ export const GetIssueOccurrencesParamsSchema = {
 };
 
 /**
- * Create username/password credential tool parameters schema
- */
-export const CreateUserPassCredentialParamsSchema = {
-  name: z.string().describe("Name for the credential. Deprecated for target app login flows. Use Playwright script auth instead."),
-  username: z.string().describe("Username. Deprecated for target app login flows. Use Playwright script auth instead."),
-  password: z.string().describe("Password. Deprecated for target app login flows. Use Playwright script auth instead."),
-  project: z.string().describe("Project UUID"),
-  description: z.string().optional().describe("Description")
-};
-
-/**
  * Create header-based credential tool parameters schema
  */
 export const CreateHeaderCredentialParamsSchema = {

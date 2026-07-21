@@ -433,7 +433,7 @@ test('doctor and auth-status provide setup blockers without requiring API valida
   }
 });
 
-test('low-level auth tools block username/password and expiring header or cookie credentials', {
+test('low-level auth tools block expiring header or cookie credentials', {
   timeout: 30000,
   skip: process.platform === 'win32' ? 'requires a POSIX shell stub' : false
 }, async () => {
@@ -443,15 +443,6 @@ test('low-level auth tools block username/password and expiring header or cookie
 
   try {
     const client = await initialize(child);
-    const userPass = await callToolText(client, 'create-userpass-credential', {
-      name: 'login',
-      username: 'alice',
-      password: 'secret',
-      project: 'project-1'
-    });
-    assert.equal(userPass.isError, true);
-    assert.match(userPass.text, /Playwright script auth/);
-
     const header = await callToolText(client, 'create-header-credential', {
       name: 'session-token',
       headers: [{ name: 'Authorization', value: 'Bearer short-lived' }],

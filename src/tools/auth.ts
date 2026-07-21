@@ -3,7 +3,6 @@ import { nightvisionService } from '../services/index.js';
 import { saveToken, clearToken } from '../config/token.js';
 import {
   AuthenticateParamsSchema,
-  CreateUserPassCredentialParamsSchema,
   CreateHeaderCredentialParamsSchema,
   CreateCookieCredentialParamsSchema,
   AssignCredentialToTargetsParamsSchema,
@@ -159,27 +158,6 @@ export function registerAuthTools(server: McpServer): void {
           }],
           isError: true
         };
-      }
-    }
-  );
-
-  /**
-   * Create Username/Password Credential
-   */
-  server.tool(
-    "create-userpass-credential",
-    CreateUserPassCredentialParamsSchema,
-    async (_args, _extra) => {
-      try {
-        return {
-          content: [{
-            type: "text" as const,
-            text: PLAYWRIGHT_AUTH_REQUIRED
-          }],
-          isError: true
-        };
-      } catch (error: any) {
-        return { content: [{ type: "text" as const, text: `Failed: ${error.message}` }], isError: true };
       }
     }
   );

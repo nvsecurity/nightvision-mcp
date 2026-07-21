@@ -80,10 +80,6 @@ export class NightVisionService {
     return this.auth.ensureProductionAuth(...a);
   }
 
-  createUserPassCredential(...a: Parameters<AuthService['createUserPassCredential']>) {
-    return this.auth.createUserPassCredential(...a);
-  }
-
   createHeaderCredential(...a: Parameters<AuthService['createHeaderCredential']>) {
     return this.auth.createHeaderCredential(...a);
   }

@@ -687,22 +687,6 @@ Parameters:
 
 Authentication credentials are stored per project and assigned to targets so scans can authenticate. Header and cookie values are redacted when credentials are read back.
 
-#### `create-userpass-credential`
-
-This tool is intentionally blocked. Username/password, browser login, OAuth, MFA, and expiring session flows must use Playwright script auth so NightVision can refresh authentication during the scan.
-
-Parameters:
-- `name` (string): Name for the credential
-- `username` (string): Deprecated
-- `password` (string): Deprecated
-- `project` (string): Project UUID
-- `description` (string, optional): Description
-
-Example command:
-```
-Save this recorded Playwright login script as a credential called "login-flow" in project <uuid>.
-```
-
 #### `create-header-credential`
 
 Creates a header-based credential (e.g. `Authorization: Bearer ...`).

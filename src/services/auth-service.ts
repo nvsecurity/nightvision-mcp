@@ -204,26 +204,6 @@ export class AuthService {
   }
 
   /**
-   * Create a username/password credential
-   */
-  async createUserPassCredential(options: {
-    name: string;
-    username: string;
-    password: string;
-    project: string;
-    description?: string;
-  }): Promise<any> {
-    const data: Record<string, any> = {
-      name: options.name,
-      username: options.username,
-      password: options.password,
-      project: options.project,
-    };
-    if (options.description) data.description = options.description;
-    return this.client.apiRequest<any>('credentials/username-password/', 'POST', {}, data);
-  }
-
-  /**
    * Create a header-based credential
    */
   async createHeaderCredential(options: {
