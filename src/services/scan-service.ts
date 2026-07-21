@@ -1,5 +1,6 @@
 import { serializeRepeatedParams } from '../utils/query-params.js';
 import { scanStatusFilterCodes } from '../utils/scan-status.js';
+import { extractScanId } from '../utils/scan-id.js';
 import type { ConfiguredChecks } from '../utils/check-catalog.js';
 import { formatScanChecksText, formatScanChecksTable } from '../utils/scan-check-format.js';
 import { formatScansTable } from '../utils/scan-list-format.js';
@@ -139,7 +140,17 @@ export class ScanService {
         }
       } catch (parseError) {
         console.error(`Could not parse JSON result to extract scan ID: ${parseError}`);
-        // Just return the original result if we couldn't parse it
+        // Just fall through to the extractScanId recovery below.
+      }
+
+      // `nightvision scan -F json` streams text progress blocks that do not parse
+      // as a single JSON object with an .id, so the block above frequently throws
+      // or finds no id. Fall back to extractScanId, which recovers the id from
+      // JSON, labeled "Scan ID:" output, and bare-uuid forms.
+      const extractedId = extractScanId(result);
+      if (extractedId) {
+        console.error(`Extracted scan ID: ${extractedId}`);
+        return JSON.stringify({ extracted_id: extractedId, raw: result }, null, 2);
       }
     }
 
