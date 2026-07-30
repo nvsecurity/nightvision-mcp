@@ -1,10 +1,6 @@
 {
   "repository": "https://github.com/nvsecurity/nightvision-skills",
-  "commit": "928d334e24354161a20f91de39ca60029338ba47",
+  "commit": "957db6bb934839275c0f643042101bbb675ddbf7",
   "license": "Apache-2.0",
-  "codexAdaptations": [
-    "Removed the Claude-only user-invocable frontmatter field.",
-    "Changed the organization instruction reference from CLAUDE.md to AGENTS.md.",
-    "Updated the support email to the current nightviz.ai domain."
-  ]
+  "codexAdaptations": []
 }
