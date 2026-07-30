@@ -9,6 +9,7 @@ import {
 } from '../types/index.js';
 import { requireAuthenticatedUser } from '../utils/auth-guard.js';
 import { wrapUntrusted } from '../utils/untrusted.js';
+import { registerNightVisionTool } from './metadata.js';
 
 /**
  * Register finding/issue detail tools with the MCP server
@@ -21,7 +22,7 @@ export function registerFindingTools(server: McpServer): void {
    * Lists security findings for a scan, including HTTP request/response pairs,
    * evidence, payloads, and AI explanations.
    */
-  server.tool(
+  registerNightVisionTool(server,
     "list-issues",
     ListIssuesParamsSchema,
     async (args, _extra) => {
@@ -53,7 +54,7 @@ export function registerFindingTools(server: McpServer): void {
    * Gets full details for a single finding, including all HTTP request/response
    * pairs (headers, body, cookies), evidence, payload, and AI explanation.
    */
-  server.tool(
+  registerNightVisionTool(server,
     "get-issue-details",
     GetIssueDetailsParamsSchema,
     async (args, _extra) => {
@@ -90,7 +91,7 @@ export function registerFindingTools(server: McpServer): void {
    * Summarizes findings grouped by vulnerability type (kind) for a scan, showing
    * counts of open, false positive, and resolved issues per kind.
    */
-  server.tool(
+  registerNightVisionTool(server,
     "get-issue-kind-stats",
     GetIssueKindStatsParamsSchema,
     async (args, _extra) => {
@@ -117,7 +118,7 @@ export function registerFindingTools(server: McpServer): void {
    *
    * Gets all vulnerable URL paths for a scan, grouped by vulnerability kind.
    */
-  server.tool(
+  registerNightVisionTool(server,
     "get-vulnerable-paths",
     GetVulnerablePathsParamsSchema,
     async (args, _extra) => {
@@ -148,7 +149,7 @@ export function registerFindingTools(server: McpServer): void {
    * Gets individual issue occurrences for a specific URL path and vulnerability
    * kind, showing each payload, parameter, and HTTP status for the path.
    */
-  server.tool(
+  registerNightVisionTool(server,
     "get-issue-occurrences",
     GetIssueOccurrencesParamsSchema,
     async (args, _extra) => {

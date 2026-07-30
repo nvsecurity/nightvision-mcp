@@ -10,6 +10,7 @@ import { localTargetName } from '../utils/project-target-naming.js';
 import { resolveTargetUrl } from '../utils/runtime-detect.js';
 import { getRepoMetadata } from '../utils/repo-metadata.js';
 import { jsonText } from '../utils/tool-response.js';
+import { registerNightVisionTool } from './metadata.js';
 
 function existingDirectory(projectPath: string): boolean {
   try {
@@ -23,7 +24,7 @@ function existingDirectory(projectPath: string): boolean {
  * Register app preflight tools with the MCP server.
  */
 export function registerPreflightTools(server: McpServer): void {
-  server.tool(
+  registerNightVisionTool(server,
     'preflight-app',
     PreflightAppParamsSchema,
     async (args, _extra) => {

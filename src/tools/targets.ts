@@ -13,6 +13,7 @@ import {
 } from '../types/index.js';
 import { requireAuthenticatedUser, requireProjectAccess } from '../utils/auth-guard.js';
 import { matchTargetByName } from '../utils/target-matching.js';
+import { registerNightVisionTool } from './metadata.js';
 
 /**
  * Register target-related tools with the MCP server
@@ -24,7 +25,7 @@ export function registerTargetTools(server: McpServer): void {
    * 
    * Provides a tool to list NightVision targets with optional filtering
    */
-  server.tool(
+  registerNightVisionTool(server,
     "list-targets",
     ListTargetsParamsSchema,
     async (args, _extra) => {
@@ -89,7 +90,7 @@ export function registerTargetTools(server: McpServer): void {
   /**
    * Get detailed information about a specific target
    */
-  server.tool(
+  registerNightVisionTool(server,
     "get-target-details",
     GetTargetDetailsParamsSchema,
     async (args, _extra) => {
@@ -183,7 +184,7 @@ export function registerTargetTools(server: McpServer): void {
   /**
    * Create a new target
    */
-  server.tool(
+  registerNightVisionTool(server,
     "create-target",
     CreateTargetParamsSchema,
     async (args, _extra) => {
@@ -279,7 +280,7 @@ export function registerTargetTools(server: McpServer): void {
   /**
    * Delete an existing target
    */
-  server.tool(
+  registerNightVisionTool(server,
     "delete-target",
     DeleteTargetParamsSchema,
     async (args, _extra) => {
@@ -425,7 +426,7 @@ export function registerTargetTools(server: McpServer): void {
    * Lightweight lookup of a target by name across projects. Returns matching
    * targets with their project names. Much lighter than list-targets.
    */
-  server.tool(
+  registerNightVisionTool(server,
     "find-target",
     FindTargetParamsSchema,
     async (args, _extra) => {
@@ -466,7 +467,7 @@ export function registerTargetTools(server: McpServer): void {
    * Lists user-defined paths configured for a URL target. These paths are
    * included in scans alongside discovered paths.
    */
-  server.tool(
+  registerNightVisionTool(server,
     "list-additional-paths",
     ListAdditionalPathsParamsSchema,
     async (args, _extra) => {
@@ -500,7 +501,7 @@ export function registerTargetTools(server: McpServer): void {
    *
    * Adds user-defined paths to a URL target. These paths will be included in scans.
    */
-  server.tool(
+  registerNightVisionTool(server,
     "add-additional-paths",
     AddAdditionalPathsParamsSchema,
     async (args, _extra) => {

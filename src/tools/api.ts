@@ -2,6 +2,7 @@ import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { nightvisionService } from '../services/index.js';
 import { ApiDiscoveryParamsSchema } from '../types/index.js';
 import { requireAuthenticatedUser, requireProjectAccess } from '../utils/auth-guard.js';
+import { registerNightVisionTool } from './metadata.js';
 
 /**
  * Register API-related tools with the MCP server
@@ -24,7 +25,7 @@ export function registerApiTools(server: McpServer): void {
    * language, appending the language to the output base name while keeping the extension
    * (e.g. 'api-spec_python.yml'), and reports the resulting paths.
    */
-  server.tool(
+  registerNightVisionTool(server,
     'discover-api',
     ApiDiscoveryParamsSchema,
     async (params, _extra) => {

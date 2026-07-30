@@ -13,6 +13,7 @@ import {
 } from '../types/index.js';
 import { ENVIRONMENT } from '../config/environment.js';
 import { requireAuthenticatedUser, requireProjectAccess } from '../utils/auth-guard.js';
+import { registerNightVisionTool } from './metadata.js';
 
 const PLAYWRIGHT_AUTH_REQUIRED =
   'Username/password target app auth and expiring session credentials must use Playwright script auth. Use save-playwright-script or run-app-security-scan with app_auth.type="playwright_script".';
@@ -22,7 +23,7 @@ const PLAYWRIGHT_AUTH_REQUIRED =
  * @param server The MCP server instance
  */
 export function registerAuthTools(server: McpServer): void {
-  server.tool(
+  registerNightVisionTool(server,
     "authenticate",
     AuthenticateParamsSchema,
     async (args, _extra) => {
@@ -182,7 +183,7 @@ export function registerAuthTools(server: McpServer): void {
   /**
    * Create Header Credential
    */
-  server.tool(
+  registerNightVisionTool(server,
     "create-header-credential",
     CreateHeaderCredentialParamsSchema,
     async (args, _extra) => {
@@ -221,7 +222,7 @@ export function registerAuthTools(server: McpServer): void {
   /**
    * Create Cookie Credential
    */
-  server.tool(
+  registerNightVisionTool(server,
     "create-cookie-credential",
     CreateCookieCredentialParamsSchema,
     async (args, _extra) => {
@@ -265,7 +266,7 @@ export function registerAuthTools(server: McpServer): void {
   /**
    * Assign Credential to Targets
    */
-  server.tool(
+  registerNightVisionTool(server,
     "assign-credential-to-targets",
     AssignCredentialToTargetsParamsSchema,
     async (args, _extra) => {
@@ -289,7 +290,7 @@ export function registerAuthTools(server: McpServer): void {
   /**
    * Save Playwright Script Credential
    */
-  server.tool(
+  registerNightVisionTool(server,
     "save-playwright-script",
     SavePlaywrightScriptParamsSchema,
     async (args, _extra) => {
@@ -329,7 +330,7 @@ export function registerAuthTools(server: McpServer): void {
   /**
    * Update Playwright Script Credential
    */
-  server.tool(
+  registerNightVisionTool(server,
     "update-playwright-script",
     UpdatePlaywrightScriptParamsSchema,
     async (args, _extra) => {
@@ -358,7 +359,7 @@ export function registerAuthTools(server: McpServer): void {
   /**
    * Get Auth Credential Details (including Playwright script content)
    */
-  server.tool(
+  registerNightVisionTool(server,
     "get-auth-credential",
     GetAuthCredentialParamsSchema,
     async (args, _extra) => {
@@ -429,7 +430,7 @@ export function registerAuthTools(server: McpServer): void {
   /**
    * List Auth Credentials
    */
-  server.tool(
+  registerNightVisionTool(server,
     "list-auth-credentials",
     ListAuthCredentialsParamsSchema,
     async (args, _extra) => {

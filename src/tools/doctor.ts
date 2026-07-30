@@ -4,12 +4,13 @@ import { nightvisionService } from '../services/index.js';
 import { AuthStatusParamsSchema, DoctorParamsSchema, LoginHelpParamsSchema } from '../types/index.js';
 import { isCliVersionBelow, MIN_CLI_VERSION } from '../utils/cli-version.js';
 import { jsonText } from '../utils/tool-response.js';
+import { registerNightVisionTool } from './metadata.js';
 
 /**
  * Register setup/onboarding diagnostics tools.
  */
 export function registerDoctorTools(server: McpServer): void {
-  server.tool(
+  registerNightVisionTool(server,
     'login-help',
     LoginHelpParamsSchema,
     async (_args, _extra) => {
@@ -30,7 +31,7 @@ export function registerDoctorTools(server: McpServer): void {
     }
   );
 
-  server.tool(
+  registerNightVisionTool(server,
     'doctor',
     DoctorParamsSchema,
     async (args, _extra) => {
@@ -124,7 +125,7 @@ export function registerDoctorTools(server: McpServer): void {
     }
   );
 
-  server.tool(
+  registerNightVisionTool(server,
     'auth-status',
     AuthStatusParamsSchema,
     async (args, _extra) => {

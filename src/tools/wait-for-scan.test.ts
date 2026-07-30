@@ -5,7 +5,7 @@ import { nightvisionService } from '../services/index.js';
 
 function captureTools(register: (server: any) => void) {
   const handlers = new Map<string, (args: any, extra: any) => Promise<any>>();
-  register({ tool(name: string, _schema: unknown, handler: any) { handlers.set(name, handler); } });
+  register({ registerTool(name: string, _config: unknown, handler: any) { handlers.set(name, handler); } });
   return handlers;
 }
 

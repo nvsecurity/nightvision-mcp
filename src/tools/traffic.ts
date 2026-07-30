@@ -7,6 +7,7 @@ import {
 } from '../types/index.js';
 import { requireAuthenticatedUser, requireProjectAccess } from '../utils/auth-guard.js';
 import { resolveDownloadDir } from '../utils/download-path.js';
+import { registerNightVisionTool } from './metadata.js';
 
 /**
  * Register traffic-related tools with the MCP server
@@ -18,7 +19,7 @@ export function registerTrafficTools(server: McpServer): void {
    * 
    * Provides a tool to record traffic for a target using browser automation
    */
-  server.tool(
+  registerNightVisionTool(server,
     "record-traffic",
     RecordTrafficParamsSchema,
     async (args, _extra) => {
@@ -95,7 +96,7 @@ This tool will open a browser window for you to interact with the target applica
    * 
    * Provides a tool to list traffic files for a target
    */
-  server.tool(
+  registerNightVisionTool(server,
     "list-traffic",
     ListTrafficParamsSchema,
     async (args, _extra) => {
@@ -159,7 +160,7 @@ This tool will open a browser window for you to interact with the target applica
    * 
    * Provides a tool to download a traffic file (HAR) for a target
    */
-  server.tool(
+  registerNightVisionTool(server,
     "download-traffic",
     DownloadTrafficParamsSchema,
     async (args, _extra) => {

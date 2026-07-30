@@ -9,6 +9,7 @@ import { findDiscoveredSpec } from '../utils/discovered-spec.js';
 import { extractSourceFindings, countSourceLinked } from '../utils/sarif-findings.js';
 import { jsonText } from '../utils/tool-response.js';
 import { neutralizeFenceMarkers } from '../utils/untrusted.js';
+import { registerNightVisionTool } from './metadata.js';
 
 function defaultSarifPath(scanId: string, baseDir: string): string {
   return path.resolve(baseDir, '.nightvision', `nightvision-${scanId}.sarif`);
@@ -63,7 +64,7 @@ function notExportableResponse(scanId: string, format: 'sarif' | 'csv', state: s
  * Register result export tools with the MCP server.
  */
 export function registerExportTools(server: McpServer): void {
-  server.tool(
+  registerNightVisionTool(server,
     'export-sarif',
     ExportSarifParamsSchema,
     async (args, _extra) => {
@@ -162,7 +163,7 @@ export function registerExportTools(server: McpServer): void {
     }
   );
 
-  server.tool(
+  registerNightVisionTool(server,
     'export-csv',
     ExportCsvParamsSchema,
     async (args, _extra) => {

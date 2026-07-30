@@ -18,6 +18,7 @@ import { summarizeScanChecks } from '../utils/scan-findings-summary.js';
 import { classifyScanStatus } from '../utils/scan-status.js';
 import { jsonText } from '../utils/tool-response.js';
 import { wrapUntrusted, neutralizeFenceMarkers } from '../utils/untrusted.js';
+import { registerNightVisionTool } from './metadata.js';
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -36,7 +37,7 @@ export function registerScanTools(server: McpServer): void {
    * Provides a tool to initiate a scan on a NightVision target.
    * The tool is non-blocking and returns immediately with the scan ID.
    */
-  server.tool(
+  registerNightVisionTool(server,
     "start-scan",
     StartScanParamsSchema,
     async (args, _extra) => {
@@ -253,7 +254,7 @@ export function registerScanTools(server: McpServer): void {
   /**
    * Wait for a scan to reach a terminal status.
    */
-  server.tool(
+  registerNightVisionTool(server,
     "wait-for-scan",
     WaitForScanParamsSchema,
     async (args, _extra) => {
@@ -352,7 +353,7 @@ export function registerScanTools(server: McpServer): void {
   /**
    * List managed local/private scan CLI processes.
    */
-  server.tool(
+  registerNightVisionTool(server,
     "list-managed-scan-processes",
     {},
     async (_args, _extra) => {
@@ -379,7 +380,7 @@ export function registerScanTools(server: McpServer): void {
   /**
    * Inspect one managed local/private scan CLI process.
    */
-  server.tool(
+  registerNightVisionTool(server,
     "get-managed-scan-process",
     ManagedScanProcessParamsSchema,
     async (args, _extra) => {
@@ -407,7 +408,7 @@ export function registerScanTools(server: McpServer): void {
   /**
    * Cancel one managed local/private scan CLI process.
    */
-  server.tool(
+  registerNightVisionTool(server,
     "cancel-managed-scan-process",
     ManagedScanProcessParamsSchema,
     async (args, _extra) => {
@@ -440,7 +441,7 @@ export function registerScanTools(server: McpServer): void {
    * 
    * Provides a tool to list all scans with optional filtering
    */
-  server.tool(
+  registerNightVisionTool(server,
     "list-scans",
     ListScansParamsSchema,
     async (args, _extra) => {
@@ -515,7 +516,7 @@ export function registerScanTools(server: McpServer): void {
    * 
    * Provides a tool to check the status of a specific scan
    */
-  server.tool(
+  registerNightVisionTool(server,
     "get-scan-status",
     GetScanStatusParamsSchema,
     async (args, _extra) => {
@@ -663,7 +664,7 @@ export function registerScanTools(server: McpServer): void {
    * 
    * Provides a tool to retrieve vulnerabilities and check results for a specific scan
    */
-  server.tool(
+  registerNightVisionTool(server,
     "get-scan-checks",
     GetScanChecksParamsSchema,
     async (args, _extra) => {
@@ -757,7 +758,7 @@ export function registerScanTools(server: McpServer): void {
   /**
    * Summarize scan findings for agent-friendly triage.
    */
-  server.tool(
+  registerNightVisionTool(server,
     "summarize-scan-findings",
     SummarizeScanFindingsParamsSchema,
     async (args, _extra) => {
@@ -835,7 +836,7 @@ export function registerScanTools(server: McpServer): void {
   /**
    * Get paths that have been checked during a scan
    */
-  server.tool(
+  registerNightVisionTool(server,
     "get-scan-paths",
     GetScanPathsParamsSchema,
     async (args, _extra) => {
@@ -892,7 +893,7 @@ export function registerScanTools(server: McpServer): void {
    * that can be used with the run_only_zap_checks / run_only_nuclei_folders
    * parameters of start-scan. Fetched dynamically from the API.
    */
-  server.tool(
+  registerNightVisionTool(server,
     "list-check-categories",
     ListCheckCategoriesParamsSchema,
     async (_args, _extra) => {
