@@ -3,7 +3,7 @@
   "version": "0.2.0",
   "description": "Run NightVision application-security workflows from local Codex.",
   "author": {
-    "name": "NightVision Security",
+    "name": "NightVision Security, Inc.",
     "email": "support@nightviz.ai",
     "url": "https://nightviz.ai"
   },
@@ -23,8 +23,8 @@
     "displayName": "NightVision",
     "shortDescription": "Scan apps from local Codex",
     "longDescription": "Run NightVision API discovery and DAST workflows from Codex using the local NightVision CLI and the current repository.",
-    "developerName": "NightVision Security",
-    "category": "Developer Tools",
+    "developerName": "NightVision Security, Inc.",
+    "category": "Security",
     "capabilities": [
       "API discovery",
       "DAST scanning",
