@@ -77,7 +77,7 @@ export class AuthService {
 
       // Simple validation of the token format (should be a long string)
       if (newToken.length < 20) {
-        console.error(`Warning: Created token has an unexpected format: ${newToken}`);
+        console.error(`Warning: Created token has an unexpected format (length ${newToken.length}).`);
       }
 
       console.error(`Successfully created a new authentication token: ${newToken.substring(0, 8)}...`);

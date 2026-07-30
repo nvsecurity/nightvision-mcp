@@ -50,17 +50,17 @@ const EXTERNAL_WRITE: RequiredToolHints = {
 export const NIGHTVISION_TOOL_METADATA = {
   'authenticate': {
     title: 'Authenticate with NightVision',
-    description: 'Checks NightVision authentication, or saves and verifies a user-supplied or newly created NightVision API token, replacing any token already stored.',
+    description: 'Checks NightVision authentication, or saves and verifies a user-supplied or newly created NightVision API token. Replaces any stored token, and clears it outright if a supplied token is rejected.',
     annotations: DESTRUCTIVE_INTERNAL_WRITE,
   },
   'create-header-credential': {
     title: 'Create header credential',
-    description: 'Creates a stable header-based application credential in the user’s NightVision project.',
+    description: 'Creates a stable header-based application credential in the authenticated NightVision project.',
     annotations: INTERNAL_WRITE,
   },
   'create-cookie-credential': {
     title: 'Create cookie credential',
-    description: 'Creates a stable cookie-based application credential in the user’s NightVision project.',
+    description: 'Creates a stable cookie-based application credential in the authenticated NightVision project.',
     annotations: INTERNAL_WRITE,
   },
   'assign-credential-to-targets': {
@@ -80,7 +80,7 @@ export const NIGHTVISION_TOOL_METADATA = {
   },
   'get-auth-credential': {
     title: 'Get authentication credential',
-    description: 'Retrieves one NightVision application credential, redacting stored header and cookie values.',
+    description: 'Retrieves one NightVision application credential. Header and cookie values are redacted, but a Playwright script credential is returned in full and may contain application login steps.',
     annotations: READ_ONLY,
   },
   'list-auth-credentials': {
@@ -120,7 +120,7 @@ export const NIGHTVISION_TOOL_METADATA = {
   },
   'list-issues': {
     title: 'List security issues',
-    description: 'Lists NightVision security issues using the requested project, target, scan, severity, status, or kind filters.',
+    description: 'Lists the NightVision security issues found by one scan, which is required, with optional severity, resolution, and kind filters.',
     annotations: READ_ONLY,
   },
   'get-issue-details': {
@@ -135,12 +135,12 @@ export const NIGHTVISION_TOOL_METADATA = {
   },
   'get-vulnerable-paths': {
     title: 'Get vulnerable paths',
-    description: 'Lists application paths associated with NightVision security issues.',
+    description: 'Lists the application paths carrying security issues in one NightVision scan.',
     annotations: READ_ONLY,
   },
   'get-issue-occurrences': {
     title: 'Get issue occurrences',
-    description: 'Retrieves individual occurrences of a NightVision security issue.',
+    description: 'Retrieves the individual occurrences of one vulnerability kind at one URL path within a NightVision scan.',
     annotations: READ_ONLY,
   },
   'run-app-security-scan': {
@@ -180,7 +180,7 @@ export const NIGHTVISION_TOOL_METADATA = {
   },
   'get-project-details': {
     title: 'Get NightVision project details',
-    description: 'Retrieves details for one NightVision project by name or identifier.',
+    description: 'Retrieves details for one NightVision project by name.',
     annotations: READ_ONLY,
   },
   'start-scan': {
@@ -210,7 +210,7 @@ export const NIGHTVISION_TOOL_METADATA = {
   },
   'list-scans': {
     title: 'List NightVision scans',
-    description: 'Lists NightVision scans using optional project, target, status, and time filters.',
+    description: 'Lists NightVision scans using optional project, target, and status filters.',
     annotations: READ_ONLY,
   },
   'get-scan-status': {

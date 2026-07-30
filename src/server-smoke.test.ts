@@ -123,20 +123,73 @@ test('server boots, advertises the tools capability, and lists the tool set', {
       'tools/list exposes the complete reviewed NightVision tool set',
     );
 
-    // A representative slice of the registered tools must be present.
-    for (const expected of [
-      'authenticate', 'list-targets', 'get-target-details', 'create-target',
-      'delete-target', 'start-scan', 'list-scans', 'get-scan-checks',
-      'discover-api', 'list-projects', 'upload-nuclei-template',
-      'record-traffic', 'download-traffic', 'wait-for-scan',
-      'summarize-scan-findings', 'export-sarif', 'export-csv',
-      'preflight-app', 'run-app-security-scan', 'doctor', 'auth-status',
-      'login-help',
-      'list-managed-scan-processes', 'get-managed-scan-process',
-      'cancel-managed-scan-process'
-    ]) {
-      assert.ok(names.includes(expected), `tools/list is missing "${expected}" (got ${names.length} tools)`);
-    }
+    // The assertion above compares tools/list against the same map that drives
+    // registration, so dropping a tool and its metadata entry together would
+    // pass. This fixture is written out independently: it is what the client
+    // actually sees, and it fails on a dropped tool, an added tool, or a
+    // silently reclassified one. Update it deliberately, never to make a test
+    // go green.
+    const EXPECTED_ANNOTATIONS: Record<string, Record<string, boolean>> = {
+      'authenticate': { readOnlyHint: false, destructiveHint: true, openWorldHint: false },
+      'create-header-credential': { readOnlyHint: false, destructiveHint: false, openWorldHint: false },
+      'create-cookie-credential': { readOnlyHint: false, destructiveHint: false, openWorldHint: false },
+      'assign-credential-to-targets': { readOnlyHint: false, destructiveHint: false, openWorldHint: false },
+      'save-playwright-script': { readOnlyHint: false, destructiveHint: false, openWorldHint: false },
+      'update-playwright-script': { readOnlyHint: false, destructiveHint: true, openWorldHint: false },
+      'get-auth-credential': { readOnlyHint: true, destructiveHint: false, openWorldHint: false, idempotentHint: true },
+      'list-auth-credentials': { readOnlyHint: true, destructiveHint: false, openWorldHint: false, idempotentHint: true },
+      'login-help': { readOnlyHint: true, destructiveHint: false, openWorldHint: false, idempotentHint: true },
+      'doctor': { readOnlyHint: true, destructiveHint: false, openWorldHint: false, idempotentHint: true },
+      'auth-status': { readOnlyHint: true, destructiveHint: false, openWorldHint: false, idempotentHint: true },
+      'discover-api': { readOnlyHint: false, destructiveHint: true, openWorldHint: false },
+      'export-sarif': { readOnlyHint: false, destructiveHint: true, openWorldHint: false },
+      'export-csv': { readOnlyHint: false, destructiveHint: true, openWorldHint: false },
+      'list-issues': { readOnlyHint: true, destructiveHint: false, openWorldHint: false, idempotentHint: true },
+      'get-issue-details': { readOnlyHint: true, destructiveHint: false, openWorldHint: false, idempotentHint: true },
+      'get-issue-kind-stats': { readOnlyHint: true, destructiveHint: false, openWorldHint: false, idempotentHint: true },
+      'get-vulnerable-paths': { readOnlyHint: true, destructiveHint: false, openWorldHint: false, idempotentHint: true },
+      'get-issue-occurrences': { readOnlyHint: true, destructiveHint: false, openWorldHint: false, idempotentHint: true },
+      'run-app-security-scan': { readOnlyHint: false, destructiveHint: true, openWorldHint: true },
+      'create-nuclei-template': { readOnlyHint: false, destructiveHint: false, openWorldHint: false },
+      'upload-nuclei-template': { readOnlyHint: false, destructiveHint: true, openWorldHint: false },
+      'list-nuclei-templates': { readOnlyHint: true, destructiveHint: false, openWorldHint: false, idempotentHint: true },
+      'assign-nuclei-template': { readOnlyHint: false, destructiveHint: false, openWorldHint: false },
+      'preflight-app': { readOnlyHint: false, destructiveHint: true, openWorldHint: true },
+      'list-projects': { readOnlyHint: true, destructiveHint: false, openWorldHint: false, idempotentHint: true },
+      'get-project-details': { readOnlyHint: true, destructiveHint: false, openWorldHint: false, idempotentHint: true },
+      'start-scan': { readOnlyHint: false, destructiveHint: true, openWorldHint: true },
+      'wait-for-scan': { readOnlyHint: true, destructiveHint: false, openWorldHint: false, idempotentHint: true },
+      'list-managed-scan-processes': { readOnlyHint: true, destructiveHint: false, openWorldHint: false, idempotentHint: true },
+      'get-managed-scan-process': { readOnlyHint: true, destructiveHint: false, openWorldHint: false, idempotentHint: true },
+      'cancel-managed-scan-process': { readOnlyHint: false, destructiveHint: true, openWorldHint: false },
+      'list-scans': { readOnlyHint: true, destructiveHint: false, openWorldHint: false, idempotentHint: true },
+      'get-scan-status': { readOnlyHint: true, destructiveHint: false, openWorldHint: false, idempotentHint: true },
+      'get-scan-checks': { readOnlyHint: true, destructiveHint: false, openWorldHint: false, idempotentHint: true },
+      'summarize-scan-findings': { readOnlyHint: true, destructiveHint: false, openWorldHint: false, idempotentHint: true },
+      'get-scan-paths': { readOnlyHint: true, destructiveHint: false, openWorldHint: false, idempotentHint: true },
+      'list-check-categories': { readOnlyHint: true, destructiveHint: false, openWorldHint: false, idempotentHint: true },
+      'list-targets': { readOnlyHint: true, destructiveHint: false, openWorldHint: false, idempotentHint: true },
+      'get-target-details': { readOnlyHint: true, destructiveHint: false, openWorldHint: false, idempotentHint: true },
+      'create-target': { readOnlyHint: false, destructiveHint: false, openWorldHint: false },
+      'delete-target': { readOnlyHint: false, destructiveHint: true, openWorldHint: false },
+      'find-target': { readOnlyHint: true, destructiveHint: false, openWorldHint: false, idempotentHint: true },
+      'list-additional-paths': { readOnlyHint: true, destructiveHint: false, openWorldHint: false, idempotentHint: true },
+      'add-additional-paths': { readOnlyHint: false, destructiveHint: false, openWorldHint: false },
+      'record-traffic': { readOnlyHint: false, destructiveHint: false, openWorldHint: true },
+      'list-traffic': { readOnlyHint: true, destructiveHint: false, openWorldHint: false, idempotentHint: true },
+      'download-traffic': { readOnlyHint: false, destructiveHint: true, openWorldHint: false },
+    };
+
+    assert.equal(
+      tools.length,
+      Object.keys(EXPECTED_ANNOTATIONS).length,
+      `tools/list should expose ${Object.keys(EXPECTED_ANNOTATIONS).length} tools, got ${tools.length}`,
+    );
+    assert.deepEqual(
+      Object.fromEntries(tools.map((tool: any) => [tool.name, tool.annotations])),
+      EXPECTED_ANNOTATIONS,
+      'every advertised tool carries its reviewed safety classification',
+    );
 
     // OpenAI plugin review relies on complete, accurate metadata for tool
     // selection and confirmation behavior. Every tool must advertise a title,
@@ -151,6 +204,18 @@ test('server boots, advertises the tools capability, and lists the tool set', {
           typeof tool.annotations?.[hint],
           'boolean',
           `${tool.name} is missing boolean annotation ${hint}`,
+        );
+      }
+
+      // A schema that degrades to an empty object still builds, lints, and
+      // registers, but leaves the client with no idea what to pass. These two
+      // tools genuinely take no parameters; everything else must advertise
+      // some.
+      assert.equal(tool.inputSchema?.type, 'object', `${tool.name} has no object inputSchema`);
+      if (!['list-managed-scan-processes', 'list-check-categories'].includes(tool.name)) {
+        assert.ok(
+          Object.keys(tool.inputSchema.properties ?? {}).length > 0,
+          `${tool.name} advertises an empty inputSchema, so callers cannot supply its parameters`,
         );
       }
     }
