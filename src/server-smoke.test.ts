@@ -198,6 +198,25 @@ test('server boots, advertises the tools capability, and lists the tool set', {
       },
       'preflight-app writes a local manifest and reaches the supplied target URL',
     );
+    assert.deepEqual(
+      toolByName('authenticate').annotations,
+      {
+        readOnlyHint: false,
+        destructiveHint: true,
+        openWorldHint: false,
+      },
+      'authenticate replaces the stored token, and clears it outright when a supplied token is rejected',
+    );
+    assert.deepEqual(
+      toolByName('doctor').annotations,
+      {
+        readOnlyHint: true,
+        destructiveHint: false,
+        openWorldHint: false,
+        idempotentHint: true,
+      },
+      'doctor only inspects local setup and the NightVision API, never an arbitrary external host',
+    );
 
     // zod -> JSON Schema shape checks on a couple of tools.
     const gtd = tools.find((t: any) => t.name === 'get-target-details');

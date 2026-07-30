@@ -23,13 +23,6 @@ const READ_ONLY: RequiredToolHints = {
   idempotentHint: true,
 };
 
-const READ_ONLY_EXTERNAL: RequiredToolHints = {
-  readOnlyHint: true,
-  destructiveHint: false,
-  openWorldHint: true,
-  idempotentHint: true,
-};
-
 const INTERNAL_WRITE: RequiredToolHints = {
   readOnlyHint: false,
   destructiveHint: false,
@@ -57,8 +50,8 @@ const EXTERNAL_WRITE: RequiredToolHints = {
 export const NIGHTVISION_TOOL_METADATA = {
   'authenticate': {
     title: 'Authenticate with NightVision',
-    description: 'Checks NightVision authentication or saves and verifies a user-supplied or newly created NightVision API token.',
-    annotations: INTERNAL_WRITE,
+    description: 'Checks NightVision authentication, or saves and verifies a user-supplied or newly created NightVision API token, replacing any token already stored.',
+    annotations: DESTRUCTIVE_INTERNAL_WRITE,
   },
   'create-header-credential': {
     title: 'Create header credential',
@@ -102,8 +95,8 @@ export const NIGHTVISION_TOOL_METADATA = {
   },
   'doctor': {
     title: 'Check NightVision setup',
-    description: 'Checks local CLI, token, API connectivity, project, repository, and target URL readiness.',
-    annotations: READ_ONLY_EXTERNAL,
+    description: 'Checks local NightVision CLI installation, saved token validity, and the default project and credential environment variables.',
+    annotations: READ_ONLY,
   },
   'auth-status': {
     title: 'Check authentication status',
@@ -157,7 +150,7 @@ export const NIGHTVISION_TOOL_METADATA = {
   },
   'create-nuclei-template': {
     title: 'Create security test template',
-    description: 'Creates and uploads a custom NightVision security test template from supplied YAML.',
+    description: 'Creates an empty custom NightVision security test template record. Upload its YAML separately with upload-nuclei-template.',
     annotations: INTERNAL_WRITE,
   },
   'upload-nuclei-template': {
