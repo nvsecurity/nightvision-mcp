@@ -1,0 +1,20 @@
+{
+  "name": "nightvision",
+  "interface": {
+    "displayName": "NightVision"
+  },
+  "plugins": [
+    {
+      "name": "nightvision",
+      "source": {
+        "source": "local",
+        "path": "./plugins/nightvision"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Developer Tools"
+    }
+  ]
+}

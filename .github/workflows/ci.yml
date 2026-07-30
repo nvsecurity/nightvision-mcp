@@ -46,3 +46,52 @@ jobs:
       - name: Audit production dependencies
         run: npm audit --omit=dev --audit-level=high
         continue-on-error: true
+
+  # The Codex plugin is a distribution format for the server built above, not a
+  # separate implementation. These jobs keep the packaged artifact honest.
+  plugin:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - name: Setup Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate manifests and run the packaged MCP over stdio
+        run: npm run plugin:test
+
+  # Proves the checked-in bundle is what src/ actually produces. This replaces
+  # the cross-repository commit pin the plugin used to carry: with one
+  # repository, a stale bundle is a diff rather than a provenance claim.
+  reproducible-plugin-bundle:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - name: Setup Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Rebuild the bundle and compare against the committed artifact
+        run: |
+          npm run plugin:build
+          git diff --exit-code

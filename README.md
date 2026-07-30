@@ -79,6 +79,40 @@ available); a newer CLI is recommended. Upgrade the CLI the way you installed it
 
 3. Restart Claude for Desktop.
 
+### Using with Codex
+
+Codex installs this server as a plugin, which bundles the five NightVision
+skills alongside it. The plugin is packaged from this repository, so it is the
+same server described above rather than a separate build.
+
+1. Add this repository as a plugin marketplace and install:
+   ```bash
+   codex plugin marketplace add /path/to/nightvision-mcp
+   codex plugin install nightvision@nightvision
+   ```
+
+2. Authenticate the NightVision CLI, which the plugin reuses:
+   ```bash
+   nightvision login
+   ```
+
+3. Confirm the server is reachable:
+   ```bash
+   npm run plugin:test
+   ```
+
+The plugin runs over stdio against your locally installed `nightvision` CLI, so
+it can reach localhost and private-network targets and read the repository you
+are working in. No credentials are sent anywhere other than the NightVision API
+your CLI is already configured for.
+
+To remove it:
+
+```bash
+codex plugin uninstall nightvision
+codex plugin marketplace remove nightvision
+```
+
 ### Using with Cursor
 
 1. Configure the MCP server integration by adding it to one of the following locations:
@@ -1196,6 +1230,29 @@ To run the server in development mode (build and start):
 ```bash
 npm run dev
 ```
+
+### The Codex plugin
+
+`plugins/nightvision/` is a packaged distribution of this server, not a second
+implementation. Its bundle is generated from `src/index.ts`:
+
+```bash
+npm run plugin:build     # bundle src/ into plugins/nightvision/build/
+npm run plugin:test      # validate manifests, then run the bundle over stdio
+```
+
+The bundle is committed so the plugin installs from a clone without a build
+step. CI rebuilds it and runs `git diff --exit-code`, so a bundle that has
+drifted from `src/` fails the build rather than shipping.
+
+The MCP package version in `package.json` is the single version source:
+`plugin:build` writes it into the plugin manifest, the packaged runtime
+manifest, and `build-info.json`, so they cannot drift apart.
+
+The five skills under `plugins/nightvision/skills/` are vendored from
+[nightvision-skills](https://github.com/nvsecurity/nightvision-skills) at the
+commit recorded in `plugins/nightvision/skills-source.json`, along with the
+Codex-specific adaptations applied to them.
 
 ## Limitations
 

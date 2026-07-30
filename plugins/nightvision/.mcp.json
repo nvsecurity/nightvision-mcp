@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "nightvision": {
+      "command": "node",
+      "args": [
+        "./build/core/server.mjs"
+      ],
+      "cwd": "."
+    }
+  }
+}

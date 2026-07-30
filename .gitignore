@@ -50,3 +50,8 @@ analysis/
 # NightVision run artifacts (manifests, generated specs, exports). These are
 # produced at runtime and contain machine-local absolute paths; never commit them.
 .nightvision/
+
+# The packaged Codex plugin bundle is a committed artifact, rebuilt and
+# diffed by CI. It must not be swept up by the build/ rule above.
+!plugins/nightvision/build/
+!plugins/nightvision/build/**
