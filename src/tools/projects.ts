@@ -2,6 +2,7 @@ import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { nightvisionService } from '../services/index.js';
 import { z } from 'zod';
 import { requireAuthenticatedUser } from '../utils/auth-guard.js';
+import { registerNightVisionTool } from './metadata.js';
 
 /**
  * Project list parameters schema
@@ -44,7 +45,7 @@ export function registerProjectTools(server: McpServer): void {
    * 
    * Provides a tool to list all NightVision projects
    */
-  server.tool(
+  registerNightVisionTool(server,
     "list-projects",
     ListProjectsParamsSchema,
     async (args, _extra) => {
@@ -138,7 +139,7 @@ export function registerProjectTools(server: McpServer): void {
    * 
    * Provides a tool to get details about a specific NightVision project
    */
-  server.tool(
+  registerNightVisionTool(server,
     "get-project-details",
     GetProjectDetailsParamsSchema,
     async (args, _extra) => {

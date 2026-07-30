@@ -19,6 +19,7 @@ import { extractSourceFindings, countSourceLinked, type SourceFinding } from '..
 import { matchTargetByName } from '../utils/target-matching.js';
 import { jsonText } from '../utils/tool-response.js';
 import { UNTRUSTED_NOTICE, neutralizeFenceMarkers } from '../utils/untrusted.js';
+import { registerNightVisionTool } from './metadata.js';
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -523,7 +524,7 @@ export function isCoverageSuspect(
  * Register the guided app security scan harness.
  */
 export function registerHarnessTools(server: McpServer): void {
-  server.tool(
+  registerNightVisionTool(server,
     'run-app-security-scan',
     RunAppSecurityScanParamsSchema,
     async (args, _extra) => {

@@ -9,6 +9,7 @@ import {
 import * as path from 'path';
 import * as fs from 'fs';
 import { requireAuthenticatedUser, requireProjectAccess } from '../utils/auth-guard.js';
+import { registerNightVisionTool } from './metadata.js';
 
 /**
  * Register nuclei-related tools with the MCP server
@@ -20,7 +21,7 @@ export function registerNucleiTools(server: McpServer): void {
    * 
    * Provides a tool to create new nuclei templates in NightVision
    */
-  server.tool(
+  registerNightVisionTool(server,
     "create-nuclei-template",
     CreateNucleiTemplateParamsSchema,
     async (args, _extra) => {
@@ -107,7 +108,7 @@ export function registerNucleiTools(server: McpServer): void {
    * 
    * Provides a tool to upload custom nuclei templates to NightVision
    */
-  server.tool(
+  registerNightVisionTool(server,
     "upload-nuclei-template",
     UploadNucleiTemplateParamsSchema,
     async (args, _extra) => {
@@ -211,7 +212,7 @@ export function registerNucleiTools(server: McpServer): void {
    * 
    * Provides a tool to list all nuclei templates in NightVision
    */
-  server.tool(
+  registerNightVisionTool(server,
     "list-nuclei-templates",
     ListNucleiTemplatesParamsSchema,
     async (args, _extra) => {
@@ -287,7 +288,7 @@ export function registerNucleiTools(server: McpServer): void {
    * 
    * Provides a tool to assign a nuclei template to a target in NightVision
    */
-  server.tool(
+  registerNightVisionTool(server,
     "assign-nuclei-template",
     AssignNucleiTemplateParamsSchema,
     async (args, _extra) => {

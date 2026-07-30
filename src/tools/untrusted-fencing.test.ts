@@ -10,7 +10,7 @@ import { UNTRUSTED_OPEN, UNTRUSTED_CLOSE } from '../utils/untrusted.js';
 function captureTools(register: (server: any) => void) {
   const handlers = new Map<string, (args: any, extra: any) => Promise<any>>();
   const fakeServer = {
-    tool(name: string, _schema: unknown, handler: (args: any, extra: any) => Promise<any>) {
+    registerTool(name: string, _config: unknown, handler: (args: any, extra: any) => Promise<any>) {
       handlers.set(name, handler);
     }
   };

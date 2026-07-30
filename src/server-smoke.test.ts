@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { mkdtempSync, mkdirSync, writeFileSync, chmodSync, readFileSync } from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
+import { NIGHTVISION_TOOL_METADATA } from './tools/metadata.js';
 
 // The compiled test sits next to the compiled entry point in build/.
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -116,6 +117,12 @@ test('server boots, advertises the tools capability, and lists the tool set', {
     const tools = listed.result?.tools ?? [];
     const names: string[] = tools.map((t: any) => t.name);
 
+    assert.deepEqual(
+      [...names].sort(),
+      Object.keys(NIGHTVISION_TOOL_METADATA).sort(),
+      'tools/list exposes the complete reviewed NightVision tool set',
+    );
+
     // A representative slice of the registered tools must be present.
     for (const expected of [
       'authenticate', 'list-targets', 'get-target-details', 'create-target',
@@ -130,6 +137,67 @@ test('server boots, advertises the tools capability, and lists the tool set', {
     ]) {
       assert.ok(names.includes(expected), `tools/list is missing "${expected}" (got ${names.length} tools)`);
     }
+
+    // OpenAI plugin review relies on complete, accurate metadata for tool
+    // selection and confirmation behavior. Every tool must advertise a title,
+    // description, and all three core MCP safety hints.
+    for (const tool of tools) {
+      assert.equal(typeof tool.title, 'string', `${tool.name} is missing a title`);
+      assert.ok(tool.title.trim().length > 0, `${tool.name} has an empty title`);
+      assert.equal(typeof tool.description, 'string', `${tool.name} is missing a description`);
+      assert.ok(tool.description.trim().length > 0, `${tool.name} has an empty description`);
+      for (const hint of ['readOnlyHint', 'destructiveHint', 'openWorldHint'] as const) {
+        assert.equal(
+          typeof tool.annotations?.[hint],
+          'boolean',
+          `${tool.name} is missing boolean annotation ${hint}`,
+        );
+      }
+    }
+
+    const toolByName = (name: string) => {
+      const tool = tools.find((candidate: any) => candidate.name === name);
+      assert.ok(tool, `tools/list is missing "${name}"`);
+      return tool;
+    };
+
+    assert.deepEqual(
+      toolByName('list-projects').annotations,
+      {
+        readOnlyHint: true,
+        destructiveHint: false,
+        openWorldHint: false,
+        idempotentHint: true,
+      },
+      'list-projects is a repeatable read confined to the user account',
+    );
+    assert.deepEqual(
+      toolByName('start-scan').annotations,
+      {
+        readOnlyHint: false,
+        destructiveHint: true,
+        openWorldHint: true,
+      },
+      'start-scan actively affects an external target',
+    );
+    assert.deepEqual(
+      toolByName('delete-target').annotations,
+      {
+        readOnlyHint: false,
+        destructiveHint: true,
+        openWorldHint: false,
+      },
+      'delete-target irreversibly changes NightVision account state',
+    );
+    assert.deepEqual(
+      toolByName('preflight-app').annotations,
+      {
+        readOnlyHint: false,
+        destructiveHint: true,
+        openWorldHint: true,
+      },
+      'preflight-app writes a local manifest and reaches the supplied target URL',
+    );
 
     // zod -> JSON Schema shape checks on a couple of tools.
     const gtd = tools.find((t: any) => t.name === 'get-target-details');
