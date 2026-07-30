@@ -1,0 +1,28 @@
+{
+  "name": "nightvision",
+  "version": "0.2.0",
+  "description": "Run NightVision application-security workflows from Claude Code.",
+  "author": {
+    "name": "NightVision Security",
+    "email": "support@nightviz.ai",
+    "url": "https://nightviz.ai"
+  },
+  "homepage": "https://github.com/nvsecurity/nightvision-mcp",
+  "repository": "https://github.com/nvsecurity/nightvision-mcp",
+  "license": "MIT",
+  "keywords": [
+    "application-security",
+    "dast",
+    "api-security",
+    "openapi",
+    "nightvision"
+  ],
+  "mcpServers": {
+    "nightvision": {
+      "command": "node",
+      "args": [
+        "${CLAUDE_PLUGIN_ROOT}/build/core/server.mjs"
+      ]
+    }
+  }
+}

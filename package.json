@@ -14,7 +14,11 @@
     "clean": "rm -rf build",
     "rebuild": "npm run clean && npm run build",
     "test": "npm run build && node --test \"build/**/*.test.js\"",
-    "lint": "eslint src"
+    "lint": "eslint src",
+    "plugin:build": "node scripts/build-plugin.mjs",
+    "plugin:validate": "node tests/validate-package.mjs",
+    "plugin:smoke": "node tests/plugin-smoke.mjs",
+    "plugin:test": "npm run plugin:validate && npm run plugin:smoke"
   },
   "keywords": [
     "mcp",

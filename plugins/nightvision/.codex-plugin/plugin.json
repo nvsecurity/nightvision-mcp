@@ -1,0 +1,48 @@
+{
+  "name": "nightvision",
+  "version": "0.2.0",
+  "description": "Run NightVision application-security workflows from local Codex.",
+  "author": {
+    "name": "NightVision Security",
+    "email": "support@nightviz.ai",
+    "url": "https://nightviz.ai"
+  },
+  "homepage": "https://github.com/nvsecurity/nightvision-mcp",
+  "repository": "https://github.com/nvsecurity/nightvision-mcp",
+  "license": "MIT",
+  "keywords": [
+    "application-security",
+    "dast",
+    "api-security",
+    "openapi",
+    "nightvision"
+  ],
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
+  "interface": {
+    "displayName": "NightVision",
+    "shortDescription": "Scan apps from local Codex",
+    "longDescription": "Run NightVision API discovery and DAST workflows from Codex using the local NightVision CLI and the current repository.",
+    "developerName": "NightVision Security",
+    "category": "Developer Tools",
+    "capabilities": [
+      "API discovery",
+      "DAST scanning",
+      "Finding triage",
+      "CI/CD guidance",
+      "Local execution"
+    ],
+    "websiteURL": "https://nightviz.ai",
+    "privacyPolicyURL": "https://nightviz.ai/privacy",
+    "termsOfServiceURL": "https://nightviz.ai/terms",
+    "brandColor": "#7CFF41",
+    "composerIcon": "./assets/nv-icon.png",
+    "logo": "./assets/nv-icon.png",
+    "logoDark": "./assets/nv-icon-dark.png",
+    "defaultPrompt": [
+      "Security-scan the app in this repository with NightVision.",
+      "Discover this API and review the generated OpenAPI specification.",
+      "Triage the latest NightVision scan findings for this project."
+    ]
+  }
+}
