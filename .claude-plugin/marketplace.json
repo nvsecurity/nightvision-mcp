@@ -1,0 +1,15 @@
+{
+  "name": "nightvision",
+  "owner": {
+    "name": "NightVision Security",
+    "email": "support@nightviz.ai",
+    "url": "https://nightviz.ai"
+  },
+  "plugins": [
+    {
+      "name": "nightvision",
+      "source": "./plugins/nightvision",
+      "description": "NightVision DAST and API discovery: the MCP server plus the NightVision skills."
+    }
+  ]
+}

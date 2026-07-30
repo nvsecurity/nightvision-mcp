@@ -149,11 +149,14 @@ try {
   buildInfo.sha256 = digest;
   writeFileSync(buildInfoPath, `${JSON.stringify(buildInfo, null, 2)}\n`);
 
-  // Keep the packaged runtime manifest and the plugin manifest on the one
-  // version rather than letting either be edited independently.
+  // Keep the packaged runtime manifest and both plugin manifests on the one
+  // version rather than letting any of them be edited independently. Codex
+  // reads .codex-plugin and Claude Code reads .claude-plugin, so the same
+  // plugin directory serves both and neither may drift from the server.
   for (const manifestPath of [
     join(pluginRoot, 'package.json'),
     join(pluginRoot, '.codex-plugin', 'plugin.json'),
+    join(pluginRoot, '.claude-plugin', 'plugin.json'),
   ]) {
     const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
     manifest.version = version;

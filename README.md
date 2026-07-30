@@ -79,6 +79,22 @@ available); a newer CLI is recommended. Upgrade the CLI the way you installed it
 
 3. Restart Claude for Desktop.
 
+### Using as a plugin (Codex or Claude Code)
+
+`plugins/nightvision/` installs into either agent. It is one plugin directory
+carrying two manifests, because Codex reads `.codex-plugin/plugin.json` and
+Claude Code reads `.claude-plugin/plugin.json`; each ignores the other's. Both
+get the same server, the same 48 tools, and the same five NightVision skills.
+
+For Claude Code:
+
+```bash
+claude plugin marketplace add /path/to/nightvision-mcp
+claude plugin install nightvision@nightvision
+```
+
+For Codex, see below.
+
 ### Using with Codex
 
 Codex installs this server as a plugin, which bundles the five NightVision

@@ -24,6 +24,8 @@ function check(condition, message) {
 const rootPackage = readJson('package.json');
 const marketplace = readJson('.agents/plugins/marketplace.json');
 const manifest = readJson('plugins/nightvision/.codex-plugin/plugin.json');
+const claudeManifest = readJson('plugins/nightvision/.claude-plugin/plugin.json');
+const claudeMarketplace = readJson('.claude-plugin/marketplace.json');
 const mcp = readJson('plugins/nightvision/.mcp.json');
 const runtimePackage = readJson('plugins/nightvision/package.json');
 const buildInfo = readJson('plugins/nightvision/build-info.json');
@@ -100,6 +102,32 @@ check(
 check(
   ['ON_INSTALL', 'ON_USE'].includes(marketplacePlugin.policy?.authentication),
   'marketplace authentication policy is invalid',
+);
+
+// The same plugin directory installs into both agents: Codex reads
+// .codex-plugin, Claude Code reads .claude-plugin. Keep them agreeing on the
+// things a user would notice, and on the version above all.
+check(claudeManifest.name === manifest.name, 'Codex and Claude plugin names must match');
+check(
+  claudeManifest.version === rootPackage.version,
+  'Claude plugin version must match the MCP package version',
+);
+check(
+  typeof claudeManifest.description === 'string' && claudeManifest.description.trim(),
+  'Claude plugin manifest needs a description',
+);
+check(
+  claudeMarketplace.name === 'nightvision',
+  'Claude marketplace name must be nightvision',
+);
+check(
+  claudeMarketplace.plugins?.length === 1 &&
+    claudeMarketplace.plugins[0]?.source === './plugins/nightvision',
+  'Claude marketplace must point at the packaged plugin',
+);
+check(
+  claudeMarketplace.plugins?.[0]?.name === manifest.name,
+  'Claude marketplace and manifest names must match',
 );
 
 const server = mcp.mcpServers?.nightvision;
@@ -197,6 +225,6 @@ if (errors.length > 0) {
 }
 
 console.log('Package validation passed.');
-console.log(`Plugin: ${manifest.name}@${manifest.version}`);
+console.log(`Plugin: ${manifest.name}@${manifest.version} (Codex + Claude Code)`);
 console.log(`Skills: ${actualSkills.length}`);
 console.log(`MCP bundle: ${buildInfo.version} built from ${buildInfo.entrypoint}`);
