@@ -86,6 +86,15 @@ carrying two manifests, because Codex reads `.codex-plugin/plugin.json` and
 Claude Code reads `.claude-plugin/plugin.json`; each ignores the other's. Both
 get the same server, the same 48 tools, and the same five NightVision skills.
 
+The two manifests declare the MCP server differently, and that is deliberate.
+Codex resolves a relative `cwd` against the plugin's install directory, so
+`.mcp.json` can say `./build/core/server.mjs` with `"cwd": "."`. Claude Code
+does not; a relative path there resolves against whatever project the user is
+in, so the server fails to start. The Claude manifest therefore locates the
+bundle with `${CLAUDE_PLUGIN_ROOT}`, which Codex in turn does not interpolate.
+`npm run plugin:validate` pins both forms, because this breaks only in a real
+install and not in any unit test.
+
 For Claude Code:
 
 ```bash

@@ -16,5 +16,13 @@
     "api-security",
     "openapi",
     "nightvision"
-  ]
+  ],
+  "mcpServers": {
+    "nightvision": {
+      "command": "node",
+      "args": [
+        "${CLAUDE_PLUGIN_ROOT}/build/core/server.mjs"
+      ]
+    }
+  }
 }

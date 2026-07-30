@@ -116,6 +116,23 @@ check(
   typeof claudeManifest.description === 'string' && claudeManifest.description.trim(),
   'Claude plugin manifest needs a description',
 );
+
+// The two agents cannot share one server config, and getting this wrong fails
+// only at runtime in a real install. Codex resolves a relative cwd against the
+// plugin root; Claude Code does not, and needs the root substituted. Claude
+// Code does not interpolate a bare relative path, and Codex does not
+// interpolate ${CLAUDE_PLUGIN_ROOT}, so each manifest carries its own.
+const claudeServer = claudeManifest.mcpServers?.nightvision;
+check(claudeServer?.command === 'node', 'Claude plugin MCP server must run with node');
+check(
+  JSON.stringify(claudeServer?.args) ===
+    JSON.stringify(['${CLAUDE_PLUGIN_ROOT}/build/core/server.mjs']),
+  'Claude plugin MCP server must locate the bundle via ${CLAUDE_PLUGIN_ROOT}, since a relative path resolves against the user project and fails to start',
+);
+check(
+  claudeServer?.cwd === undefined,
+  'Claude plugin MCP server must not set cwd; the substituted root already locates the bundle',
+);
 check(
   claudeMarketplace.name === 'nightvision',
   'Claude marketplace name must be nightvision',
