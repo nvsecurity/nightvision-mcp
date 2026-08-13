@@ -98,9 +98,12 @@ install and not in any unit test.
 For Claude Code:
 
 ```bash
-claude plugin marketplace add /path/to/nightvision-mcp
+claude plugin marketplace add https://github.com/nvsecurity/nightvision-mcp
 claude plugin install nightvision@nightvision
 ```
+
+Point `marketplace add` at a local checkout instead when you are developing
+against an unreleased change.
 
 For Codex, see below.
 
@@ -112,9 +115,13 @@ same server described above rather than a separate build.
 
 1. Add this repository as a plugin marketplace and install:
    ```bash
-   codex plugin marketplace add /path/to/nightvision-mcp
-   codex plugin install nightvision@nightvision
+   codex plugin marketplace add https://github.com/nvsecurity/nightvision-mcp
+   codex plugin add nightvision@nightvision
    ```
+
+   Codex names the install subcommand `add`, not `install`. Point
+   `marketplace add` at a local checkout instead when you are developing
+   against an unreleased change.
 
 2. Authenticate the NightVision CLI, which the plugin reuses:
    ```bash
@@ -134,8 +141,15 @@ your CLI is already configured for.
 To remove it:
 
 ```bash
-codex plugin uninstall nightvision
+codex plugin remove nightvision
 codex plugin marketplace remove nightvision
+```
+
+To pick up a newer release, refresh the marketplace snapshot and reinstall:
+
+```bash
+codex plugin marketplace upgrade nightvision
+codex plugin add nightvision@nightvision
 ```
 
 ### Using with Cursor
