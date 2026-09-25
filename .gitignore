@@ -44,8 +44,21 @@ coverage/
 .DS_Store
 Thumbs.db
 
-# Local review/analysis artifacts (never committed)
-analysis/
+# Local agent config and work products
+/.agent-sandbox-config/
+/.claude-sandbox-config/
+/.codex-sandbox-config/
+# Session-local Claude Code state (keep /.claude/skills/ tracked).
+/.claude/settings.local.json
+/.claude/*.lock
+/.claude/scheduled_tasks.lock
+/.claude/todos/
+/.claude/history.jsonl
+/analysis/
+# Scratch files an agent leaves at the repository root. Rooted so a legitimate
+# file of the same name deeper in the tree is unaffected.
+/prompt.txt
+/session-*.txt.gz
 
 # NightVision run artifacts (manifests, generated specs, exports). These are
 # produced at runtime and contain machine-local absolute paths; never commit them.
