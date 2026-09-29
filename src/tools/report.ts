@@ -141,7 +141,16 @@ export async function buildReport(
 
   let baseline: { scan: any; issues: any[] } | null = null;
   if (req.mode === 'compare') {
-    const baselineScan = req.baseline_scan_id ? await ds.getScan(req.baseline_scan_id) : await findBaselineScan(ds, scan);
+    let baselineScan: any | null;
+    if (req.baseline_scan_id) {
+      try {
+        baselineScan = await ds.getScan(req.baseline_scan_id);
+      } catch (error: any) {
+        throw new ReportBlocked('BASELINE_INVALID', `Cannot read baseline scan ${req.baseline_scan_id} (${error?.message ?? error}). Check the id, or omit baseline_scan_id to use the previous completed scan of the same target.`, 'baseline_invalid');
+      }
+    } else {
+      baselineScan = await findBaselineScan(ds, scan);
+    }
     if (req.baseline_scan_id) {
       const problem = baselineProblem(scan, baselineScan);
       if (problem) {
@@ -227,7 +236,13 @@ function headline(report: Report) {
     distinct_types: report.distinct_types,
     source_linked: report.scan.source_linked,
     comparison: report.comparison
-      ? { new: report.comparison.new_count, fixed: report.comparison.fixed_count, still_open: report.comparison.still_open_count }
+      ? {
+        new: report.comparison.new_count,
+        fixed: report.comparison.fixed_count,
+        still_open: report.comparison.still_open_count,
+        dismissed: report.comparison.dismissed_count,
+        below_threshold: report.comparison.below_threshold_count,
+      }
       : null,
     top_issue_types: report.top_findings.map((f) => ({ issue_type: f.name, severity: f.severity, endpoints: f.affected_paths })),
   };

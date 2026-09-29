@@ -1,10 +1,10 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { redactSecrets } from './redact.js';
+import { MAX_INPUT, redactSecrets } from './redact.js';
 import { esc, renderReportHtml } from './render-html.js';
 import { buildScanReport } from './model.js';
 import { chromePrintArgs, findChromeBinary, isCompletePdf, printHtmlToPdf } from './pdf.js';
-import { mkdtemp, readFile, rm, writeFile, chmod } from 'node:fs/promises';
+import { mkdtemp, readFile, readdir, rm, writeFile, chmod } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 
@@ -153,6 +153,91 @@ test('printHtmlToPdf replaces the output only with a complete PDF', { skip: proc
 
     await printHtmlToPdf(html, out, await fakeChrome(dir, '%PDF-1.7\nbody\n%%EOF\n'), 10_000);
     assert.equal(await readFile(out, 'utf8'), '%PDF-1.7\nbody\n%%EOF\n');
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+});
+
+test('redactSecrets stays linear on adversarial input', () => {
+  const inputs = [
+    ('-eyJ' + 'a'.repeat(8)).repeat(5000),
+    'password='.repeat(7000),
+    'token: "'.repeat(7000),
+    '-----BEGIN RSA PRIVATE KEY-----'.repeat(2000),
+    'eyJ' + 'a'.repeat(60000),
+    'Bearer ' + 'a'.repeat(60000),
+    'Cookie: ' + 'a=b; '.repeat(12000),
+    'x_'.repeat(30000) + 'password',
+  ];
+  for (const input of inputs) {
+    for (const mode of ['data', 'prose'] as const) {
+      const start = performance.now();
+      redactSecrets(input, mode);
+      const ms = performance.now() - start;
+      assert.ok(ms < 250, `${mode} took ${ms.toFixed(0)} ms on ${input.slice(0, 20)}...`);
+    }
+  }
+  assert.equal(redactSecrets('a'.repeat(MAX_INPUT + 10)).length, MAX_INPUT);
+});
+
+test('data mode masks framework login fields, cookies, and URL credentials', () => {
+  const leaks: Array<[string, string]> = [
+    ['j_username=admin&j_password=Hunter2!x', 'Hunter2!x'],
+    ['_username=a&_password=Hunter2!x', 'Hunter2!x'],
+    ['user%5Bemail%5D=a&user%5Bpassword%5D=Hunter2!x', 'Hunter2!x'],
+    ['password_confirmation=Hunter2!x', 'Hunter2!x'],
+    ['{"secretKey":"abcdef"}', 'abcdef'],
+    ['SECRET_KEY_BASE=abc123', 'abc123'],
+    ['aws_secret_access_key = wJalrXUtnFEMI', 'wJalrXUtnFEMI'],
+    ['DefaultEndpointsProtocol=https;AccountKey=Zm9vYmFy==;', 'Zm9vYmFy'],
+    ['Cookie: _ga=GA1.2.3; laravel_session=eyabc; remember_user_token=W1sxXQ', 'remember_user_token=W1sx'],
+    ['https://admin:S3cr3tP4ss@host.example/x', 'S3cr3tP4ss'],
+    ['mongodb://admin:p4ssw0rd@db:27017', 'p4ssw0rd'],
+    [`{"password":"${'x'.repeat(900)}"}`, 'xxxxxxxxxx'],
+    ['{"password":"ab\\"cdefgh1"}', 'cdefgh1'],
+    [`password = "it's a secret"`, 'a secret'],
+    ['letmein: password=correcthorse', 'correcthorse'],
+    ['{"accessToken":"4f3c2b1a0e9d8c7b6a5f"}', '4f3c2b1a'],
+    ['<input name="password" value="hunter2">', 'hunter2'],
+  ];
+  for (const [input, secret] of leaks) {
+    const out = redactSecrets(input, 'data');
+    assert.ok(!out.includes(secret), `${input} -> ${out}`);
+  }
+  // Cookie names and attributes survive: the flags are what the finding is about.
+  assert.equal(redactSecrets('Set-Cookie: sid=abc123def; Path=/; HttpOnly', 'data'), 'Set-Cookie: sid=[REDACTED]; Path=/; HttpOnly');
+});
+
+test('prose mode leaves scanner explanations readable', () => {
+  const prose = [
+    'A CSRF token: missing from the form.',
+    'The password: field allows autocomplete.',
+    'The token= parameter is reflected.',
+    'Session: the application does not rotate identifiers.',
+    'Recommendation for password: use bcrypt.',
+    'Authorization: missing checks allow horizontal escalation.',
+    'The session cookie is set without the Secure flag.',
+    'Configure session=strict mode.',
+  ];
+  for (const text of prose) assert.equal(redactSecrets(text, 'prose'), text);
+  assert.equal(redactSecrets('X-Amz-Security-Token: FwoGZXIvYXdzEBYaDHabcDEF', 'prose'), 'X-Amz-Security-Token: [REDACTED]');
+  const pemHeader = 'A private key header -----BEGIN RSA PRIVATE KEY----- was found. Remediation: rotate the key.';
+  assert.equal(redactSecrets(pemHeader, 'prose'), pemHeader);
+});
+
+test('printHtmlToPdf removes its temp folder on every failure path', { skip: process.platform === 'win32' }, async () => {
+  const dir = await mkdtemp(path.join(os.tmpdir(), 'nv-pdf-test-'));
+  const tmpRoot = path.join(dir, 'tmp');
+  await (await import('node:fs/promises')).mkdir(tmpRoot);
+  try {
+    const html = path.join(dir, 'r.html');
+    await writeFile(html, '<p>x</p>');
+    await assert.rejects(printHtmlToPdf(html, path.join(dir, 'a.pdf'), path.join(dir, 'missing-browser'), 5_000, tmpRoot), /Could not start/);
+    const hang = path.join(dir, 'hang.mjs');
+    await writeFile(hang, '#!/usr/bin/env node\nsetInterval(() => {}, 1000);\n');
+    await chmod(hang, 0o755);
+    await assert.rejects(printHtmlToPdf(html, path.join(dir, 'b.pdf'), hang, 1_000, tmpRoot), /did not finish printing/);
+    assert.deepEqual(await readdir(tmpRoot), []);
   } finally {
     await rm(dir, { recursive: true, force: true });
   }

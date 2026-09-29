@@ -217,7 +217,9 @@ function comparisonSection(report: ScanReport): string {
       <h3>Fixed since the previous scan</h3>
       ${list(c.fixed_findings, 'None.')}${more(c.fixed_findings.length, c.fixed_count)}
       ${c.dismissed_count ? `<p class="fine">${plural(c.dismissed_count, 'finding')} from the previous scan ${c.dismissed_count === 1 ? 'is' : 'are'} still reported but now marked resolved or false positive, so ${c.dismissed_count === 1 ? 'it is' : 'they are'} not counted as fixed.</p>` : ''}
-      <p class="fine">Baseline scan <code>${esc(c.baseline_scan_id)}</code>. Findings are matched by issue type, endpoint, and parameter.</p>
+      ${c.below_threshold_count ? `<p class="fine">${plural(c.below_threshold_count, 'finding')} from the previous scan ${c.below_threshold_count === 1 ? 'is' : 'are'} still reported at a severity below this report's threshold, so ${c.below_threshold_count === 1 ? 'it is' : 'they are'} not counted as fixed.</p>` : ''}
+      <p class="fine">Counts are distinct findings, matched by issue type, endpoint, and parameter.</p>
+      <p class="fine">Baseline scan <code>${esc(c.baseline_scan_id)}</code>.</p>
     </section>`;
 }
 

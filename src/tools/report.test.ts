@@ -215,3 +215,11 @@ test('scan selection does not depend on the API returning newest first', async (
   const { scans } = await latestScansPerTarget(ds, 'p-1');
   assert.deepEqual(scans.map((s) => s.id), ['cur']);
 });
+
+test('an unknown baseline_scan_id is a BASELINE_INVALID blocker, not a generic failure', async () => {
+  const ds = fakeSource({ getScan: async (id) => { if (id === 'nope') throw new Error('404 not found'); return ok(id, '2026-09-29T10:00:00Z'); } });
+  await assert.rejects(
+    buildReport(request({ mode: 'compare', scan_id: 'cur', baseline_scan_id: 'nope' }), ds, '/nowhere', new Date()),
+    (err: any) => err.code === 'BASELINE_INVALID',
+  );
+});

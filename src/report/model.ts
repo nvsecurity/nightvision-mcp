@@ -7,7 +7,7 @@
  * (payloads, evidence, reflected paths, LLM explanations of that content). The
  * model keeps it as plain strings; the renderer is responsible for escaping.
  */
-import { redactSecrets } from './redact.js';
+import { redactSecrets, type RedactMode } from './redact.js';
 
 export type Severity = 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW' | 'INFO' | 'UNSPECIFIED';
 
@@ -110,6 +110,8 @@ export interface Comparison {
   fixed_count: number;
   /** Still reported by the scanner but marked resolved/false positive since the baseline. */
   dismissed_count: number;
+  /** Still reported by the scanner but now below the report's severity threshold. */
+  below_threshold_count: number;
   still_open_count: number;
   new_by_severity: SeverityCounts;
   new_findings: ComparisonEntry[];
@@ -226,15 +228,15 @@ export function safeMethod(value: unknown): string {
 }
 
 /** Redact first, then truncate: a secret cut in half no longer matches the patterns. */
-function clean(text: string | null | undefined, limit: number, includeEvidence: boolean): string | null {
+function clean(text: string | null | undefined, limit: number, includeEvidence: boolean, mode: RedactMode = 'data'): string | null {
   if (text === null || text === undefined) return null;
-  return truncate(includeEvidence ? String(text) : redactSecrets(String(text)), limit);
+  return truncate(includeEvidence ? String(text) : redactSecrets(String(text), mode), limit);
 }
 
 /** Apply secret redaction unless the caller opted into raw evidence. */
 function scrub(text: string | null, includeEvidence: boolean): string | null {
   if (text === null) return null;
-  return includeEvidence ? text : redactSecrets(text);
+  return includeEvidence ? text : redactSecrets(text, 'data');
 }
 
 function kindKey(issue: any): string {
@@ -276,7 +278,7 @@ export function buildCurl(issue: any, targetUrl: string | null, includeEvidence 
     const base = (targetUrl || (issue?.fqdn ? `https://${issue.fqdn}` : '')).replace(/\/+$/, '');
     url = `${base}${issue?.url_path ?? ''}`;
   }
-  if (!includeEvidence) url = redactSecrets(url);
+  if (!includeEvidence) url = redactSecrets(url, 'data');
   const parts = ['curl -i', `-X ${method}`, '--', shellQuote(url)];
   const headers: Array<{ name?: string; value?: string }> = Array.isArray(req?.headers) ? req.headers : [];
   const contentType = headers.find((h) => String(h?.name).toLowerCase() === 'content-type')?.value;
@@ -426,7 +428,7 @@ export function groupFindings(
       severity,
       engine: first?.extra_info?.tool_name ? String(first.extra_info.tool_name) : null,
       taxonomy: taxonomyOf(first),
-      explanation: clean(explanationSource, EXPLANATION_LIMIT[severity], opts.includeEvidence),
+      explanation: clean(explanationSource, EXPLANATION_LIMIT[severity], opts.includeEvidence, 'prose'),
       remediation_note: noteFor(name, kindId === null || kindId === undefined ? null : Number(kindId)),
       occurrence_total: list.length,
       affected_paths: new Set(list.map((i) => `${i?.http_method}|${i?.url_path}`)).size,
@@ -457,13 +459,25 @@ function compareEntries(a: ComparisonEntry, b: ComparisonEntry): number {
   return severityRank(a.severity) - severityRank(b.severity) || a.name.localeCompare(b.name) || a.path.localeCompare(b.path);
 }
 
+/** First issue per occurrence key, so counts are over distinct findings. */
+function byKey(issues: any[]): Map<string, any> {
+  const map = new Map<string, any>();
+  for (const i of issues) {
+    const key = occurrenceKey(i);
+    if (!map.has(key)) map.set(key, i);
+  }
+  return map;
+}
+
 /**
- * Diff two scans by type + endpoint + parameter. `currentKept` and
+ * Diff two scans by distinct type + endpoint + parameter. `currentKept` and
  * `baselineKept` are the open findings after the same filterIssues call, so a
  * severity floor applies equally to both sides. `currentAll` is the current
- * scan's unfiltered list: a baseline finding that is still reported but was
- * marked resolved or false positive is "dismissed", not "fixed", because the
- * scanner still sees it.
+ * scan's unfiltered list, used to tell apart a baseline finding that really
+ * disappeared (fixed) from one the scanner still reports but that was marked
+ * resolved/false positive (dismissed) or now falls below the severity
+ * threshold (below_threshold). Every baseline finding lands in exactly one of
+ * still_open, fixed, dismissed, below_threshold.
  */
 export function compareScans(
   currentKept: any[],
@@ -472,19 +486,32 @@ export function compareScans(
   currentAll: any[] = currentKept,
   includeEvidence = false,
 ): Comparison {
-  const baselineKeys = new Set(baselineKept.map(occurrenceKey));
-  const currentOpenKeys = new Set(currentKept.map(occurrenceKey));
-  const currentAnyKeys = new Set(currentAll.map(occurrenceKey));
-  const added = currentKept.filter((i) => !baselineKeys.has(occurrenceKey(i)));
-  const gone = baselineKept.filter((i) => !currentOpenKeys.has(occurrenceKey(i)));
-  const fixed = gone.filter((i) => !currentAnyKeys.has(occurrenceKey(i)));
+  const current = byKey(currentKept);
+  const baseline = byKey(baselineKept);
+  const all = byKey(currentAll);
+  const added = [...current.entries()].filter(([k]) => !baseline.has(k)).map(([, i]) => i);
+  const fixed: any[] = [];
+  let dismissed = 0;
+  let belowThreshold = 0;
+  let stillOpen = 0;
+  for (const [key, issue] of baseline) {
+    if (current.has(key)) {
+      stillOpen += 1;
+      continue;
+    }
+    const later = all.get(key);
+    if (!later) fixed.push(issue);
+    else if (later?.resolution !== undefined && later?.resolution !== null && Number(later.resolution) !== 0) dismissed += 1;
+    else belowThreshold += 1;
+  }
   return {
     baseline_scan_id: String(baselineScan?.id ?? ''),
     baseline_started_at: baselineScan?.started_at ?? baselineScan?.created_at ?? null,
     new_count: added.length,
     fixed_count: fixed.length,
-    dismissed_count: gone.length - fixed.length,
-    still_open_count: currentKept.length - added.length,
+    dismissed_count: dismissed,
+    below_threshold_count: belowThreshold,
+    still_open_count: stillOpen,
     new_by_severity: countBySeverity(added),
     new_findings: added.map((i) => toEntry(i, includeEvidence)).sort(compareEntries).slice(0, COMPARISON_LIST_LIMIT),
     fixed_findings: fixed.map((i) => toEntry(i, includeEvidence)).sort(compareEntries).slice(0, COMPARISON_LIST_LIMIT),

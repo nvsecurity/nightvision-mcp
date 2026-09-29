@@ -55803,7 +55803,8 @@ async function findBaselineScan(ds, scan) {
   return best;
 }
 function baselineProblem(scan, baseline) {
-  if (!baseline || baseline?.id === scan?.id) return "the baseline is the same scan";
+  if (!baseline) return "the baseline scan was not found";
+  if (baseline?.id === scan?.id) return "the baseline is the same scan";
   const targetOf = (s) => String(s?.target_id || s?.target?.id || "");
   if (targetOf(scan) && targetOf(baseline) && targetOf(scan) !== targetOf(baseline)) return "the baseline scanned a different target";
   if (createdAt(baseline) >= createdAt(scan)) return "the baseline is not older than the scan";
@@ -55847,6 +55848,7 @@ async function collectSourceLinks(ds, scanId, specFile) {
 
 // src/report/redact.ts
 var MASK = "[REDACTED]";
+var MAX_INPUT = 64 * 1024;
 var SECRET_KEYS = [
   "password",
   "passwd",
@@ -55854,54 +55856,84 @@ var SECRET_KEYS = [
   "pass",
   "passphrase",
   "secret",
-  "client[_-]?secret",
   "private[_-]?key",
-  "api[_-]?key",
+  "(?:access|account|secret|api|auth)[_-]?key",
   "apikey",
-  "x-api-key",
+  "key",
   "token",
-  "access[_-]?token",
-  "refresh[_-]?token",
-  "id[_-]?token",
-  "auth[_-]?token",
-  "csrf[_-]?token",
+  "(?:access|refresh|id|auth|csrf|xsrf|session|bearer)[_-]?token",
+  "client[_-]?secret",
   "jwt",
+  "sig",
+  "signature",
+  "code",
   "session",
-  "session[_-]?id",
-  "sessionid",
   "sid",
   "phpsessid",
   "jsessionid",
-  "connect\\.sid",
-  "authorization",
-  "cookie",
   "credentials?"
 ].join("|");
-var PATTERNS = [
-  // PEM private keys, whole block or a block cut off before its END line.
-  [/-----BEGIN [A-Z ]*PRIVATE KEY-----[\s\S]*?(?:-----END [A-Z ]*PRIVATE KEY-----|$)/g, MASK],
-  // JSON Web Tokens (two or three segments, so a trailing cut still matches).
-  [/\beyJ[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}(?:\.[A-Za-z0-9_-]*)?/g, MASK],
-  // AWS access key ids.
+var KEY = `(?<![A-Za-z0-9])(?:[A-Za-z0-9_.\\-\\[\\]]{0,40}(?:[_.\\-\\[]|%5[Bb]))?(?:${SECRET_KEYS})(?:[A-Za-z0-9_.\\-\\]]|%5[Dd]){0,40}`;
+var SEP = `["']?\\s{0,5}[:=]\\s{0,5}`;
+var QUOTED_DATA = `(["'])(?:\\\\.|(?!\\2)[^\\\\\\n])*(?:\\2|(?=\\n)|$)`;
+var UNQUOTED_DATA = `(?!["'])[^\\s&,;}<>)"'\\]]+`;
+var V = `[^\\s&,;}<>)"']`;
+var SECRETISH = `(?:(?=${V}{0,200}[0-9!@#$%^*+/=_\\-])${V}{6,}|(?=${V}{0,200}[A-Z])(?=${V}{0,200}[a-z])${V}{16,})`;
+var COMMON = [
+  // PEM private keys: header plus base64 body (END line optional, so a cut-off
+  // key is still masked). A header quoted alone in prose is left as is.
+  [/-----BEGIN [A-Z ]{0,40}PRIVATE KEY-----(?:\s{0,4}[A-Za-z0-9+/=]{16,}){1,400}(?:\s{0,4}-----END [A-Z ]{0,40}PRIVATE KEY-----)?/g, MASK],
+  // JSON Web Tokens (two or three segments). The lookbehind excludes "-", so a
+  // long run of "-eyJ..." cannot restart the match at every dash.
+  [/(?<![A-Za-z0-9_-])eyJ[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}(?:\.[A-Za-z0-9_-]*)?/g, MASK],
+  // Credentials embedded in a URL: scheme://user:secret@host
+  [/\b([a-z][a-z0-9+.-]{0,20}:\/\/[^/\s:@]{1,100}:)[^@\s/]{1,200}@/gi, `$1${MASK}@`],
+  // Provider keys.
   [/\b(?:AKIA|ASIA)[0-9A-Z]{16}\b/g, MASK],
-  // GitHub, Slack, Stripe, Google API keys.
   [/\bgh[pousr]_[A-Za-z0-9]{30,}\b/g, MASK],
-  [/\bxox[abposr]-[A-Za-z0-9-]{10,}\b/g, MASK],
-  [/\b[rs]k_(?:live|test)_[A-Za-z0-9]{16,}\b/g, MASK],
+  [/\bgithub_pat_[A-Za-z0-9_]{22,}/g, MASK],
+  [/\bglpat-[A-Za-z0-9_-]{20,}/g, MASK],
+  [/\bxox[abposr]-[A-Za-z0-9-]{10,}/g, MASK],
+  [/\b[rs]k_(?:live|test)_[A-Za-z0-9]{16,}/g, MASK],
+  [/\bsk-(?:proj|ant)-[A-Za-z0-9_-]{20,}/g, MASK],
   [/\bAIza[0-9A-Za-z_-]{35}\b/g, MASK],
-  // Authorization / Proxy-Authorization header values, whole line (scheme and credential).
-  [/((?:Proxy-)?Authorization\s*:\s*)[^\r\n]+/gi, `$1${MASK}`],
-  // Authorization schemes. Case-sensitive and the value must contain a digit,
-  // so prose like "Basic authentication over HTTP" is left alone.
-  [/\b(Bearer|Basic|Token)\s+(?=[A-Za-z._~+/=-]*[0-9])[A-Za-z0-9._~+/=-]{12,}/g, `$1 ${MASK}`],
-  // "key": "quoted value" (value may contain spaces).
-  [new RegExp(`((?<![A-Za-z0-9_])(?:${SECRET_KEYS})["']?\\s*[:=]\\s*)(["'])[^"'\\n]{1,500}?\\2`, "gi"), `$1$2${MASK}$2`],
-  // key=value / key: value, unquoted.
-  [new RegExp(`((?<![A-Za-z0-9_])(?:${SECRET_KEYS})\\s*[:=]\\s*)(?!["'\\[])([^\\s"'&,;}<>)]{3,})`, "gim"), `$1${MASK}`]
+  [/\bya29\.[A-Za-z0-9_-]{20,}/g, MASK],
+  // Authorization header values, only when they look like credentials, so an
+  // explanation headed "Authorization: missing checks ..." survives.
+  [/((?:Proxy-)?[Aa]uthorization\s{0,5}:\s{0,5})(?:(?:Bearer|Basic|Digest|Negotiate|NTLM|Token|ApiKey|AWS4-HMAC-SHA256)\s+[^\r\n]+|(?=[^\s]{0,200}[0-9])[^\s]{16,})/g, `$1${MASK}`],
+  // Scheme + credential outside a header. Case-sensitive, and the value must
+  // contain a digit or symbol, so "Basic authentication" stays readable.
+  [/\b(Bearer|Basic|Token)\s+(?=[A-Za-z]{0,200}[0-9._~+/=-])[A-Za-z0-9._~+/=-]{12,}/g, `$1 ${MASK}`],
+  // Form fields carrying passwords or CSRF/session tokens.
+  [/(name=["'][^"'>]{0,60}(?:csrf|token|session|pass|pwd|secret)[^"'>]{0,60}["'][^>]{0,100}?value=["'])[^"']{1,4000}/gi, `$1${MASK}`]
 ];
-function redactSecrets(text) {
-  let out = text;
-  for (const [pattern, replacement] of PATTERNS) out = out.replace(pattern, replacement);
+var COOKIE_ATTRIBUTES = /* @__PURE__ */ new Set(["path", "domain", "expires", "max-age", "samesite", "priority", "partitioned"]);
+function maskCookieHeaders(text) {
+  return text.replace(/((?:Set-)?Cookie\s{0,5}:\s{0,5})([^\r\n]{1,8000})/gi, (_m, head, rest) => {
+    if (!rest.includes("=")) return `${head}${rest}`;
+    const masked = rest.replace(/(^|;\s{0,5})([^=;\s]{1,200})=([^;\r\n]{0,4000})/g, (_p, lead, name, value) => COOKIE_ATTRIBUTES.has(name.toLowerCase()) || value.length === 0 ? `${lead}${name}=${value}` : `${lead}${name}=${MASK}`);
+    return `${head}${masked}`;
+  });
+}
+var NOT_MASKED = `(?!\\[REDACTED\\])`;
+var KEY_VALUE = {
+  data: [
+    [new RegExp(`(${KEY}${SEP})${NOT_MASKED}${QUOTED_DATA}`, "gi"), `$1$2${MASK}$2`],
+    [new RegExp(`(${KEY}${SEP})${NOT_MASKED}${UNQUOTED_DATA}`, "gi"), `$1${MASK}`]
+  ],
+  prose: [
+    // A quoted JSON key ("password": "...") is machine text quoted inside an
+    // explanation, so its value is masked whatever it looks like.
+    [new RegExp(`("${KEY}"\\s{0,5}:\\s{0,5})${NOT_MASKED}"(?:\\\\.|[^"\\\\\\n])*"`, "gi"), `$1"${MASK}"`],
+    [new RegExp(`(${KEY}${SEP})${NOT_MASKED}(["'])(?=[^"'\\s]{0,200}[0-9!@#$%^*+/=_\\-])[^"'\\s]{6,}\\2`, "gi"), `$1$2${MASK}$2`],
+    [new RegExp(`(${KEY}${SEP})${NOT_MASKED}${SECRETISH}`, "gi"), `$1${MASK}`]
+  ]
+};
+function redactSecrets(text, mode = "prose") {
+  let out = text.length > MAX_INPUT ? text.slice(0, MAX_INPUT) : text;
+  for (const [pattern, replacement] of COMMON) out = out.replace(pattern, replacement);
+  out = maskCookieHeaders(out);
+  for (const [pattern, replacement] of KEY_VALUE[mode]) out = out.replace(pattern, replacement);
   return out;
 }
 
@@ -55948,13 +55980,13 @@ function safeMethod(value) {
   const m = String(value ?? "").trim().toUpperCase();
   return /^[A-Z]{1,20}$/.test(m) ? m : "GET";
 }
-function clean(text, limit, includeEvidence) {
+function clean(text, limit, includeEvidence, mode = "data") {
   if (text === null || text === void 0) return null;
-  return truncate(includeEvidence ? String(text) : redactSecrets(String(text)), limit);
+  return truncate(includeEvidence ? String(text) : redactSecrets(String(text), mode), limit);
 }
 function scrub(text, includeEvidence) {
   if (text === null) return null;
-  return includeEvidence ? text : redactSecrets(text);
+  return includeEvidence ? text : redactSecrets(text, "data");
 }
 function kindKey(issue2) {
   if (issue2?.kind_id !== null && issue2?.kind_id !== void 0) return `kind:${issue2.kind_id}`;
@@ -55984,7 +56016,7 @@ function buildCurl(issue2, targetUrl, includeEvidence = true) {
     const base = (targetUrl || (issue2?.fqdn ? `https://${issue2.fqdn}` : "")).replace(/\/+$/, "");
     url3 = `${base}${issue2?.url_path ?? ""}`;
   }
-  if (!includeEvidence) url3 = redactSecrets(url3);
+  if (!includeEvidence) url3 = redactSecrets(url3, "data");
   const parts = ["curl -i", `-X ${method}`, "--", shellQuote(url3)];
   const headers = Array.isArray(req?.headers) ? req.headers : [];
   const contentType = headers.find((h) => String(h?.name).toLowerCase() === "content-type")?.value;
@@ -56046,13 +56078,13 @@ function filterIssues(issues, minSeverity) {
   return { kept, exclusions };
 }
 function noteLookup(notes) {
-  const byKey = /* @__PURE__ */ new Map();
+  const byKey2 = /* @__PURE__ */ new Map();
   for (const n of notes ?? []) {
     const key = String(n?.issue_type ?? "").trim().toLowerCase();
     const note = String(n?.note ?? "").trim();
-    if (key && note) byKey.set(key, truncate(note, NOTE_LIMIT));
+    if (key && note) byKey2.set(key, truncate(note, NOTE_LIMIT));
   }
-  return (name, kindId) => byKey.get(name.trim().toLowerCase()) ?? (kindId !== null ? byKey.get(String(kindId)) ?? null : null);
+  return (name, kindId) => byKey2.get(name.trim().toLowerCase()) ?? (kindId !== null ? byKey2.get(String(kindId)) ?? null : null);
 }
 function compareFindings(a, b) {
   return severityRank(a.severity) - severityRank(b.severity) || b.occurrence_total - a.occurrence_total || a.name.localeCompare(b.name);
@@ -56100,7 +56132,7 @@ function groupFindings(issues, opts, targetUrl, sourceLinks) {
       severity,
       engine: first?.extra_info?.tool_name ? String(first.extra_info.tool_name) : null,
       taxonomy: taxonomyOf(first),
-      explanation: clean(explanationSource, EXPLANATION_LIMIT[severity], opts.includeEvidence),
+      explanation: clean(explanationSource, EXPLANATION_LIMIT[severity], opts.includeEvidence, "prose"),
       remediation_note: noteFor(name, kindId === null || kindId === void 0 ? null : Number(kindId)),
       occurrence_total: list.length,
       affected_paths: new Set(list.map((i) => `${i?.http_method}|${i?.url_path}`)).size,
@@ -56127,20 +56159,41 @@ function toEntry(issue2, includeEvidence) {
 function compareEntries(a, b) {
   return severityRank(a.severity) - severityRank(b.severity) || a.name.localeCompare(b.name) || a.path.localeCompare(b.path);
 }
+function byKey(issues) {
+  const map2 = /* @__PURE__ */ new Map();
+  for (const i of issues) {
+    const key = occurrenceKey(i);
+    if (!map2.has(key)) map2.set(key, i);
+  }
+  return map2;
+}
 function compareScans(currentKept, baselineKept, baselineScan, currentAll = currentKept, includeEvidence = false) {
-  const baselineKeys = new Set(baselineKept.map(occurrenceKey));
-  const currentOpenKeys = new Set(currentKept.map(occurrenceKey));
-  const currentAnyKeys = new Set(currentAll.map(occurrenceKey));
-  const added = currentKept.filter((i) => !baselineKeys.has(occurrenceKey(i)));
-  const gone = baselineKept.filter((i) => !currentOpenKeys.has(occurrenceKey(i)));
-  const fixed = gone.filter((i) => !currentAnyKeys.has(occurrenceKey(i)));
+  const current = byKey(currentKept);
+  const baseline = byKey(baselineKept);
+  const all3 = byKey(currentAll);
+  const added = [...current.entries()].filter(([k]) => !baseline.has(k)).map(([, i]) => i);
+  const fixed = [];
+  let dismissed = 0;
+  let belowThreshold = 0;
+  let stillOpen = 0;
+  for (const [key, issue2] of baseline) {
+    if (current.has(key)) {
+      stillOpen += 1;
+      continue;
+    }
+    const later = all3.get(key);
+    if (!later) fixed.push(issue2);
+    else if (later?.resolution !== void 0 && later?.resolution !== null && Number(later.resolution) !== 0) dismissed += 1;
+    else belowThreshold += 1;
+  }
   return {
     baseline_scan_id: String(baselineScan?.id ?? ""),
     baseline_started_at: baselineScan?.started_at ?? baselineScan?.created_at ?? null,
     new_count: added.length,
     fixed_count: fixed.length,
-    dismissed_count: gone.length - fixed.length,
-    still_open_count: currentKept.length - added.length,
+    dismissed_count: dismissed,
+    below_threshold_count: belowThreshold,
+    still_open_count: stillOpen,
     new_by_severity: countBySeverity(added),
     new_findings: added.map((i) => toEntry(i, includeEvidence)).sort(compareEntries).slice(0, COMPARISON_LIST_LIMIT),
     fixed_findings: fixed.map((i) => toEntry(i, includeEvidence)).sort(compareEntries).slice(0, COMPARISON_LIST_LIMIT)
@@ -56378,49 +56431,49 @@ async function stopBrowser(child, state) {
     await waitForExit(child, state, 2e3);
   }
 }
-async function printHtmlToPdf(htmlPath, pdfPath, chromePath, timeoutMs = 6e4) {
-  const workDir = await mkdtemp2(path13.join(os5.tmpdir(), "nightvision-report-chrome-"));
-  const profileDir = path13.join(workDir, "profile");
-  const tempPdf = path13.join(workDir, "report.pdf");
-  const state = { exited: false };
-  let spawnError = null;
-  let child = null;
+async function printHtmlToPdf(htmlPath, pdfPath, chromePath, timeoutMs = 6e4, tmpRoot = os5.tmpdir()) {
+  const workDir = await mkdtemp2(path13.join(tmpRoot, "nightvision-report-chrome-"));
   try {
-    const runningAsRoot = typeof process.getuid === "function" && process.getuid() === 0;
-    child = spawn2(chromePath, chromePrintArgs(htmlPath, tempPdf, profileDir, runningAsRoot), {
-      stdio: "ignore",
-      windowsHide: true
-    });
-    child.on("exit", () => {
-      state.exited = true;
-    });
-    child.on("error", (err) => {
-      spawnError = err;
-      state.exited = true;
-    });
-    const deadline = Date.now() + timeoutMs;
-    let last = -1;
-    let done = false;
-    while (Date.now() < deadline) {
-      if (state.exited) {
-        done = true;
-        break;
+    const profileDir = path13.join(workDir, "profile");
+    const tempPdf = path13.join(workDir, "report.pdf");
+    const state = { exited: false };
+    let spawnError = null;
+    let child = null;
+    try {
+      const runningAsRoot = typeof process.getuid === "function" && process.getuid() === 0;
+      child = spawn2(chromePath, chromePrintArgs(htmlPath, tempPdf, profileDir, runningAsRoot), {
+        stdio: "ignore",
+        windowsHide: true
+      });
+      child.on("exit", () => {
+        state.exited = true;
+      });
+      child.on("error", (err) => {
+        spawnError = err;
+        state.exited = true;
+      });
+      const deadline = Date.now() + timeoutMs;
+      let last = -1;
+      let done = false;
+      while (Date.now() < deadline) {
+        if (state.exited) {
+          done = true;
+          break;
+        }
+        const size = await fileSize(tempPdf);
+        if (size > 0 && size === last && await isCompletePdf(tempPdf)) {
+          await waitForExit(child, state, 2e3);
+          done = true;
+          break;
+        }
+        last = size;
+        await sleep4(500);
       }
-      const size = await fileSize(tempPdf);
-      if (size > 0 && size === last && await isCompletePdf(tempPdf)) {
-        await waitForExit(child, state, 2e3);
-        done = true;
-        break;
-      }
-      last = size;
-      await sleep4(500);
+      if (spawnError) throw new Error(`Could not start ${chromePath}: ${spawnError.message}`);
+      if (!done) throw new Error(`The browser did not finish printing within ${Math.round(timeoutMs / 1e3)} seconds.`);
+    } finally {
+      if (child) await stopBrowser(child, state);
     }
-    if (spawnError) throw new Error(`Could not start ${chromePath}: ${spawnError.message}`);
-    if (!done) throw new Error(`The browser did not finish printing within ${Math.round(timeoutMs / 1e3)} seconds.`);
-  } finally {
-    if (child) await stopBrowser(child, state);
-  }
-  try {
     if (await fileSize(tempPdf) === 0) throw new Error("The browser exited without writing a PDF.");
     if (!await isCompletePdf(tempPdf)) throw new Error("The browser wrote an incomplete or invalid PDF.");
     await copyFile(tempPdf, pdfPath);
@@ -56599,7 +56652,9 @@ function comparisonSection(report) {
       <h3>Fixed since the previous scan</h3>
       ${list(c.fixed_findings, "None.")}${more(c.fixed_findings.length, c.fixed_count)}
       ${c.dismissed_count ? `<p class="fine">${plural(c.dismissed_count, "finding")} from the previous scan ${c.dismissed_count === 1 ? "is" : "are"} still reported but now marked resolved or false positive, so ${c.dismissed_count === 1 ? "it is" : "they are"} not counted as fixed.</p>` : ""}
-      <p class="fine">Baseline scan <code>${esc2(c.baseline_scan_id)}</code>. Findings are matched by issue type, endpoint, and parameter.</p>
+      ${c.below_threshold_count ? `<p class="fine">${plural(c.below_threshold_count, "finding")} from the previous scan ${c.below_threshold_count === 1 ? "is" : "are"} still reported at a severity below this report's threshold, so ${c.below_threshold_count === 1 ? "it is" : "they are"} not counted as fixed.</p>` : ""}
+      <p class="fine">Counts are distinct findings, matched by issue type, endpoint, and parameter.</p>
+      <p class="fine">Baseline scan <code>${esc2(c.baseline_scan_id)}</code>.</p>
     </section>`;
 }
 function findingBlock(f, includeEvidence) {
@@ -56905,7 +56960,16 @@ async function buildReport(req, ds, baseDir, now) {
   if (discovered?.ambiguous) warnings.push(`Multiple OpenAPI specs were found under .nightvision; ${path14.basename(discovered.path)} was used for source linking. Pass swagger_file to choose.`);
   let baseline = null;
   if (req.mode === "compare") {
-    const baselineScan = req.baseline_scan_id ? await ds.getScan(req.baseline_scan_id) : await findBaselineScan(ds, scan);
+    let baselineScan;
+    if (req.baseline_scan_id) {
+      try {
+        baselineScan = await ds.getScan(req.baseline_scan_id);
+      } catch (error51) {
+        throw new ReportBlocked("BASELINE_INVALID", `Cannot read baseline scan ${req.baseline_scan_id} (${error51?.message ?? error51}). Check the id, or omit baseline_scan_id to use the previous completed scan of the same target.`, "baseline_invalid");
+      }
+    } else {
+      baselineScan = await findBaselineScan(ds, scan);
+    }
     if (req.baseline_scan_id) {
       const problem = baselineProblem(scan, baselineScan);
       if (problem) {
@@ -56983,7 +57047,13 @@ function headline(report) {
     total_open: report.total_open,
     distinct_types: report.distinct_types,
     source_linked: report.scan.source_linked,
-    comparison: report.comparison ? { new: report.comparison.new_count, fixed: report.comparison.fixed_count, still_open: report.comparison.still_open_count } : null,
+    comparison: report.comparison ? {
+      new: report.comparison.new_count,
+      fixed: report.comparison.fixed_count,
+      still_open: report.comparison.still_open_count,
+      dismissed: report.comparison.dismissed_count,
+      below_threshold: report.comparison.below_threshold_count
+    } : null,
     top_issue_types: report.top_findings.map((f) => ({ issue_type: f.name, severity: f.severity, endpoints: f.affected_paths }))
   };
 }

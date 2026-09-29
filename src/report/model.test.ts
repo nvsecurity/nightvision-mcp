@@ -269,3 +269,32 @@ test('compare mode counts a finding marked false positive as dismissed, not fixe
   assert.equal(c.dismissed_count, 1);
   assert.equal(c.still_open_count, 1);
 });
+
+test('compare mode: a finding now below the threshold is neither fixed nor dismissed', () => {
+  const report = buildScanReport({
+    scan: SCAN,
+    issues: [issue({ url_path: '/x', severity: 'LOW' })],
+    pathsTested: null,
+    specFile: null,
+    sourceLinks: new Map(),
+    baseline: { scan: { id: 'scan-1' }, issues: [issue({ url_path: '/x', severity: 'HIGH' })] },
+    options: opts({ minSeverity: 'high' }),
+  });
+  const c = report.comparison!;
+  assert.deepEqual([c.new_count, c.fixed_count, c.dismissed_count, c.below_threshold_count, c.still_open_count], [0, 0, 0, 1, 0]);
+});
+
+test('compare mode counts distinct findings so baseline buckets reconcile', () => {
+  const report = buildScanReport({
+    scan: SCAN,
+    issues: [issue({ url_path: '/dup', payload: 'a' }), issue({ url_path: '/dup', payload: 'b' })],
+    pathsTested: null,
+    specFile: null,
+    sourceLinks: new Map(),
+    baseline: { scan: { id: 'scan-1' }, issues: [issue({ url_path: '/dup' }), issue({ url_path: '/gone' })] },
+    options: opts(),
+  });
+  const c = report.comparison!;
+  assert.equal(c.still_open_count + c.fixed_count + c.dismissed_count + c.below_threshold_count, 2);
+  assert.deepEqual([c.still_open_count, c.fixed_count, c.new_count], [1, 1, 0]);
+});

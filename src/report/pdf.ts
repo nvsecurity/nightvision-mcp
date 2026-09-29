@@ -173,50 +173,53 @@ export async function printHtmlToPdf(
   pdfPath: string,
   chromePath: string,
   timeoutMs = 60_000,
+  tmpRoot: string = os.tmpdir(),
 ): Promise<void> {
-  const workDir = await mkdtemp(path.join(os.tmpdir(), 'nightvision-report-chrome-'));
-  const profileDir = path.join(workDir, 'profile');
-  const tempPdf = path.join(workDir, 'report.pdf');
-  const state = { exited: false };
-  let spawnError: Error | null = null;
-  let child: ChildProcess | null = null;
+  const workDir = await mkdtemp(path.join(tmpRoot, 'nightvision-report-chrome-'));
+  // One cleanup for every exit path: spawn failure, timeout, invalid PDF, success.
   try {
-    const runningAsRoot = typeof process.getuid === 'function' && process.getuid() === 0;
-    child = spawn(chromePath, chromePrintArgs(htmlPath, tempPdf, profileDir, runningAsRoot), {
-      stdio: 'ignore',
-      windowsHide: true,
-    });
-    child.on('exit', () => { state.exited = true; });
-    child.on('error', (err) => { spawnError = err; state.exited = true; });
+    const profileDir = path.join(workDir, 'profile');
+    const tempPdf = path.join(workDir, 'report.pdf');
+    const state = { exited: false };
+    let spawnError: Error | null = null;
+    let child: ChildProcess | null = null;
+    try {
+      const runningAsRoot = typeof process.getuid === 'function' && process.getuid() === 0;
+      child = spawn(chromePath, chromePrintArgs(htmlPath, tempPdf, profileDir, runningAsRoot), {
+        stdio: 'ignore',
+        windowsHide: true,
+      });
+      child.on('exit', () => { state.exited = true; });
+      child.on('error', (err) => { spawnError = err; state.exited = true; });
 
-    // Chrome exiting is the normal completion signal. headless=new sometimes
-    // lingers after writing, so a PDF that is complete and has stopped growing
-    // also counts; a partial file never does.
-    const deadline = Date.now() + timeoutMs;
-    let last = -1;
-    let done = false;
-    while (Date.now() < deadline) {
-      if (state.exited) {
-        done = true;
-        break;
+      // Chrome exiting is the normal completion signal. headless=new sometimes
+      // lingers after writing, so a PDF that is complete and has stopped growing
+      // also counts; a partial file never does.
+      const deadline = Date.now() + timeoutMs;
+      let last = -1;
+      let done = false;
+      while (Date.now() < deadline) {
+        if (state.exited) {
+          done = true;
+          break;
+        }
+        const size = await fileSize(tempPdf);
+        if (size > 0 && size === last && (await isCompletePdf(tempPdf))) {
+          // Give Chrome a moment to exit on its own before stopping it.
+          await waitForExit(child, state, 2_000);
+          done = true;
+          break;
+        }
+        last = size;
+        await sleep(500);
       }
-      const size = await fileSize(tempPdf);
-      if (size > 0 && size === last && (await isCompletePdf(tempPdf))) {
-        // Give Chrome a moment to exit on its own before stopping it.
-        await waitForExit(child, state, 2_000);
-        done = true;
-        break;
-      }
-      last = size;
-      await sleep(500);
+      if (spawnError) throw new Error(`Could not start ${chromePath}: ${(spawnError as Error).message}`);
+      if (!done) throw new Error(`The browser did not finish printing within ${Math.round(timeoutMs / 1000)} seconds.`);
+    } finally {
+      // Stop the browser before its profile directory is removed.
+      if (child) await stopBrowser(child, state);
     }
-    if (spawnError) throw new Error(`Could not start ${chromePath}: ${(spawnError as Error).message}`);
-    if (!done) throw new Error(`The browser did not finish printing within ${Math.round(timeoutMs / 1000)} seconds.`);
-  } finally {
-    if (child) await stopBrowser(child, state);
-  }
 
-  try {
     if ((await fileSize(tempPdf)) === 0) throw new Error('The browser exited without writing a PDF.');
     if (!(await isCompletePdf(tempPdf))) throw new Error('The browser wrote an incomplete or invalid PDF.');
     await copyFile(tempPdf, pdfPath);

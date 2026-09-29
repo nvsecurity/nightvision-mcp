@@ -108,7 +108,8 @@ export async function findBaselineScan(ds: ReportDataSource, scan: any): Promise
 
 /** Why a caller-chosen baseline cannot be compared against `scan`, or null when it can. */
 export function baselineProblem(scan: any, baseline: any): string | null {
-  if (!baseline || baseline?.id === scan?.id) return 'the baseline is the same scan';
+  if (!baseline) return 'the baseline scan was not found';
+  if (baseline?.id === scan?.id) return 'the baseline is the same scan';
   const targetOf = (s: any) => String(s?.target_id || s?.target?.id || '');
   if (targetOf(scan) && targetOf(baseline) && targetOf(scan) !== targetOf(baseline)) return 'the baseline scanned a different target';
   if (createdAt(baseline) >= createdAt(scan)) return 'the baseline is not older than the scan';
