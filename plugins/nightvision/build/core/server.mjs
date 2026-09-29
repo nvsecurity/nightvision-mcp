@@ -3235,8 +3235,8 @@ var require_utils = __commonJS({
       }
       return ind;
     }
-    function removeDotSegments(path12) {
-      let input = path12;
+    function removeDotSegments(path15) {
+      let input = path15;
       const output = [];
       let nextSlash = -1;
       let len = 0;
@@ -3488,8 +3488,8 @@ var require_schemes = __commonJS({
         wsComponent.secure = void 0;
       }
       if (wsComponent.resourceName) {
-        const [path12, query] = wsComponent.resourceName.split("?");
-        wsComponent.path = path12 && path12 !== "/" ? path12 : void 0;
+        const [path15, query] = wsComponent.resourceName.split("?");
+        wsComponent.path = path15 && path15 !== "/" ? path15 : void 0;
         wsComponent.query = query;
         wsComponent.resourceName = void 0;
       }
@@ -15748,11 +15748,11 @@ var require_mime_types = __commonJS({
       }
       return exts[0];
     }
-    function lookup(path12) {
-      if (!path12 || typeof path12 !== "string") {
+    function lookup(path15) {
+      if (!path15 || typeof path15 !== "string") {
         return false;
       }
-      var extension2 = extname("x." + path12).toLowerCase().substr(1);
+      var extension2 = extname("x." + path15).toLowerCase().substr(1);
       if (!extension2) {
         return false;
       }
@@ -15826,10 +15826,10 @@ var require_abort = __commonJS({
   "node_modules/asynckit/lib/abort.js"(exports, module) {
     module.exports = abort;
     function abort(state) {
-      Object.keys(state.jobs).forEach(clean.bind(state));
+      Object.keys(state.jobs).forEach(clean2.bind(state));
       state.jobs = {};
     }
-    function clean(key) {
+    function clean2(key) {
       if (typeof this.jobs[key] == "function") {
         this.jobs[key]();
       }
@@ -16857,7 +16857,7 @@ var require_form_data = __commonJS({
     "use strict";
     var CombinedStream = require_combined_stream();
     var util5 = __require("util");
-    var path12 = __require("path");
+    var path15 = __require("path");
     var http3 = __require("http");
     var https2 = __require("https");
     var parseUrl2 = __require("url").parse;
@@ -16931,13 +16931,13 @@ var require_form_data = __commonJS({
         if (value.end != void 0 && value.end != Infinity && value.start != void 0) {
           callback(null, value.end + 1 - (value.start ? value.start : 0));
         } else {
-          fs3.stat(value.path, function(err, stat) {
+          fs3.stat(value.path, function(err, stat2) {
             if (err) {
               callback(err);
               return;
             }
-            var fileSize = stat.size - (value.start ? value.start : 0);
-            callback(null, fileSize);
+            var fileSize2 = stat2.size - (value.start ? value.start : 0);
+            callback(null, fileSize2);
           });
         }
       } else if (hasOwn(value, "httpVersion")) {
@@ -16988,11 +16988,11 @@ var require_form_data = __commonJS({
     FormData4.prototype._getContentDisposition = function(value, options) {
       var filename;
       if (typeof options.filepath === "string") {
-        filename = path12.normalize(options.filepath).replace(/\\/g, "/");
+        filename = path15.normalize(options.filepath).replace(/\\/g, "/");
       } else if (options.filename || value && (value.name || value.path)) {
-        filename = path12.basename(options.filename || value && (value.name || value.path));
+        filename = path15.basename(options.filename || value && (value.name || value.path));
       } else if (value && value.readable && hasOwn(value, "httpVersion")) {
-        filename = path12.basename(value.client._httpMessage.path || "");
+        filename = path15.basename(value.client._httpMessage.path || "");
       }
       if (filename) {
         return 'filename="' + escapeHeaderParam(filename) + '"';
@@ -17269,20 +17269,20 @@ var require_ms = __commonJS({
     function fmtLong(ms) {
       var msAbs = Math.abs(ms);
       if (msAbs >= d) {
-        return plural(ms, msAbs, d, "day");
+        return plural2(ms, msAbs, d, "day");
       }
       if (msAbs >= h) {
-        return plural(ms, msAbs, h, "hour");
+        return plural2(ms, msAbs, h, "hour");
       }
       if (msAbs >= m) {
-        return plural(ms, msAbs, m, "minute");
+        return plural2(ms, msAbs, m, "minute");
       }
       if (msAbs >= s) {
-        return plural(ms, msAbs, s, "second");
+        return plural2(ms, msAbs, s, "second");
       }
       return ms + " ms";
     }
-    function plural(ms, msAbs, n, name) {
+    function plural2(ms, msAbs, n, name) {
       var isPlural = msAbs >= n * 1.5;
       return Math.round(ms / n) + " " + name + (isPlural ? "s" : "");
     }
@@ -19161,8 +19161,8 @@ function getErrorMap() {
 
 // node_modules/zod/v3/helpers/parseUtil.js
 var makeIssue = (params) => {
-  const { data, path: path12, errorMaps, issueData } = params;
-  const fullPath = [...path12, ...issueData.path || []];
+  const { data, path: path15, errorMaps, issueData } = params;
+  const fullPath = [...path15, ...issueData.path || []];
   const fullIssue = {
     ...issueData,
     path: fullPath
@@ -19277,11 +19277,11 @@ var errorUtil;
 
 // node_modules/zod/v3/types.js
 var ParseInputLazyPath = class {
-  constructor(parent, value, path12, key) {
+  constructor(parent, value, path15, key) {
     this._cachedPath = [];
     this.parent = parent;
     this.data = value;
-    this._path = path12;
+    this._path = path15;
     this._key = key;
   }
   get path() {
@@ -23201,10 +23201,10 @@ function mergeDefs(...defs) {
 function cloneDef(schema) {
   return mergeDefs(schema._zod.def);
 }
-function getElementAtPath(obj, path12) {
-  if (!path12)
+function getElementAtPath(obj, path15) {
+  if (!path15)
     return obj;
-  return path12.reduce((acc, key) => acc?.[key], obj);
+  return path15.reduce((acc, key) => acc?.[key], obj);
 }
 function promiseAllObject(promisesObj) {
   const keys = Object.keys(promisesObj);
@@ -23613,11 +23613,11 @@ function explicitlyAborted(x, startIndex = 0) {
   }
   return false;
 }
-function prefixIssues(path12, issues) {
+function prefixIssues(path15, issues) {
   return issues.map((iss) => {
     var _a3;
     (_a3 = iss).path ?? (_a3.path = []);
-    iss.path.unshift(path12);
+    iss.path.unshift(path15);
     return iss;
   });
 }
@@ -23764,16 +23764,16 @@ function flattenError(error51, mapper = (issue2) => issue2.message) {
 }
 function formatError(error51, mapper = (issue2) => issue2.message) {
   const fieldErrors = { _errors: [] };
-  const processError = (error52, path12 = []) => {
+  const processError = (error52, path15 = []) => {
     for (const issue2 of error52.issues) {
       if (issue2.code === "invalid_union" && issue2.errors.length) {
-        issue2.errors.map((issues) => processError({ issues }, [...path12, ...issue2.path]));
+        issue2.errors.map((issues) => processError({ issues }, [...path15, ...issue2.path]));
       } else if (issue2.code === "invalid_key") {
-        processError({ issues: issue2.issues }, [...path12, ...issue2.path]);
+        processError({ issues: issue2.issues }, [...path15, ...issue2.path]);
       } else if (issue2.code === "invalid_element") {
-        processError({ issues: issue2.issues }, [...path12, ...issue2.path]);
+        processError({ issues: issue2.issues }, [...path15, ...issue2.path]);
       } else {
-        const fullpath = [...path12, ...issue2.path];
+        const fullpath = [...path15, ...issue2.path];
         if (fullpath.length === 0) {
           fieldErrors._errors.push(mapper(issue2));
         } else {
@@ -23800,17 +23800,17 @@ function formatError(error51, mapper = (issue2) => issue2.message) {
 }
 function treeifyError(error51, mapper = (issue2) => issue2.message) {
   const result = { errors: [] };
-  const processError = (error52, path12 = []) => {
+  const processError = (error52, path15 = []) => {
     var _a3, _b;
     for (const issue2 of error52.issues) {
       if (issue2.code === "invalid_union" && issue2.errors.length) {
-        issue2.errors.map((issues) => processError({ issues }, [...path12, ...issue2.path]));
+        issue2.errors.map((issues) => processError({ issues }, [...path15, ...issue2.path]));
       } else if (issue2.code === "invalid_key") {
-        processError({ issues: issue2.issues }, [...path12, ...issue2.path]);
+        processError({ issues: issue2.issues }, [...path15, ...issue2.path]);
       } else if (issue2.code === "invalid_element") {
-        processError({ issues: issue2.issues }, [...path12, ...issue2.path]);
+        processError({ issues: issue2.issues }, [...path15, ...issue2.path]);
       } else {
-        const fullpath = [...path12, ...issue2.path];
+        const fullpath = [...path15, ...issue2.path];
         if (fullpath.length === 0) {
           result.errors.push(mapper(issue2));
           continue;
@@ -23842,8 +23842,8 @@ function treeifyError(error51, mapper = (issue2) => issue2.message) {
 }
 function toDotPath(_path) {
   const segs = [];
-  const path12 = _path.map((seg) => typeof seg === "object" ? seg.key : seg);
-  for (const seg of path12) {
+  const path15 = _path.map((seg) => typeof seg === "object" ? seg.key : seg);
+  for (const seg of path15) {
     if (typeof seg === "number")
       segs.push(`[${seg}]`);
     else if (typeof seg === "symbol")
@@ -34955,11 +34955,11 @@ function normalizeObjectSchema(schema) {
   }
   return void 0;
 }
-function getDotPath(path12) {
-  if (path12.length === 0) {
+function getDotPath(path15) {
+  if (path15.length === 0) {
     return "object root";
   }
-  return path12.reduce((acc, seg, index) => {
+  return path15.reduce((acc, seg, index) => {
     if (index === 0) {
       return String(seg);
     }
@@ -36984,13 +36984,13 @@ function resolveRef(ref, ctx) {
   if (!ref.startsWith("#")) {
     throw new Error("External $ref is not supported, only local refs (#/...) are allowed");
   }
-  const path12 = ref.slice(1).split("/").filter(Boolean);
-  if (path12.length === 0) {
+  const path15 = ref.slice(1).split("/").filter(Boolean);
+  if (path15.length === 0) {
     return ctx.rootSchema;
   }
   const defsKey = ctx.version === "draft-2020-12" ? "$defs" : "definitions";
-  if (path12[0] === defsKey) {
-    const key = path12[1];
+  if (path15[0] === defsKey) {
+    const key = path15[1];
     if (!key || !ctx.defs[key]) {
       throw new Error(`Reference not found: ${ref}`);
     }
@@ -44034,9 +44034,9 @@ function isVisitable(thing) {
 function removeBrackets(key) {
   return utils_default.endsWith(key, "[]") ? key.slice(0, -2) : key;
 }
-function renderKey(path12, key, dots) {
-  if (!path12) return key;
-  return path12.concat(key).map(function each(token, i) {
+function renderKey(path15, key, dots) {
+  if (!path15) return key;
+  return path15.concat(key).map(function each(token, i) {
     token = removeBrackets(token);
     return !dots && i ? "[" + token + "]" : token;
   }).join(dots ? "." : "");
@@ -44122,13 +44122,13 @@ function toFormData(obj, formData, options) {
       return currentValue;
     });
   }
-  function defaultVisitor(value, key, path12) {
+  function defaultVisitor(value, key, path15) {
     let arr = value;
     if (utils_default.isReactNative(formData) && utils_default.isReactNativeBlob(value)) {
-      formData.append(renderKey(path12, key, dots), convertValue(value));
+      formData.append(renderKey(path15, key, dots), convertValue(value));
       return false;
     }
-    if (value && !path12 && typeof value === "object") {
+    if (value && !path15 && typeof value === "object") {
       if (utils_default.endsWith(key, "{}")) {
         key = metaTokens ? key : key.slice(0, -2);
         value = stringifyWithDepthLimit(value, 1);
@@ -44147,7 +44147,7 @@ function toFormData(obj, formData, options) {
     if (isVisitable(value)) {
       return true;
     }
-    formData.append(renderKey(path12, key, dots), convertValue(value));
+    formData.append(renderKey(path15, key, dots), convertValue(value));
     return false;
   }
   const exposedHelpers = Object.assign(predicates, {
@@ -44155,17 +44155,17 @@ function toFormData(obj, formData, options) {
     convertValue,
     isVisitable
   });
-  function build(value, path12, depth = 0) {
+  function build(value, path15, depth = 0) {
     if (utils_default.isUndefined(value)) return;
     throwIfMaxDepthExceeded(depth);
     if (stack.indexOf(value) !== -1) {
-      throw new Error("Circular reference detected in " + path12.join("."));
+      throw new Error("Circular reference detected in " + path15.join("."));
     }
     stack.push(value);
     utils_default.forEach(value, function each(el, key) {
-      const result = !(utils_default.isUndefined(el) || el === null) && visitor.call(formData, el, utils_default.isString(key) ? key.trim() : key, path12, exposedHelpers);
+      const result = !(utils_default.isUndefined(el) || el === null) && visitor.call(formData, el, utils_default.isString(key) ? key.trim() : key, path15, exposedHelpers);
       if (result === true) {
-        build(el, path12 ? path12.concat(key) : [key], depth + 1);
+        build(el, path15 ? path15.concat(key) : [key], depth + 1);
       }
     });
     stack.pop();
@@ -44377,7 +44377,7 @@ var platform_default = {
 // node_modules/axios/lib/helpers/toURLEncodedForm.js
 function toURLEncodedForm(data, options) {
   return toFormData_default(data, new platform_default.classes.URLSearchParams(), {
-    visitor: function(value, key, path12, helpers) {
+    visitor: function(value, key, path15, helpers) {
       if (platform_default.isNode && utils_default.isBuffer(value)) {
         this.append(key, value.toString("base64"));
         return false;
@@ -44399,14 +44399,14 @@ function throwIfDepthExceeded(index) {
   }
 }
 function parsePropPath(name) {
-  const path12 = [];
+  const path15 = [];
   const pattern = /[^.[\]]+|\[([^.[\]]*)]/g;
   let match;
   while ((match = pattern.exec(name)) !== null) {
-    throwIfDepthExceeded(path12.length);
-    path12.push(match[0] === "[]" ? "" : match[1] || match[0]);
+    throwIfDepthExceeded(path15.length);
+    path15.push(match[0] === "[]" ? "" : match[1] || match[0]);
   }
-  return path12;
+  return path15;
 }
 function arrayToObject(arr) {
   const obj = {};
@@ -44421,12 +44421,12 @@ function arrayToObject(arr) {
   return obj;
 }
 function formDataToJSON(formData) {
-  function buildPath(path12, value, target, index) {
+  function buildPath(path15, value, target, index) {
     throwIfDepthExceeded(index);
-    let name = path12[index++];
+    let name = path15[index++];
     if (name === "__proto__") return true;
     const isNumericKey = Number.isFinite(+name);
-    const isLast = index >= path12.length;
+    const isLast = index >= path15.length;
     name = !name && utils_default.isArray(target) ? target.length : name;
     if (isLast) {
       if (utils_default.hasOwnProp(target, name)) {
@@ -44439,7 +44439,7 @@ function formDataToJSON(formData) {
     if (!utils_default.hasOwnProp(target, name) || !utils_default.isObject(target[name])) {
       target[name] = [];
     }
-    const result = buildPath(path12, value, target[name], index);
+    const result = buildPath(path15, value, target[name], index);
     if (result && utils_default.isArray(target[name])) {
       target[name] = arrayToObject(target[name]);
     }
@@ -46157,9 +46157,9 @@ var http_default = isHttpAdapterSupported && function httpAdapter(config2) {
       auth = urlUsername + ":" + urlPassword;
     }
     auth && headers.delete("authorization");
-    let path12;
+    let path15;
     try {
-      path12 = buildURL(
+      path15 = buildURL(
         parsed.pathname + parsed.search,
         own2("params"),
         own2("paramsSerializer")
@@ -46178,7 +46178,7 @@ var http_default = isHttpAdapterSupported && function httpAdapter(config2) {
       false
     );
     const options = Object.assign(/* @__PURE__ */ Object.create(null), {
-      path: path12,
+      path: path15,
       method,
       headers: toByteStringHeaderObject(headers),
       agents: { http: httpAgent, https: httpsAgent },
@@ -46580,14 +46580,14 @@ var isURLSameOrigin_default = platform_default.hasStandardBrowserEnv ? /* @__PUR
 var cookies_default = platform_default.hasStandardBrowserEnv ? (
   // Standard browser envs support document.cookie
   {
-    write(name, value, expires, path12, domain2, secure, sameSite) {
+    write(name, value, expires, path15, domain2, secure, sameSite) {
       if (typeof document === "undefined") return;
       const cookie = [`${name}=${encodeURIComponent(value)}`];
       if (utils_default.isNumber(expires)) {
         cookie.push(`expires=${new Date(expires).toUTCString()}`);
       }
-      if (utils_default.isString(path12)) {
-        cookie.push(`path=${path12}`);
+      if (utils_default.isString(path15)) {
+        cookie.push(`path=${path15}`);
       }
       if (utils_default.isString(domain2)) {
         cookie.push(`domain=${domain2}`);
@@ -49372,8 +49372,8 @@ var ScanService = class {
       const candidates = results.filter((scan) => {
         if (!scan.id) return false;
         if (baselineIds) return !baselineIds.has(scan.id);
-        const createdAt = this.scanCreatedAt(scan);
-        return Number.isFinite(createdAt) && createdAt >= startedAfter;
+        const createdAt2 = this.scanCreatedAt(scan);
+        return Number.isFinite(createdAt2) && createdAt2 >= startedAfter;
       });
       return candidates.sort(
         (a, b) => (this.scanCreatedAt(b) || 0) - (this.scanCreatedAt(a) || 0)
@@ -49439,6 +49439,21 @@ var ScanService = class {
       console.error(`Error listing scans: ${error51.message}`);
       throw new Error(`Failed to list scans: ${error51.message}`);
     }
+  }
+  /**
+   * List scans by target/project UUID and numeric status codes, returning the
+   * parsed page. Used by report generation, which needs raw scan objects (for
+   * issue statistics and ordering) rather than a formatted listing.
+   */
+  async listScansByIds(options = {}) {
+    const params = {};
+    if (options.target_ids?.length) params.target = options.target_ids;
+    if (options.project_ids?.length) params.project = options.project_ids;
+    if (options.status_codes?.length) params.status = options.status_codes;
+    if (options.page) params.page = options.page;
+    params.page_size = options.page_size || 50;
+    const response = await this.client.apiRequest("scans/", "GET", params, null, false, serializeRepeatedParams);
+    return { count: response?.count, next: response?.next ?? null, results: Array.isArray(response?.results) ? response.results : [] };
   }
   /**
    * Get scan status and details
@@ -49598,7 +49613,7 @@ var NucleiService = class {
     try {
       console.error(`Uploading nuclei template from ${filePath} to template ID ${templateId}...`);
       const fs3 = await import("fs");
-      const path12 = await import("path");
+      const path15 = await import("path");
       assertValidNucleiTemplatePath(filePath);
       if (!fs3.existsSync(filePath)) {
         throw new Error(`Nuclei template file not found at: ${filePath}`);
@@ -49610,7 +49625,7 @@ var NucleiService = class {
       console.error(`File validated as nuclei template, uploading...`);
       const formData = new import_form_data2.default();
       formData.append("file", Buffer.from(fileContent), {
-        filename: path12.basename(filePath),
+        filename: path15.basename(filePath),
         contentType: "application/x-yaml"
       });
       const response = await this.client.apiRequest(
@@ -49939,17 +49954,17 @@ var TrafficService = class {
         throw new Error("Project name is required");
       }
       const fs3 = await import("fs/promises");
-      const path12 = await import("path");
-      const os4 = await import("os");
+      const path15 = await import("path");
+      const os7 = await import("os");
       if (!downloadPath || downloadPath.trim() === "") {
-        downloadPath = os4.tmpdir();
+        downloadPath = os7.tmpdir();
         console.error(`No download path provided, using temp directory: ${downloadPath}`);
       }
-      const tempDownloadDir = path12.join(downloadPath, "nightvision-downloads");
+      const tempDownloadDir = path15.join(downloadPath, "nightvision-downloads");
       await fs3.mkdir(tempDownloadDir, { recursive: true });
       const args = ["traffic", "download", name, "--target", target, "--project", project];
       const result = await this.client.executeCommand(args, format, false, tempDownloadDir);
-      const tempFilePath = path12.join(tempDownloadDir, `${name}.har`);
+      const tempFilePath = path15.join(tempDownloadDir, `${name}.har`);
       try {
         await fs3.access(tempFilePath);
       } catch (err) {
@@ -49958,7 +49973,7 @@ var TrafficService = class {
       let finalOutputPath = tempFilePath;
       if (outputFile && outputFile.trim() !== "") {
         try {
-          const outputDir = path12.dirname(outputFile);
+          const outputDir = path15.dirname(outputFile);
           await fs3.mkdir(outputDir, { recursive: true });
           await fs3.copyFile(tempFilePath, outputFile);
           finalOutputPath = outputFile;
@@ -50056,14 +50071,14 @@ var ApiDiscoveryService = class {
     try {
       console.error(`Discovering API endpoints for source code using swagger extract...`);
       const fs3 = await import("fs");
-      const path12 = await import("path");
-      const os4 = await import("os");
+      const path15 = await import("path");
+      const os7 = await import("os");
       const workspacePath = projectPath;
       console.error(`Using project path: ${workspacePath}`);
       console.error(`Current working directory: ${process.cwd()}`);
       const absoluteSourcePaths = sourcePaths.map((sourcePath) => {
         if (!sourcePath.startsWith("/")) {
-          const absolutePath = path12.resolve(workspacePath, sourcePath);
+          const absolutePath = path15.resolve(workspacePath, sourcePath);
           console.error(`Converting relative path '${sourcePath}' to absolute path '${absolutePath}'`);
           return absolutePath;
         }
@@ -50086,30 +50101,30 @@ var ApiDiscoveryService = class {
       let tempDir = null;
       const redirectDir = () => {
         if (tempDir === null) {
-          tempDir = fs3.mkdtempSync(path12.join(os4.tmpdir(), "nightvision-discover-"));
+          tempDir = fs3.mkdtempSync(path15.join(os7.tmpdir(), "nightvision-discover-"));
         }
         return tempDir;
       };
       let outputFile;
       if (options.output.startsWith("/")) {
-        const dirname2 = path12.dirname(options.output);
-        const basename = path12.basename(options.output);
+        const dirname2 = path15.dirname(options.output);
+        const basename = path15.basename(options.output);
         if (dirname2 === "/" || !fs3.existsSync(dirname2)) {
-          outputFile = path12.join(redirectDir(), basename);
+          outputFile = path15.join(redirectDir(), basename);
           console.error(`Warning: Redirecting output from ${options.output} to ${outputFile} due to potential permissions issues`);
         } else {
           outputFile = options.output;
         }
       } else {
-        outputFile = path12.resolve(workspacePath, options.output);
+        outputFile = path15.resolve(workspacePath, options.output);
         console.error(`Converting relative output path '${options.output}' to absolute path '${outputFile}'`);
       }
       try {
-        const testDir = path12.dirname(outputFile);
+        const testDir = path15.dirname(outputFile);
         fs3.accessSync(testDir, fs3.constants.W_OK);
       } catch (err) {
         console.error(`Output directory is not writable, redirecting to temp directory`);
-        outputFile = path12.join(redirectDir(), path12.basename(outputFile));
+        outputFile = path15.join(redirectDir(), path15.basename(outputFile));
       }
       const fileFormat = /\.json$/i.test(outputFile) ? "json" : "yml";
       if (languages.length > 1) {
@@ -50694,6 +50709,9 @@ var NightVisionService = class {
   listScans(...a) {
     return this.scans.listScans(...a);
   }
+  listScansByIds(...a) {
+    return this.scans.listScansByIds(...a);
+  }
   getScanStatus(...a) {
     return this.scans.getScanStatus(...a);
   }
@@ -50904,6 +50922,27 @@ var ExportCsvParamsSchema = {
   output: external_exports.string().optional().describe("Output CSV file path. Defaults to <project_path>/.nightvision/nightvision-<scan_id>.csv"),
   output_file: external_exports.string().optional().describe("Alias for output"),
   format: external_exports.enum(["json"]).optional().default("json").describe("Format of command output")
+};
+var ExportReportParamsSchema = {
+  mode: external_exports.enum(["scan", "compare", "project"]).optional().default("scan").describe("scan = one scan; compare = one scan plus new/fixed/still-open versus the previous scan of the same target; project = roll-up of the latest completed scan of every target in a project"),
+  scan_id: external_exports.string().optional().describe("Scan to report on. Required for scan and compare modes. In project mode it may stand in for project/project_id (its project is used)."),
+  baseline_scan_id: external_exports.string().optional().describe("compare mode: the older scan to diff against. Defaults to the previous completed scan of the same target."),
+  project: external_exports.string().optional().describe("project mode: project name"),
+  project_id: external_exports.string().uuid().optional().describe("project mode: project UUID"),
+  preview: external_exports.boolean().optional().default(false).describe("Return the report data (counts, issue types, endpoints, source links) WITHOUT writing a file. Call this first, write executive_summary and remediation_notes from what it returns, then call again with preview false."),
+  executive_summary: external_exports.string().max(4e3).optional().describe("Agent-written summary for AppSec/leadership: 3-5 sentences, only claims supported by the report data. Plain text; blank lines separate paragraphs, lines starting with '- ' become bullets."),
+  remediation_notes: external_exports.array(external_exports.object({
+    issue_type: external_exports.string().describe("Issue type name exactly as returned by preview (or its kind_id)"),
+    note: external_exports.string().max(2e3).describe("How to fix it, specific to this codebase when known. Plain text.")
+  })).max(50).optional().describe("Agent-written fix guidance per issue type, rendered in the developer appendix"),
+  include_evidence: external_exports.boolean().optional().default(false).describe("Include raw scan evidence and skip secret masking. Leave false for any report that may be shared."),
+  min_severity: external_exports.enum(["critical", "high", "medium", "low", "info"]).optional().default("low").describe("Lowest severity to include; lower findings are counted as excluded"),
+  max_occurrences_per_type: external_exports.number().int().min(1).max(50).optional().default(10).describe("Affected-endpoint rows shown per issue type in the appendix"),
+  title: external_exports.string().max(200).optional().describe("Report title. Defaults to 'Security Report: <target or project>'"),
+  format: external_exports.enum(["pdf", "html"]).optional().default("pdf").describe("pdf (via the local Chrome/Chromium/Edge; falls back to html if none is found) or html"),
+  project_path: external_exports.string().optional().describe("App SOURCE directory that was scanned. Its .nightvision OpenAPI spec links findings to file:line, and the default output goes under it."),
+  swagger_file: external_exports.string().optional().describe("Explicit OpenAPI spec for source linking. Overrides the spec found under project_path."),
+  output: external_exports.string().optional().describe("Output file path. Defaults to <project_path>/.nightvision/nightvision-report-<scan_id or project>.pdf")
 };
 var DoctorParamsSchema = {
   validate_auth: external_exports.boolean().optional().default(false).describe("Validate the saved NightVision token with the API. Defaults to false to avoid network calls during basic diagnostics."),
@@ -51374,6 +51413,11 @@ var NIGHTVISION_TOOL_METADATA = {
   "export-csv": {
     title: "Export scan results as CSV",
     description: "Exports a completed NightVision scan to a local CSV file.",
+    annotations: DESTRUCTIVE_INTERNAL_WRITE
+  },
+  "export-report": {
+    title: "Export scan report as PDF",
+    description: "Builds a NightVision security report (executive summary plus developer findings appendix) for one scan, a scan compared with the previous one, or a whole project, and writes it as a local PDF or HTML file. preview:true returns the report data without writing.",
     annotations: DESTRUCTIVE_INTERNAL_WRITE
   },
   "list-issues": {
@@ -52481,12 +52525,12 @@ function firstString(...values) {
 }
 function endpoint(check2) {
   const method = firstString(check2.method, check2.http_method, check2.request_method);
-  const path12 = firstString(check2.path, check2.route, check2.endpoint_path);
+  const path15 = firstString(check2.path, check2.route, check2.endpoint_path);
   const url3 = firstString(check2.url, check2.uri, check2.location);
-  if (!method && !path12 && !url3) {
+  if (!method && !path15 && !url3) {
     return null;
   }
-  return { method, path: path12, url: url3 };
+  return { method, path: path15, url: url3 };
 }
 function summarizeScanChecks(response, limit = 20) {
   const results = Array.isArray(response?.results) ? response.results : [];
@@ -53376,6 +53420,22 @@ function extractSourceFindings(sarif, limit = Number.MAX_SAFE_INTEGER) {
 function countSourceLinked(findings) {
   return findings.filter((f) => f.file !== null).length;
 }
+function sourceLinksByIssueId(sarif) {
+  const links = /* @__PURE__ */ new Map();
+  const runs = Array.isArray(sarif?.runs) ? sarif.runs : [];
+  for (const run of runs) {
+    for (const result of Array.isArray(run?.results) ? run.results : []) {
+      const issueId = result?.partialFingerprints?.["nightvisionIssueID/v1"];
+      const loc = result?.locations?.[0]?.physicalLocation;
+      const uri = loc?.artifactLocation?.uri;
+      if (typeof issueId !== "string" || typeof uri !== "string") continue;
+      if (uri.trim().length === 0 || uri === "/") continue;
+      const line = loc?.region?.startLine;
+      links.set(issueId, { file: uri, line: typeof line === "number" && line > 0 ? line : null });
+    }
+  }
+  return links;
+}
 
 // src/tools/exports.ts
 function defaultSarifPath(scanId, baseDir) {
@@ -53571,13 +53631,13 @@ function sampleFiles(root, limit = 500) {
     for (const entry of entries) {
       if (ignored.has(entry)) continue;
       const full = path5.join(dir, entry);
-      let stat;
+      let stat2;
       try {
-        stat = statSync(full);
+        stat2 = statSync(full);
       } catch {
         continue;
       }
-      if (stat.isDirectory()) walk(full);
+      if (stat2.isDirectory()) walk(full);
       else out.push(full);
       if (out.length >= limit) return;
     }
@@ -55491,9 +55551,9 @@ ${result}`
           action: "downloading traffic"
         });
         if (!projectAccess.ok) return projectAccess.response;
-        const path12 = await import("path");
+        const path15 = await import("path");
         const fs3 = await import("fs");
-        const os4 = await import("os");
+        const os7 = await import("os");
         const isWritable = (dir) => {
           try {
             fs3.accessSync(dir, fs3.constants.W_OK);
@@ -55502,9 +55562,9 @@ ${result}`
             return false;
           }
         };
-        const downloadPath = resolveDownloadDir(initialDownloadPath, os4.homedir(), os4.tmpdir(), isWritable);
+        const downloadPath = resolveDownloadDir(initialDownloadPath, os7.homedir(), os7.tmpdir(), isWritable);
         console.error(`Resolved download directory: ${downloadPath}`);
-        const finalOutputPath = output_file ? path12.isAbsolute(output_file) ? output_file : path12.join(downloadPath, output_file) : path12.join(downloadPath, `${name}.har`);
+        const finalOutputPath = output_file ? path15.isAbsolute(output_file) ? output_file : path15.join(downloadPath, output_file) : path15.join(downloadPath, `${name}.har`);
         const result = await nightvision_default.downloadTraffic(
           name,
           target,
@@ -55665,6 +55725,1363 @@ function registerFindingTools(server) {
   );
 }
 
+// src/tools/report.ts
+import { mkdir as mkdir4, mkdtemp as mkdtemp3, rm as rm3, writeFile as writeFile2 } from "node:fs/promises";
+import os6 from "node:os";
+import path14 from "node:path";
+
+// src/report/collect.ts
+import { mkdtemp, readFile as readFile3, rm } from "node:fs/promises";
+import os4 from "node:os";
+import path12 from "node:path";
+var MAX_ISSUES = 2e3;
+var ISSUE_PAGE_SIZE = 100;
+var SCAN_PAGE_SIZE = 100;
+var MAX_SCAN_PAGES = 5;
+var MAX_PROJECT_TARGETS = 50;
+var liveDataSource = {
+  async getScan(scanId) {
+    return JSON.parse(await nightvision_default.getScanStatus(scanId, "json"));
+  },
+  async listIssues(scanId, page, pageSize) {
+    const parsed = JSON.parse(await nightvision_default.listIssues(scanId, { page, page_size: pageSize }, "json"));
+    return { results: Array.isArray(parsed?.results) ? parsed.results : [], next: parsed?.next ?? null, count: parsed?.count };
+  },
+  async countScanPaths(scanId) {
+    try {
+      const parsed = JSON.parse(await nightvision_default.getScanPaths(scanId, { page_size: 1 }, "json"));
+      return typeof parsed?.count === "number" ? parsed.count : null;
+    } catch {
+      return null;
+    }
+  },
+  async listScans(options) {
+    return nightvision_default.listScansByIds(options);
+  },
+  async getIssueKindStats(scanId) {
+    const parsed = JSON.parse(await nightvision_default.getIssueKindStats(scanId, {}, "json"));
+    return Array.isArray(parsed?.results) ? parsed.results : Array.isArray(parsed) ? parsed : [];
+  },
+  async getProjectByName(name) {
+    return nightvision_default.getProjectByName(name);
+  },
+  async exportSarif(scanId, outputPath, specFile) {
+    await nightvision_default.exportSarif(scanId, outputPath, { swagger_file: specFile }, "json");
+  }
+};
+function isReportable(scan) {
+  const state = classifyScanStatus(scan);
+  if (state === "succeeded") return true;
+  return state === "failed" && scanHasFindings(scan);
+}
+async function fetchAllIssues(ds, scanId) {
+  const issues = [];
+  for (let page = 1; issues.length < MAX_ISSUES; page += 1) {
+    const { results, next } = await ds.listIssues(scanId, page, ISSUE_PAGE_SIZE);
+    issues.push(...results);
+    if (!next || results.length === 0) return { issues, truncated: false };
+  }
+  return { issues: issues.slice(0, MAX_ISSUES), truncated: true };
+}
+function createdAt(scan) {
+  const t = Date.parse(scan?.started_at || scan?.created_at || "");
+  return Number.isNaN(t) ? 0 : t;
+}
+async function findBaselineScan(ds, scan) {
+  const targetId = scan?.target_id || scan?.target?.id;
+  if (!targetId) return null;
+  const current = createdAt(scan);
+  let best = null;
+  for (let page = 1; page <= MAX_SCAN_PAGES; page += 1) {
+    const { results, next } = await ds.listScans({ target_ids: [String(targetId)], page, page_size: SCAN_PAGE_SIZE });
+    for (const s of results) {
+      if (s?.id === scan?.id || createdAt(s) >= current || !isReportable(s)) continue;
+      if (!best || createdAt(s) > createdAt(best)) best = s;
+    }
+    if (!next || results.length === 0) break;
+  }
+  return best;
+}
+function baselineProblem(scan, baseline) {
+  if (!baseline || baseline?.id === scan?.id) return "the baseline is the same scan";
+  const targetOf = (s) => String(s?.target_id || s?.target?.id || "");
+  if (targetOf(scan) && targetOf(baseline) && targetOf(scan) !== targetOf(baseline)) return "the baseline scanned a different target";
+  if (createdAt(baseline) >= createdAt(scan)) return "the baseline is not older than the scan";
+  if (!isReportable(baseline)) return `the baseline scan did not complete (status ${baseline?.status_value ?? "unknown"})`;
+  return null;
+}
+async function latestScansPerTarget(ds, projectId) {
+  const byTarget = /* @__PURE__ */ new Map();
+  let truncated = false;
+  for (let page = 1; page <= MAX_SCAN_PAGES; page += 1) {
+    const { results, next } = await ds.listScans({ project_ids: [projectId], page, page_size: SCAN_PAGE_SIZE });
+    for (const s of results) {
+      const targetId = String(s?.target_id || s?.target?.id || "");
+      if (!targetId || !isReportable(s)) continue;
+      const seen = byTarget.get(targetId);
+      if (!seen || createdAt(s) > createdAt(seen)) byTarget.set(targetId, s);
+    }
+    if (!next || results.length === 0) break;
+    if (page === MAX_SCAN_PAGES) truncated = true;
+  }
+  const scans = [...byTarget.values()].sort((a, b) => createdAt(b) - createdAt(a));
+  if (scans.length > MAX_PROJECT_TARGETS) return { scans: scans.slice(0, MAX_PROJECT_TARGETS), truncated: true };
+  return { scans, truncated };
+}
+async function collectSourceLinks(ds, scanId, specFile) {
+  if (!specFile) return { links: /* @__PURE__ */ new Map(), warning: null };
+  const dir = await mkdtemp(path12.join(os4.tmpdir(), "nightvision-report-sarif-"));
+  try {
+    const out = path12.join(dir, "scan.sarif");
+    await ds.exportSarif(scanId, out, specFile);
+    return { links: sourceLinksByIssueId(JSON.parse(await readFile3(out, "utf8"))), warning: null };
+  } catch (error51) {
+    return {
+      links: /* @__PURE__ */ new Map(),
+      warning: `Source linking was skipped: the SARIF export with ${path12.basename(specFile)} failed (${error51?.message ?? error51}).`
+    };
+  } finally {
+    await rm(dir, { recursive: true, force: true }).catch(() => void 0);
+  }
+}
+
+// src/report/redact.ts
+var MASK = "[REDACTED]";
+var SECRET_KEYS = [
+  "password",
+  "passwd",
+  "pwd",
+  "pass",
+  "passphrase",
+  "secret",
+  "client[_-]?secret",
+  "private[_-]?key",
+  "api[_-]?key",
+  "apikey",
+  "x-api-key",
+  "token",
+  "access[_-]?token",
+  "refresh[_-]?token",
+  "id[_-]?token",
+  "auth[_-]?token",
+  "csrf[_-]?token",
+  "jwt",
+  "session",
+  "session[_-]?id",
+  "sessionid",
+  "sid",
+  "phpsessid",
+  "jsessionid",
+  "connect\\.sid",
+  "authorization",
+  "cookie",
+  "credentials?"
+].join("|");
+var PATTERNS = [
+  // PEM private keys, whole block or a block cut off before its END line.
+  [/-----BEGIN [A-Z ]*PRIVATE KEY-----[\s\S]*?(?:-----END [A-Z ]*PRIVATE KEY-----|$)/g, MASK],
+  // JSON Web Tokens (two or three segments, so a trailing cut still matches).
+  [/\beyJ[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}(?:\.[A-Za-z0-9_-]*)?/g, MASK],
+  // AWS access key ids.
+  [/\b(?:AKIA|ASIA)[0-9A-Z]{16}\b/g, MASK],
+  // GitHub, Slack, Stripe, Google API keys.
+  [/\bgh[pousr]_[A-Za-z0-9]{30,}\b/g, MASK],
+  [/\bxox[abposr]-[A-Za-z0-9-]{10,}\b/g, MASK],
+  [/\b[rs]k_(?:live|test)_[A-Za-z0-9]{16,}\b/g, MASK],
+  [/\bAIza[0-9A-Za-z_-]{35}\b/g, MASK],
+  // Authorization / Proxy-Authorization header values, whole line (scheme and credential).
+  [/((?:Proxy-)?Authorization\s*:\s*)[^\r\n]+/gi, `$1${MASK}`],
+  // Authorization schemes. Case-sensitive and the value must contain a digit,
+  // so prose like "Basic authentication over HTTP" is left alone.
+  [/\b(Bearer|Basic|Token)\s+(?=[A-Za-z._~+/=-]*[0-9])[A-Za-z0-9._~+/=-]{12,}/g, `$1 ${MASK}`],
+  // "key": "quoted value" (value may contain spaces).
+  [new RegExp(`((?<![A-Za-z0-9_])(?:${SECRET_KEYS})["']?\\s*[:=]\\s*)(["'])[^"'\\n]{1,500}?\\2`, "gi"), `$1$2${MASK}$2`],
+  // key=value / key: value, unquoted.
+  [new RegExp(`((?<![A-Za-z0-9_])(?:${SECRET_KEYS})\\s*[:=]\\s*)(?!["'\\[])([^\\s"'&,;}<>)]{3,})`, "gim"), `$1${MASK}`]
+];
+function redactSecrets(text) {
+  let out = text;
+  for (const [pattern, replacement] of PATTERNS) out = out.replace(pattern, replacement);
+  return out;
+}
+
+// src/report/model.ts
+var SEVERITY_ORDER = ["CRITICAL", "HIGH", "MEDIUM", "LOW", "INFO", "UNSPECIFIED"];
+var TOP_FINDINGS = 5;
+var COMPARISON_LIST_LIMIT = 20;
+var PAYLOAD_LIMIT = 300;
+var EVIDENCE_LIMIT = 400;
+var EXPLANATION_LIMIT = { CRITICAL: 1400, HIGH: 1400, MEDIUM: 900, LOW: 500, INFO: 500, UNSPECIFIED: 500 };
+var NOTE_LIMIT = 2e3;
+var SUMMARY_LIMIT = 4e3;
+var CURL_BODY_LIMIT = 1500;
+var SCAN_META_TOOLS = /* @__PURE__ */ new Set(["online-checker"]);
+var SCAN_META_NAME = /^scan started\b/i;
+function emptyCounts() {
+  return { CRITICAL: 0, HIGH: 0, MEDIUM: 0, LOW: 0, INFO: 0, UNSPECIFIED: 0 };
+}
+function normalizeSeverity(value) {
+  const s = String(value ?? "").trim().toUpperCase();
+  if (s === "CRITICAL" || s === "HIGH" || s === "MEDIUM" || s === "LOW") return s;
+  if (s === "INFO" || s === "INFORMATIONAL") return "INFO";
+  return "UNSPECIFIED";
+}
+function severityRank(s) {
+  return SEVERITY_ORDER.indexOf(s);
+}
+function meetsMinSeverity(s, min) {
+  const minRank = severityRank(normalizeSeverity(min));
+  const rank = s === "UNSPECIFIED" ? severityRank("INFO") : severityRank(s);
+  return rank <= minRank;
+}
+function truncate(text, limit) {
+  if (text === null || text === void 0) return null;
+  const t = String(text);
+  if (t.length <= limit) return t;
+  const cut = t.slice(0, limit);
+  const sentence = Math.max(cut.lastIndexOf(". "), cut.lastIndexOf(".\n"));
+  if (sentence > limit * 0.6) return `${cut.slice(0, sentence + 1)} \u2026`;
+  const space = cut.lastIndexOf(" ");
+  return `${space > limit * 0.6 ? cut.slice(0, space) : cut}\u2026`;
+}
+function safeMethod(value) {
+  const m = String(value ?? "").trim().toUpperCase();
+  return /^[A-Z]{1,20}$/.test(m) ? m : "GET";
+}
+function clean(text, limit, includeEvidence) {
+  if (text === null || text === void 0) return null;
+  return truncate(includeEvidence ? String(text) : redactSecrets(String(text)), limit);
+}
+function scrub(text, includeEvidence) {
+  if (text === null) return null;
+  return includeEvidence ? text : redactSecrets(text);
+}
+function kindKey(issue2) {
+  if (issue2?.kind_id !== null && issue2?.kind_id !== void 0) return `kind:${issue2.kind_id}`;
+  if (issue2?.kind?.id !== null && issue2?.kind?.id !== void 0) return `kind:${issue2.kind.id}`;
+  if (issue2?.nuclei_template_id) return `nuclei:${issue2.nuclei_template_id}`;
+  return `name:${String(issue2?.kind?.name ?? issue2?.finding_name ?? "Unknown")}`;
+}
+function kindName(issue2) {
+  return String(issue2?.kind?.name || issue2?.nuclei_template?.name || issue2?.finding_name || "Unnamed finding");
+}
+function occurrenceKey(issue2) {
+  return [
+    kindKey(issue2),
+    String(issue2?.http_method ?? "").toUpperCase(),
+    String(issue2?.url_path ?? ""),
+    String(issue2?.parameter_name ?? "")
+  ].join("|");
+}
+function shellQuote(value) {
+  return `'${value.replace(/'/g, `'\\''`)}'`;
+}
+function buildCurl(issue2, targetUrl, includeEvidence = true) {
+  const req = Array.isArray(issue2?.extra_info?.http_requests) ? issue2.extra_info.http_requests[0] : null;
+  const method = safeMethod(req?.method || issue2?.http_method || "GET");
+  let url3 = String(req?.url || "");
+  if (!url3) {
+    const base = (targetUrl || (issue2?.fqdn ? `https://${issue2.fqdn}` : "")).replace(/\/+$/, "");
+    url3 = `${base}${issue2?.url_path ?? ""}`;
+  }
+  if (!includeEvidence) url3 = redactSecrets(url3);
+  const parts = ["curl -i", `-X ${method}`, "--", shellQuote(url3)];
+  const headers = Array.isArray(req?.headers) ? req.headers : [];
+  const contentType = headers.find((h) => String(h?.name).toLowerCase() === "content-type")?.value;
+  const post = req?.postData;
+  let body = null;
+  if (post && typeof post.text === "string" && post.text.length > 0) {
+    body = post.text;
+  } else if (post && Array.isArray(post.params) && post.params.length > 0) {
+    body = post.params.map((p) => `${encodeURIComponent(String(p?.name ?? ""))}=${encodeURIComponent(String(p?.value ?? ""))}`).join("&");
+  }
+  if (body !== null) {
+    if (contentType) parts.splice(parts.indexOf("--"), 0, `-H ${shellQuote(`Content-Type: ${contentType}`)}`);
+    parts.splice(parts.indexOf("--"), 0, `--data-raw ${shellQuote(clean(body, CURL_BODY_LIMIT, includeEvidence) ?? "")}`);
+  }
+  return parts.join(" ");
+}
+function taxonomyOf(issue2) {
+  const raw = Array.isArray(issue2?.kind?.taxonomy) ? issue2.kind.taxonomy : [];
+  const newest = /* @__PURE__ */ new Map();
+  for (const t of raw) {
+    const family = String(t?.standard_name || t?.standard || "").trim();
+    const version2 = String(t?.version ?? "");
+    if (!newest.has(family) || version2.localeCompare(newest.get(family), void 0, { numeric: true }) > 0) {
+      newest.set(family, version2);
+    }
+  }
+  const seen = /* @__PURE__ */ new Set();
+  const out = [];
+  for (const t of raw) {
+    const family = String(t?.standard_name || t?.standard || "").trim();
+    const version2 = String(t?.version ?? "");
+    const code = String(t?.code || "").trim();
+    if (!code || version2 !== newest.get(family)) continue;
+    const key = `${family}|${code}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push({ standard: `${family}${version2 ? ` ${version2}` : ""}`.trim(), code, name: String(t?.name || ""), url: t?.reference_url || null });
+  }
+  return out;
+}
+function filterIssues(issues, minSeverity) {
+  const exclusions = { not_open: 0, below_threshold: 0, scan_meta: 0 };
+  const kept = [];
+  for (const issue2 of issues) {
+    if (SCAN_META_TOOLS.has(String(issue2?.extra_info?.tool_name ?? "").toLowerCase())) {
+      exclusions.scan_meta += 1;
+      continue;
+    }
+    if (issue2?.resolution !== void 0 && issue2?.resolution !== null && Number(issue2.resolution) !== 0) {
+      exclusions.not_open += 1;
+      continue;
+    }
+    if (!meetsMinSeverity(normalizeSeverity(issue2?.severity), minSeverity)) {
+      exclusions.below_threshold += 1;
+      continue;
+    }
+    kept.push(issue2);
+  }
+  return { kept, exclusions };
+}
+function noteLookup(notes) {
+  const byKey = /* @__PURE__ */ new Map();
+  for (const n of notes ?? []) {
+    const key = String(n?.issue_type ?? "").trim().toLowerCase();
+    const note = String(n?.note ?? "").trim();
+    if (key && note) byKey.set(key, truncate(note, NOTE_LIMIT));
+  }
+  return (name, kindId) => byKey.get(name.trim().toLowerCase()) ?? (kindId !== null ? byKey.get(String(kindId)) ?? null : null);
+}
+function compareFindings(a, b) {
+  return severityRank(a.severity) - severityRank(b.severity) || b.occurrence_total - a.occurrence_total || a.name.localeCompare(b.name);
+}
+function compareOccurrences(a, b) {
+  return Number(!!b.source) - Number(!!a.source) || a.path.localeCompare(b.path) || a.method.localeCompare(b.method);
+}
+function groupFindings(issues, opts, targetUrl, sourceLinks) {
+  const noteFor = noteLookup(opts.remediationNotes);
+  const groups = /* @__PURE__ */ new Map();
+  for (const issue2 of issues) {
+    const key = kindKey(issue2);
+    const list = groups.get(key);
+    if (list) list.push(issue2);
+    else groups.set(key, [issue2]);
+  }
+  const findings = [];
+  for (const [key, list] of groups) {
+    const first = list[0];
+    const name = kindName(first);
+    const kindId = first?.kind_id ?? first?.kind?.id ?? null;
+    const severity = list.map((i) => normalizeSeverity(i?.severity)).sort((a, b) => severityRank(a) - severityRank(b))[0];
+    const allOccurrences = list.map((issue2) => {
+      const rawEvidence = issue2?.evidence ? String(issue2.evidence) : null;
+      const source = issue2?.id ? sourceLinks.get(String(issue2.id)) ?? null : null;
+      return {
+        issue_id: String(issue2?.id ?? ""),
+        method: safeMethod(issue2?.http_method),
+        url: scrub(String(issue2?.extra_info?.http_requests?.[0]?.url || issue2?.url_path || ""), opts.includeEvidence),
+        path: scrub(String(issue2?.url_path || "/"), opts.includeEvidence),
+        parameter: issue2?.parameter_name ? scrub(String(issue2.parameter_name), opts.includeEvidence) : null,
+        payload: clean(issue2?.payload ? String(issue2.payload) : null, PAYLOAD_LIMIT, opts.includeEvidence),
+        evidence: opts.includeEvidence ? truncate(rawEvidence, EVIDENCE_LIMIT) : null,
+        evidence_hidden: !opts.includeEvidence && !!rawEvidence,
+        curl: buildCurl(issue2, targetUrl, opts.includeEvidence),
+        source
+      };
+    });
+    allOccurrences.sort(compareOccurrences);
+    const explanationSource = list.find((i) => i?.ai_explanation)?.ai_explanation ?? null;
+    findings.push({
+      key,
+      kind_id: kindId === null || kindId === void 0 ? null : Number(kindId),
+      name,
+      severity,
+      engine: first?.extra_info?.tool_name ? String(first.extra_info.tool_name) : null,
+      taxonomy: taxonomyOf(first),
+      explanation: clean(explanationSource, EXPLANATION_LIMIT[severity], opts.includeEvidence),
+      remediation_note: noteFor(name, kindId === null || kindId === void 0 ? null : Number(kindId)),
+      occurrence_total: list.length,
+      affected_paths: new Set(list.map((i) => `${i?.http_method}|${i?.url_path}`)).size,
+      source_linked: allOccurrences.filter((o) => o.source).length,
+      occurrences: allOccurrences.slice(0, opts.maxOccurrencesPerType)
+    });
+  }
+  return findings.sort(compareFindings);
+}
+function countBySeverity(issues) {
+  const counts = emptyCounts();
+  for (const issue2 of issues) counts[normalizeSeverity(issue2?.severity)] += 1;
+  return counts;
+}
+function toEntry(issue2, includeEvidence) {
+  return {
+    name: kindName(issue2),
+    severity: normalizeSeverity(issue2?.severity),
+    method: safeMethod(issue2?.http_method),
+    path: scrub(String(issue2?.url_path || "/"), includeEvidence),
+    parameter: issue2?.parameter_name ? scrub(String(issue2.parameter_name), includeEvidence) : null
+  };
+}
+function compareEntries(a, b) {
+  return severityRank(a.severity) - severityRank(b.severity) || a.name.localeCompare(b.name) || a.path.localeCompare(b.path);
+}
+function compareScans(currentKept, baselineKept, baselineScan, currentAll = currentKept, includeEvidence = false) {
+  const baselineKeys = new Set(baselineKept.map(occurrenceKey));
+  const currentOpenKeys = new Set(currentKept.map(occurrenceKey));
+  const currentAnyKeys = new Set(currentAll.map(occurrenceKey));
+  const added = currentKept.filter((i) => !baselineKeys.has(occurrenceKey(i)));
+  const gone = baselineKept.filter((i) => !currentOpenKeys.has(occurrenceKey(i)));
+  const fixed = gone.filter((i) => !currentAnyKeys.has(occurrenceKey(i)));
+  return {
+    baseline_scan_id: String(baselineScan?.id ?? ""),
+    baseline_started_at: baselineScan?.started_at ?? baselineScan?.created_at ?? null,
+    new_count: added.length,
+    fixed_count: fixed.length,
+    dismissed_count: gone.length - fixed.length,
+    still_open_count: currentKept.length - added.length,
+    new_by_severity: countBySeverity(added),
+    new_findings: added.map((i) => toEntry(i, includeEvidence)).sort(compareEntries).slice(0, COMPARISON_LIST_LIMIT),
+    fixed_findings: fixed.map((i) => toEntry(i, includeEvidence)).sort(compareEntries).slice(0, COMPARISON_LIST_LIMIT)
+  };
+}
+function summarizeScan(scan, pathsTested, specFile, sourceLinked) {
+  const engines = [];
+  const cfg = scan?.engine_checks_configuration ?? {};
+  if (cfg.use_zap) engines.push("ZAP");
+  if (cfg.use_nuclei) engines.push("Nuclei");
+  const excluded = Array.isArray(scan?.configuration?.excluded_url_patterns) ? scan.configuration.excluded_url_patterns.length : 0;
+  const duration3 = typeof scan?.completed_in === "number" ? Math.round(scan.completed_in) : null;
+  return {
+    scan_id: String(scan?.id ?? ""),
+    target_name: String(scan?.target_name || scan?.target?.name || "Unknown target"),
+    target_url: scan?.location || scan?.target?.location || null,
+    target_type: scan?.target_type || scan?.target?.type || null,
+    project_name: scan?.project_name || scan?.project?.name || scan?.target?.project_name || null,
+    status: scan?.status_value || null,
+    started_at: scan?.started_at || scan?.created_at || null,
+    ended_at: scan?.ended_at || null,
+    duration_seconds: duration3,
+    spec_file: specFile ?? scan?.swaggerfile_name ?? null,
+    source_linked: sourceLinked,
+    source_linked_count: 0,
+    source_link_attempted: specFile !== null,
+    engines,
+    paths_tested: pathsTested,
+    excluded_url_patterns: excluded,
+    preset: scan?.preset || null
+  };
+}
+function defaultTitle(name) {
+  return `Security Report: ${name}`;
+}
+function buildScanReport(input) {
+  const { options } = input;
+  const summary = summarizeScan(input.scan, input.pathsTested, input.specFile, input.sourceLinks.size > 0);
+  const { kept, exclusions } = filterIssues(input.issues, options.minSeverity);
+  const findings = groupFindings(kept, options, summary.target_url, input.sourceLinks);
+  summary.source_linked_count = kept.filter((i) => i?.id && input.sourceLinks.has(String(i.id))).length;
+  const comparison = input.baseline ? compareScans(kept, filterIssues(input.baseline.issues, options.minSeverity).kept, input.baseline.scan, input.issues, options.includeEvidence) : null;
+  return {
+    kind: "scan",
+    title: options.title?.trim() || defaultTitle(summary.target_name),
+    generated_at: options.generatedAt.toISOString(),
+    scan: summary,
+    counts: countBySeverity(kept),
+    total_open: kept.length,
+    distinct_types: findings.length,
+    exclusions,
+    top_findings: findings.slice(0, TOP_FINDINGS),
+    findings,
+    executive_summary: truncate(options.executiveSummary?.trim() || null, SUMMARY_LIMIT),
+    comparison,
+    options: {
+      min_severity: options.minSeverity,
+      include_evidence: options.includeEvidence,
+      max_occurrences_per_type: options.maxOccurrencesPerType
+    }
+  };
+}
+function buildProjectReport(input) {
+  const { options } = input;
+  const totals = emptyCounts();
+  const byType = /* @__PURE__ */ new Map();
+  const targets = [];
+  for (const scan of input.scans) {
+    const counts = emptyCounts();
+    for (const stat2 of input.kindStats.get(String(scan?.id)) ?? []) {
+      const name = String(stat2?.kind_name || stat2?.name || "Unnamed finding");
+      if (SCAN_META_NAME.test(name)) continue;
+      const severity = normalizeSeverity(stat2?.severity);
+      if (!meetsMinSeverity(severity, options.minSeverity)) continue;
+      const open2 = Number(stat2?.open ?? 0);
+      if (!(open2 > 0)) continue;
+      counts[severity] += open2;
+      const key = stat2?.kind_id !== null && stat2?.kind_id !== void 0 ? `kind:${stat2.kind_id}` : `nuclei:${stat2?.nuclei_template_id ?? name}`;
+      const entry = byType.get(key) ?? { name, severity, targets: 0, affected_paths: 0, targetIds: /* @__PURE__ */ new Set() };
+      entry.targetIds.add(String(scan?.target_id ?? scan?.id));
+      entry.targets = entry.targetIds.size;
+      entry.affected_paths += Number(stat2?.vulnerable_paths_count ?? 0);
+      if (severityRank(severity) < severityRank(entry.severity)) entry.severity = severity;
+      byType.set(key, entry);
+    }
+    for (const s of SEVERITY_ORDER) totals[s] += counts[s];
+    targets.push({
+      target_name: String(scan?.target_name || scan?.target?.name || "Unknown target"),
+      target_url: scan?.location || scan?.target?.location || null,
+      scan_id: String(scan?.id ?? ""),
+      scanned_at: scan?.started_at || scan?.created_at || null,
+      status: scan?.status_value || null,
+      counts,
+      total_open: SEVERITY_ORDER.reduce((sum, s) => sum + counts[s], 0)
+    });
+  }
+  targets.sort((a, b) => {
+    for (const s of SEVERITY_ORDER) {
+      if (a.counts[s] !== b.counts[s]) return b.counts[s] - a.counts[s];
+    }
+    return a.target_name.localeCompare(b.target_name);
+  });
+  const topTypes = [...byType.values()].map(({ targetIds: _ids, ...rest }) => rest).sort((a, b) => severityRank(a.severity) - severityRank(b.severity) || b.targets - a.targets || b.affected_paths - a.affected_paths || a.name.localeCompare(b.name)).slice(0, 10);
+  return {
+    kind: "project",
+    title: options.title?.trim() || defaultTitle(input.projectName),
+    generated_at: options.generatedAt.toISOString(),
+    project_name: input.projectName,
+    targets,
+    counts: totals,
+    total_open: SEVERITY_ORDER.reduce((sum, s) => sum + totals[s], 0),
+    top_types: topTypes,
+    executive_summary: truncate(options.executiveSummary?.trim() || null, SUMMARY_LIMIT),
+    options: { min_severity: options.minSeverity, include_evidence: options.includeEvidence }
+  };
+}
+
+// src/report/pdf.ts
+import { spawn as spawn2, spawnSync } from "node:child_process";
+import { existsSync as existsSync6 } from "node:fs";
+import { copyFile, mkdtemp as mkdtemp2, open, rm as rm2, stat } from "node:fs/promises";
+import os5 from "node:os";
+import path13 from "node:path";
+import { pathToFileURL } from "node:url";
+function onPath(name, env, exists, platform) {
+  const sep = platform === "win32" ? ";" : ":";
+  const exts = platform === "win32" ? [".exe", ""] : [""];
+  for (const dir of String(env.PATH ?? "").split(sep).filter(Boolean)) {
+    for (const ext of exts) {
+      const candidate = path13.join(dir, `${name}${ext}`);
+      if (exists(candidate)) return candidate;
+    }
+  }
+  return null;
+}
+function findChromeBinary(env = process.env, platform = process.platform, exists = existsSync6) {
+  for (const override of [env.NIGHTVISION_CHROME_PATH, env.CHROME_PATH]) {
+    if (override && exists(override)) return override;
+  }
+  if (platform === "darwin") {
+    const apps = [
+      "Google Chrome.app/Contents/MacOS/Google Chrome",
+      "Chromium.app/Contents/MacOS/Chromium",
+      "Microsoft Edge.app/Contents/MacOS/Microsoft Edge",
+      "Brave Browser.app/Contents/MacOS/Brave Browser"
+    ];
+    const roots = ["/Applications", path13.join(env.HOME || os5.homedir(), "Applications")];
+    for (const root of roots) {
+      for (const app of apps) {
+        const candidate = path13.join(root, app);
+        if (exists(candidate)) return candidate;
+      }
+    }
+  }
+  if (platform === "win32") {
+    const bases = [env.PROGRAMFILES, env["PROGRAMFILES(X86)"], env.LOCALAPPDATA].filter(Boolean);
+    const rels = [
+      "Google\\Chrome\\Application\\chrome.exe",
+      "Microsoft\\Edge\\Application\\msedge.exe",
+      "Chromium\\Application\\chrome.exe",
+      "BraveSoftware\\Brave-Browser\\Application\\brave.exe"
+    ];
+    for (const base of bases) {
+      for (const rel of rels) {
+        const candidate = path13.win32.join(base, rel);
+        if (exists(candidate)) return candidate;
+      }
+    }
+  }
+  for (const name of ["google-chrome", "google-chrome-stable", "chromium", "chromium-browser", "microsoft-edge", "microsoft-edge-stable", "brave-browser", "chrome", "msedge"]) {
+    const found = onPath(name, env, exists, platform);
+    if (found) return found;
+  }
+  return null;
+}
+function chromePrintArgs(htmlPath, pdfPath, profileDir, runningAsRoot) {
+  const args = [
+    "--headless=new",
+    "--disable-gpu",
+    "--no-first-run",
+    "--no-default-browser-check",
+    "--disable-extensions",
+    "--disable-background-networking",
+    "--no-pdf-header-footer",
+    `--user-data-dir=${profileDir}`,
+    `--print-to-pdf=${pdfPath}`
+  ];
+  if (runningAsRoot) args.push("--no-sandbox");
+  args.push(pathToFileURL(htmlPath).href);
+  return args;
+}
+async function fileSize(p) {
+  try {
+    return (await stat(p)).size;
+  } catch {
+    return 0;
+  }
+}
+async function isCompletePdf(p) {
+  const handle = await open(p, "r");
+  try {
+    const { size } = await handle.stat();
+    if (size < 16) return false;
+    const head = Buffer.alloc(5);
+    await handle.read(head, 0, 5, 0);
+    const tailLength = Math.min(1024, size);
+    const tail2 = Buffer.alloc(tailLength);
+    await handle.read(tail2, 0, tailLength, size - tailLength);
+    return head.toString("latin1") === "%PDF-" && tail2.toString("latin1").includes("%%EOF");
+  } finally {
+    await handle.close();
+  }
+}
+var sleep4 = (ms) => new Promise((resolve2) => setTimeout(resolve2, ms));
+function waitForExit(child, state, ms) {
+  if (state.exited) return Promise.resolve(true);
+  return new Promise((resolve2) => {
+    const timer = setTimeout(() => resolve2(state.exited), ms);
+    child.once("exit", () => {
+      clearTimeout(timer);
+      resolve2(true);
+    });
+  });
+}
+async function stopBrowser(child, state) {
+  if (state.exited || child.pid === void 0) return;
+  if (process.platform === "win32") {
+    spawnSync("taskkill", ["/pid", String(child.pid), "/T", "/F"], { stdio: "ignore", windowsHide: true });
+    await waitForExit(child, state, 5e3);
+    return;
+  }
+  child.kill("SIGTERM");
+  if (!await waitForExit(child, state, 5e3)) {
+    child.kill("SIGKILL");
+    await waitForExit(child, state, 2e3);
+  }
+}
+async function printHtmlToPdf(htmlPath, pdfPath, chromePath, timeoutMs = 6e4) {
+  const workDir = await mkdtemp2(path13.join(os5.tmpdir(), "nightvision-report-chrome-"));
+  const profileDir = path13.join(workDir, "profile");
+  const tempPdf = path13.join(workDir, "report.pdf");
+  const state = { exited: false };
+  let spawnError = null;
+  let child = null;
+  try {
+    const runningAsRoot = typeof process.getuid === "function" && process.getuid() === 0;
+    child = spawn2(chromePath, chromePrintArgs(htmlPath, tempPdf, profileDir, runningAsRoot), {
+      stdio: "ignore",
+      windowsHide: true
+    });
+    child.on("exit", () => {
+      state.exited = true;
+    });
+    child.on("error", (err) => {
+      spawnError = err;
+      state.exited = true;
+    });
+    const deadline = Date.now() + timeoutMs;
+    let last = -1;
+    let done = false;
+    while (Date.now() < deadline) {
+      if (state.exited) {
+        done = true;
+        break;
+      }
+      const size = await fileSize(tempPdf);
+      if (size > 0 && size === last && await isCompletePdf(tempPdf)) {
+        await waitForExit(child, state, 2e3);
+        done = true;
+        break;
+      }
+      last = size;
+      await sleep4(500);
+    }
+    if (spawnError) throw new Error(`Could not start ${chromePath}: ${spawnError.message}`);
+    if (!done) throw new Error(`The browser did not finish printing within ${Math.round(timeoutMs / 1e3)} seconds.`);
+  } finally {
+    if (child) await stopBrowser(child, state);
+  }
+  try {
+    if (await fileSize(tempPdf) === 0) throw new Error("The browser exited without writing a PDF.");
+    if (!await isCompletePdf(tempPdf)) throw new Error("The browser wrote an incomplete or invalid PDF.");
+    await copyFile(tempPdf, pdfPath);
+    if (process.platform === "darwin") {
+      spawnSync("xattr", ["-c", pdfPath], { stdio: "ignore" });
+    }
+  } finally {
+    await rm2(workDir, { recursive: true, force: true, maxRetries: 3, retryDelay: 200 }).catch(() => void 0);
+  }
+}
+
+// src/report/brand.ts
+var NV_ICON_DATA_URI = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAGL0lEQVR4nOSbf2iVVRjHv8+9d7qJ1rQ7S0pJK9OgpEKlMp1FEQQhhGBtE8tGpf1aoU231XXeWWY5KjHyd/NHwqCw/wJ1y7IoRfpBqYgKFdncnRoOxXb3nr7vtfc2aOe4q+957wt+Bjt79jz37L7Pfc5zfjxnEVzmRHCZc9k7IAYfqFWlNYA8oNMLMHextPyMEOKLAwRyVAFTdHoHWMdmIkKIL0OAn+4WNrt1ekbAhDpVWo4Q4mcOmM0o6NYpGQXLq9RdRQgZvjkgKS0H+Umv1Ok5TEoGoH89Qoavs0AMaiGgUgaTF6vVpFEIEb46ICGtnWyqdXpGQUEMsQ8RIgQW4LT4HbsebzB5lEPmE4QAKwshgcOEqJTBpDGhbumHEGDFAYtl109s1hpMRqRxdS1CgLWlsINoNaPgtE7P8JhfoyYPR56x5oA3ZEcHm4U6PZNPf0F0BfLMxSXBmcdvhyNX9t6jtGFjfL8n1qqp37MZp+uKC6SHlkjL5+gjCXXngDQGTehNl5TWVuRI7nuBmalrGcD7tLGjnE6Ut4/GppJjGRHdc/hJG5bJyo2Cm9BH+PCMKqnpTVejSuc1SOvbyIHch4DECs16GcinWuaJDbLrazZbtOaQG/nGq9H3N9BP3xf6I0fs5ABBGco77vZErhBfYXNGby51CVV6DfKAvQORiLOWAzbTP1eIf3K0JwzWHNdoRB6weSI0Boc7nvWEGKSRU98RvbnMqFNT70HA2D0SE5XE9BOZ2YJRkGaoV5rMuW5YnVDBHtPZ/mPFKOrOZuWk7NzJh/xUby5juzD1OQSIfW8rzEbZiVs9sQB4gUPhnOEFSSbEOALCvgMY94h0Z/cFHAq/s1liMB+UhryFgAhmvAnGc/X4pCcWoO1NDoXfDK94ok5NGY8ACC7hKCzF9OMD3R8T8svf9MrzZvPIagRAcA4QiaPwv9BvkJZtjIIdhleMq1VTjLOGHwRcGZI53CfcnJXgVNIJXTprBVnKhFgMi+TuAMfdwBk5pNVwV8S/uMoTk7LrKJt39OYymCvEJCzibwQo1YamktFsvzJYTUZF+wxPOINz9YyCY9ougTkLVOkYWCJ3B0RMr5Hz4RyNVLr7YL0dlmO6yhRJGuWbs+zwZW2PTB7UW0uIdnLAhvgBLoM/0OoFw1CYSnjiYmndCmNpTSZxy1wGC9hLgmexgFFwUqsXVKHi1MgevzGW1sgyG6U1ew5oHtrJh5xvsCjgiMmGtlta44h/X2fMKBjG0lozf3xQ36W6UIL+H3anwaaSNUyIPxgs7kd5aponcJ9QZyqt0QkPw3C+SIucn8f+OsCJmBczEfUeE2LmmOt8aU3NR4DYd8Dm+B5+MusMFsNRlMoenyfli/V0wh4ERDArwa5+r/L7ab2BqkZZx3We1IfSmm8E44CPr0jxeQylMOnPM8RsAnRLaxzvaxAAwe0FbihZwWlxv1YvmIaK1H2e2IXoPEbGKVgmOAckxEEkeoHdnbMapSpTrFkq2/9SmgKInwS7G/xoyG5GwVatXmQUhndkl8XcMq9kIvgRFgn+omRUVTG0tUUSiPM6Zh3vUSRRs2GR4B2wYSiLJJF6vYEMYOF1uSex1reXTtgES+TnquyvV/EMQB02WDzWs7TWjehLprsGl0J+HNAqaXRHnjba9CituXcNWPhcBAvkxwEum+M7mBC3GSzG4Ej7XE+IoZWlNXUAPnORFyTaE73+3sEf2FSyCn1l1snr4aSPavVKdSJWNArrB7W74kJ17x0RRB/RmTvo/myJfLkPOWDlmlxOVLQv4rt4TW/AfURT3NpMkH8HuDvBwtQhvpMRWhvFwsrGkr2wQP5ygEezuEWSKqONqLWwRP4d4LIx7t4a3a43kNuYd56CBcLhAJd0gTstdhkslnl3DfwkPA7YUuzeHnnXYFGMwnQDfCb/SbAnbq2gMHU4c2zeGyrzNZZT7UH4RHgiwKVZzvIB52n1mbsG/ibEcEWAx8z2b/l9glbvoJxRsBk+EK4IyBKtzAS7Dvci5r+ltUslnA5oGsJDEKX9/6NMjihK1cMHQhoBJFpQm6k261DqGfiAL/84aYUNg0/h8ZMTEUmP7FUvkTb4QDiTYICEdwgExD8AAAD//yqbsjEAAAAGSURBVAMAoyW+4XpxCFYAAAAASUVORK5CYII=";
+
+// src/report/render-html.ts
+function esc2(value) {
+  return String(value ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+}
+var SEVERITY_LABEL = {
+  CRITICAL: "Critical",
+  HIGH: "High",
+  MEDIUM: "Medium",
+  LOW: "Low",
+  INFO: "Info",
+  UNSPECIFIED: "Unspecified"
+};
+function formatDate(iso) {
+  if (!iso) return "Unknown";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return esc2(iso);
+  return d.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric", timeZone: "UTC" });
+}
+function formatDateTime(iso) {
+  if (!iso) return "Unknown";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return esc2(iso);
+  return `${d.toLocaleString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: "UTC",
+    hourCycle: "h23"
+  })} UTC`;
+}
+function formatDuration(seconds) {
+  if (seconds === null) return "Unknown";
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor(seconds % 3600 / 60);
+  const s = seconds % 60;
+  if (h > 0) return `${h}h ${m}m`;
+  if (m > 0) return `${m}m ${s}s`;
+  return `${s}s`;
+}
+function plural(n, one, many = `${one}s`) {
+  return `${n} ${n === 1 ? one : many}`;
+}
+function visibleSeverities(counts) {
+  return SEVERITY_ORDER.filter((s) => ["CRITICAL", "HIGH", "MEDIUM", "LOW"].includes(s) || counts[s] > 0);
+}
+function chip(s) {
+  return `<span class="chip sev-${s.toLowerCase()}">${SEVERITY_LABEL[s]}</span>`;
+}
+function explanationHtml(text) {
+  return esc2(text.replace(/^\s*#{1,6}\s+[^\n]{0,40}\n+/, "").replace(/^#{1,6}\s+/gm, "")).replace(/\*\*([^*]+)\*\*/g, "$1").replace(/`([^`\n]{1,200})`/g, "<code>$1</code>");
+}
+function prose(text) {
+  const blocks = text.split(/\n\s*\n/).map((b) => b.trim()).filter(Boolean);
+  return blocks.map((block) => {
+    const lines = block.split("\n").map((l) => l.trim()).filter(Boolean);
+    if (lines.every((l) => /^[-*•]\s+/.test(l))) {
+      return `<ul class="bullets">${lines.map((l) => `<li>${esc2(l.replace(/^[-*•]\s+/, ""))}</li>`).join("")}</ul>`;
+    }
+    return `<p>${esc2(lines.join(" "))}</p>`;
+  }).join("");
+}
+function severityBar(counts) {
+  const total = SEVERITY_ORDER.reduce((sum, s) => sum + counts[s], 0);
+  if (total === 0) return "";
+  const segments = SEVERITY_ORDER.filter((s) => counts[s] > 0).map((s) => `<span class="seg sev-${s.toLowerCase()}" style="width:${(counts[s] / total * 100).toFixed(2)}%"></span>`).join("");
+  return `<div class="bar" role="img" aria-label="Open findings by severity">${segments}</div>`;
+}
+function statTiles(counts) {
+  const tiles = visibleSeverities(counts).map((s) => `
+      <div class="stat sev-edge-${s.toLowerCase()}">
+        <div class="n">${counts[s]}</div>
+        <div class="l">${SEVERITY_LABEL[s]}</div>
+      </div>`).join("");
+  return `<div class="stats">${tiles}</div>`;
+}
+function masthead(kicker, metaRight) {
+  return `
+    <header class="masthead">
+      <div class="brand"><img src="${NV_ICON_DATA_URI}" alt=""><span>NightVision</span></div>
+      <div class="meta">${metaRight}</div>
+    </header>
+    <div class="kicker-row">${esc2(kicker)}</div>`;
+}
+function closingLine(label) {
+  return `<p class="closing">${esc2(label)} \xB7 Generated by NightVision \xB7 nightviz.ai</p>`;
+}
+function exclusionsNote(report) {
+  const parts = [];
+  const ex = report.exclusions;
+  if (ex.not_open) parts.push(`${plural(ex.not_open, "finding")} marked resolved, false positive, or excluded`);
+  if (ex.below_threshold) {
+    parts.push(`${plural(ex.below_threshold, "finding")} below the ${esc2(SEVERITY_LABEL[normalizeMin(report.options.min_severity)])} severity threshold`);
+  }
+  if (!parts.length) return "";
+  return `<p class="fine">Not included: ${parts.join("; ")}.</p>`;
+}
+function normalizeMin(min) {
+  const m = min.toUpperCase();
+  return m === "INFO" ? "INFO" : m;
+}
+function coverageSection(report) {
+  const s = report.scan;
+  const rows = [
+    ["Target", `${esc2(s.target_name)}${s.target_url ? ` <code>${esc2(s.target_url)}</code>` : ""}`],
+    ["Target type", esc2(s.target_type ?? "Unknown")],
+    ["Scan window", `${formatDateTime(s.started_at)} to ${formatDateTime(s.ended_at)} (${formatDuration(s.duration_seconds)})`],
+    ["Paths exercised", s.paths_tested === null ? "Unknown" : String(s.paths_tested)],
+    ["Engines", esc2(s.engines.length ? s.engines.join(" + ") : "Unknown")],
+    ["API spec", s.spec_file ? `<code>${esc2(s.spec_file)}</code>` : "None (web crawl only)"],
+    ["Linked to source code", s.source_linked_count ? `${plural(s.source_linked_count, "finding")} ${s.source_linked_count === 1 ? "maps" : "map"} to a source file and line` : s.source_link_attempted ? "No findings mapped to a specific handler" : s.spec_file ? "Not linked (generate the report from the app source directory to map findings to code)" : "Not applicable (web crawl without an API spec)"]
+  ];
+  if (s.excluded_url_patterns) rows.push(["Excluded URL patterns", String(s.excluded_url_patterns)]);
+  return `
+    <section class="sec">
+      <h2><span class="tag">Scope</span>What was tested</h2>
+      <table class="kv">${rows.map(([k, v]) => `<tr><th>${k}</th><td>${v}</td></tr>`).join("")}</table>
+    </section>`;
+}
+function topIssuesSection(report) {
+  if (!report.top_findings.length) {
+    return `
+    <section class="sec">
+      <h2><span class="tag">Priorities</span>Top issues</h2>
+      <p class="body">No open findings at or above the ${esc2(SEVERITY_LABEL[normalizeMin(report.options.min_severity)])} threshold.</p>
+    </section>`;
+  }
+  const rows = report.top_findings.map((f) => `
+      <tr>
+        <td>${chip(f.severity)}</td>
+        <td class="name">${esc2(f.name)}</td>
+        <td class="num">${f.affected_paths}</td>
+        <td class="tax">${esc2(f.taxonomy.map((t) => t.code).join(", ") || "")}</td>
+      </tr>`).join("");
+  return `
+    <section class="sec">
+      <h2><span class="tag">Priorities</span>Top issues</h2>
+      <table class="grid">
+        <thead><tr><th>Severity</th><th>Issue type</th><th class="num">Endpoints</th><th>Category</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </section>`;
+}
+function comparisonSection(report) {
+  const c = report.comparison;
+  if (!c) return "";
+  const list = (entries, empty) => entries.length ? `<table class="grid compact"><tbody>${entries.map((e) => `
+        <tr><td>${chip(e.severity)}</td><td class="name">${esc2(e.name)}</td>
+        <td><code>${esc2(e.method)} ${esc2(e.path)}</code>${e.parameter ? ` <span class="muted">param</span> <code>${esc2(e.parameter)}</code>` : ""}</td></tr>`).join("")}</tbody></table>` : `<p class="fine">${empty}</p>`;
+  const more = (shown, total) => total > shown ? `<p class="fine">Showing ${shown} of ${total}.</p>` : "";
+  return `
+    <section class="sec avoid-break">
+      <h2><span class="tag">Change</span>Since the previous scan (${formatDate(c.baseline_started_at)})</h2>
+      <div class="stats three">
+        <div class="stat"><div class="n">${c.new_count}</div><div class="l">New</div></div>
+        <div class="stat"><div class="n good">${c.fixed_count}</div><div class="l">Fixed</div></div>
+        <div class="stat"><div class="n">${c.still_open_count}</div><div class="l">Still open</div></div>
+      </div>
+      <h3>New findings</h3>
+      ${list(c.new_findings, "None.")}${more(c.new_findings.length, c.new_count)}
+      <h3>Fixed since the previous scan</h3>
+      ${list(c.fixed_findings, "None.")}${more(c.fixed_findings.length, c.fixed_count)}
+      ${c.dismissed_count ? `<p class="fine">${plural(c.dismissed_count, "finding")} from the previous scan ${c.dismissed_count === 1 ? "is" : "are"} still reported but now marked resolved or false positive, so ${c.dismissed_count === 1 ? "it is" : "they are"} not counted as fixed.</p>` : ""}
+      <p class="fine">Baseline scan <code>${esc2(c.baseline_scan_id)}</code>. Findings are matched by issue type, endpoint, and parameter.</p>
+    </section>`;
+}
+function findingBlock(f, includeEvidence) {
+  const tax = f.taxonomy.length ? `<p class="tax-line">${f.taxonomy.map((t) => `${esc2(t.standard)} ${esc2(t.code)}${t.name ? `: ${esc2(t.name)}` : ""}`).join(" \xB7 ")}</p>` : "";
+  const rows = f.occurrences.map((o) => `
+        <tr>
+          <td><code>${esc2(o.method)}</code></td>
+          <td class="ep"><code>${esc2(o.path)}</code></td>
+          <td>${o.parameter ? `<code>${esc2(o.parameter)}</code>` : '<span class="muted">none</span>'}</td>
+          <td>${o.source ? `<code>${esc2(o.source.file)}${o.source.line !== null ? `:${o.source.line}` : ""}</code>` : '<span class="muted">not linked</span>'}</td>
+        </tr>
+        ${o.payload ? `<tr class="sub"><td></td><td colspan="3"><span class="muted">Payload</span> <code class="wrap">${esc2(o.payload)}</code></td></tr>` : ""}
+        ${includeEvidence && o.evidence ? `<tr class="sub"><td></td><td colspan="3"><span class="muted">Evidence</span> <code class="wrap">${esc2(o.evidence)}</code></td></tr>` : ""}`).join("");
+  const hiddenCount = f.occurrence_total - f.occurrences.length;
+  const first = f.occurrences[0];
+  return `
+    <article class="finding sev-edge-${f.severity.toLowerCase()}">
+      <div class="finding-head">
+        ${chip(f.severity)}
+        <h3>${esc2(f.name)}</h3>
+        <span class="count">${plural(f.affected_paths, "endpoint")} \xB7 ${plural(f.occurrence_total, "occurrence")}${f.engine ? ` \xB7 ${esc2(f.engine)}` : ""}</span>
+      </div>
+      ${tax}
+      ${f.explanation ? `<div class="explain"><div class="label">What NightVision observed</div><p>${explanationHtml(f.explanation)}</p></div>` : ""}
+      ${f.remediation_note ? `<div class="fix"><div class="label">How to fix</div>${prose(f.remediation_note)}</div>` : ""}
+      <table class="grid occ">
+        <thead><tr><th>Method</th><th>Endpoint</th><th>Parameter</th><th>Source</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+      ${hiddenCount > 0 ? `<p class="fine">${plural(hiddenCount, "more occurrence")} not shown. The full list is in NightVision.</p>` : ""}
+      ${first ? `<div class="repro"><div class="label">Reproduce (first endpoint above; add your own session headers)</div><pre>${esc2(first.curl)}</pre></div>` : ""}
+    </article>`;
+}
+function scanBody(report) {
+  const s = report.scan;
+  const metaRight = `<b>Report date</b> ${formatDate(report.generated_at)}<br><b>Scan</b> <code>${esc2(s.scan_id)}</code>`;
+  const lede = [
+    s.target_url ? `<code class="on-dark">${esc2(s.target_url)}</code>` : "",
+    s.project_name ? `Project <b>${esc2(s.project_name)}</b>` : "",
+    `Scanned ${formatDate(s.started_at)}`
+  ].filter(Boolean).join(" \xB7 ");
+  const summary = report.executive_summary ? `<section class="sec"><h2><span class="tag">Summary</span>What this means</h2><div class="body">${prose(report.executive_summary)}</div></section>` : "";
+  const evidenceNote = report.options.include_evidence ? '<p class="fine">This report includes raw scan evidence. Handle it as sensitive.</p>' : '<p class="fine">Scan evidence is omitted and recognizable secrets in payloads, explanations, and commands are masked. Masking is best effort; review before sharing outside your organization.</p>';
+  const appendix = report.findings.length ? `
+    <section class="appendix">
+      <h2 class="appendix-title"><span class="tag">Detail</span>Findings for developers</h2>
+      <p class="body">Every open issue type, most severe first. Endpoints linked to source show the file and line of the handler that received the request.</p>
+      ${report.findings.map((f) => findingBlock(f, report.options.include_evidence)).join("")}
+      ${evidenceNote}
+    </section>` : "";
+  return `
+    ${masthead("DAST security report", metaRight)}
+    <div class="hero">
+      <div class="kicker">${report.comparison ? "Scan results and change since last scan" : "Scan results"}</div>
+      <h1>${esc2(report.title)}</h1>
+      <p>${lede}</p>
+      <p class="hero-total"><b>${report.total_open}</b> open ${report.total_open === 1 ? "finding" : "findings"} across <b>${report.distinct_types}</b> issue ${report.distinct_types === 1 ? "type" : "types"}</p>
+    </div>
+    ${statTiles(report.counts)}
+    ${severityBar(report.counts)}
+    ${summary}
+    ${topIssuesSection(report)}
+    ${comparisonSection(report)}
+    ${coverageSection(report)}
+    ${exclusionsNote(report)}
+    ${appendix}
+    ${closingLine(`${s.target_name} \xB7 scan ${s.scan_id}`)}`;
+}
+function projectBody(report) {
+  const metaRight = `<b>Report date</b> ${formatDate(report.generated_at)}<br><b>Project</b> ${esc2(report.project_name)}`;
+  const summary = report.executive_summary ? `<section class="sec"><h2><span class="tag">Summary</span>What this means</h2><div class="body">${prose(report.executive_summary)}</div></section>` : "";
+  const sevCols = visibleSeverities(report.counts);
+  const targetRows = report.targets.map((t) => `
+      <tr>
+        <td class="name">${esc2(t.target_name)}${t.target_url ? `<br><code>${esc2(t.target_url)}</code>` : ""}</td>
+        <td>${formatDate(t.scanned_at)}</td>
+        ${sevCols.map((s) => `<td class="num${t.counts[s] ? ` hot-${s.toLowerCase()}` : ""}">${t.counts[s]}</td>`).join("")}
+      </tr>`).join("");
+  const typeRows = report.top_types.map((t) => `
+      <tr><td>${chip(t.severity)}</td><td class="name">${esc2(t.name)}</td><td class="num">${t.targets}</td><td class="num">${t.affected_paths}</td></tr>`).join("");
+  return `
+    ${masthead("DAST security report", metaRight)}
+    <div class="hero">
+      <div class="kicker">Project roll-up</div>
+      <h1>${esc2(report.title)}</h1>
+      <p>Latest completed scan of each target \xB7 ${plural(report.targets.length, "target")}</p>
+      <p class="hero-total"><b>${report.total_open}</b> open ${report.total_open === 1 ? "finding" : "findings"}</p>
+    </div>
+    ${statTiles(report.counts)}
+    ${severityBar(report.counts)}
+    ${summary}
+    <section class="sec">
+      <h2><span class="tag">Targets</span>Open findings by target</h2>
+      ${report.targets.length ? `<table class="grid">
+        <thead><tr><th>Target</th><th>Last scanned</th>${sevCols.map((s) => `<th class="num">${SEVERITY_LABEL[s]}</th>`).join("")}</tr></thead>
+        <tbody>${targetRows}</tbody>
+      </table>` : '<p class="body">No completed scans found in this project.</p>'}
+    </section>
+    ${report.top_types.length ? `
+    <section class="sec">
+      <h2><span class="tag">Priorities</span>Most widespread issue types</h2>
+      <table class="grid">
+        <thead><tr><th>Severity</th><th>Issue type</th><th class="num">Targets</th><th class="num">Endpoints</th></tr></thead>
+        <tbody>${typeRows}</tbody>
+      </table>
+    </section>` : ""}
+    <p class="fine">Counts are open findings only. For per-endpoint detail, source locations, and reproduction steps, generate a scan report for an individual target.</p>
+    ${closingLine(`Project ${report.project_name}`)}`;
+}
+var STYLES = `
+  @page { size: Letter; margin: 0.5in 0.55in 0.6in; }
+  :root {
+    --ink: #0B0F14; --body: #1B2229; --muted: #525B63; --line: #E4E8EC; --soft: #F4F6F8;
+    --green: #7CFF41; --green-ink: #2F7D18;
+    --critical: #C62F28; --high: #E0621B; --medium: #E8A317; --low: #3A78C9; --info: #7C8A98;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: #fff; }
+  body {
+    font-family: "Helvetica Neue", Helvetica, Arial, "Segoe UI", "Liberation Sans", sans-serif;
+    -webkit-font-smoothing: antialiased; color: var(--body);
+    font-size: 9.6pt; line-height: 1.45;
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
+  }
+  code, pre { font-family: "SF Mono", Menlo, Consolas, "Liberation Mono", monospace; }
+  code { font-size: 8pt; background: var(--soft); padding: 0 3px; border-radius: 3px; color: var(--ink); word-break: break-all; }
+  code.on-dark { background: #1B2531; color: #F5F7FA; }
+  code.wrap { white-space: pre-wrap; }
+
+  .masthead { display: flex; justify-content: space-between; align-items: flex-end; padding-bottom: 9px; border-bottom: 2px solid var(--ink); }
+  .brand { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 14pt; letter-spacing: -0.02em; color: var(--ink); }
+  .brand img { height: 24px; width: 24px; }
+  .meta { text-align: right; font-size: 7.8pt; color: var(--muted); line-height: 1.5; }
+  .meta b { color: var(--ink); font-weight: 600; }
+  .kicker-row { margin-top: 10px; font-size: 7.4pt; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: var(--green-ink); }
+
+  .hero { background: var(--ink); color: #F5F7FA; border-radius: 10px; padding: 14px 18px 13px; margin-top: 6px; }
+  .hero .kicker { font-size: 7.4pt; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--green); }
+  .hero h1 { color: #fff; margin: 4px 0 6px; font-size: 18pt; font-weight: 800; letter-spacing: -0.02em; line-height: 1.15; }
+  .hero p { font-size: 9pt; color: #CFD6DE; }
+  .hero p b { color: #fff; }
+  .hero .hero-total { margin-top: 6px; font-size: 10pt; }
+  .hero .hero-total b { color: var(--green); font-size: 12pt; }
+
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(0, 1fr)); gap: 8px; margin: 10px 0 8px; }
+  .stat { background: var(--soft); border: 1px solid var(--line); border-radius: 8px; padding: 8px 11px; border-top-width: 3px; }
+  .stat .n { font-size: 20pt; font-weight: 800; letter-spacing: -0.02em; line-height: 1.05; color: var(--ink); }
+  .stat .n.good { color: var(--green-ink); }
+  .stat .l { font-size: 8pt; margin-top: 3px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; }
+  .sev-edge-critical { border-top-color: var(--critical); } .sev-edge-high { border-top-color: var(--high); }
+  .sev-edge-medium { border-top-color: var(--medium); } .sev-edge-low { border-top-color: var(--low); }
+  .sev-edge-info, .sev-edge-unspecified { border-top-color: var(--info); }
+
+  .bar { display: flex; height: 8px; border-radius: 4px; overflow: hidden; background: var(--soft); margin-bottom: 4px; }
+  .seg.sev-critical { background: var(--critical); } .seg.sev-high { background: var(--high); }
+  .seg.sev-medium { background: var(--medium); } .seg.sev-low { background: var(--low); }
+  .seg.sev-info, .seg.sev-unspecified { background: var(--info); }
+
+  .chip { display: inline-block; min-width: 54px; text-align: center; font-size: 7pt; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; border-radius: 4px; padding: 2px 6px; color: #fff; white-space: nowrap; }
+  .chip.sev-critical { background: var(--critical); } .chip.sev-high { background: var(--high); }
+  .chip.sev-medium { background: var(--medium); color: var(--ink); } .chip.sev-low { background: var(--low); }
+  .chip.sev-info, .chip.sev-unspecified { background: var(--info); }
+
+  .sec { margin-top: 16px; }
+  h2, h3 { break-after: avoid; }
+  table.kv, .stats, .bar { break-inside: avoid; }
+  h2 { font-size: 11pt; font-weight: 700; color: var(--ink); margin-bottom: 7px; letter-spacing: -0.005em; }
+  h2 .tag { font-size: 7.2pt; font-weight: 700; color: var(--green-ink); text-transform: uppercase; letter-spacing: 0.08em; margin-right: 7px; }
+  h3 { font-size: 9.4pt; font-weight: 700; color: var(--ink); margin: 10px 0 5px; }
+  .body p { margin-bottom: 6px; }
+  .body, .body p { color: var(--body); }
+  ul.bullets { margin: 0 0 6px 16px; }
+  ul.bullets li { margin-bottom: 3px; }
+  .muted { color: var(--muted); font-size: 8pt; }
+  .fine { font-size: 7.8pt; color: var(--muted); margin-top: 6px; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 8.6pt; }
+  table.grid th, table.grid td { padding: 5px 8px; text-align: left; border-bottom: 1px solid var(--line); vertical-align: top; }
+  table.grid thead th { background: var(--soft); font-size: 7.2pt; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+  table.grid td.name { font-weight: 600; color: var(--ink); }
+  table.grid .num { text-align: right; white-space: nowrap; }
+  table.grid td.tax { color: var(--muted); }
+  table.compact td { padding: 3px 6px; }
+  td.hot-critical { color: var(--critical); font-weight: 700; } td.hot-high { color: var(--high); font-weight: 700; }
+  td.hot-medium { color: #9A6A00; font-weight: 700; } td.hot-low { color: var(--low); font-weight: 700; }
+  table.kv th { width: 30%; text-align: left; font-weight: 600; color: var(--muted); padding: 4px 8px 4px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+  table.kv td { padding: 4px 0; border-bottom: 1px solid var(--line); color: var(--ink); }
+
+  .appendix { break-before: page; page-break-before: always; }
+  .appendix-title { font-size: 14pt; font-weight: 800; letter-spacing: -0.015em; margin-bottom: 4px; }
+  .finding { border: 1px solid var(--line); border-top-width: 3px; border-radius: 8px; padding: 10px 12px; margin-top: 12px; }
+  .finding-head, .explain, .fix, .repro, table.occ tr, .tax-line { break-inside: avoid; }
+  .finding-head { break-after: avoid; }
+  .finding-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .finding-head h3 { margin: 0; font-size: 10.5pt; }
+  .finding-head .count { margin-left: auto; font-size: 7.8pt; color: var(--muted); }
+  .tax-line { font-size: 7.8pt; color: var(--muted); margin-top: 4px; }
+  .label { font-size: 7pt; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 2px; }
+  .explain, .fix, .repro { margin-top: 8px; }
+  .explain p { font-size: 8.6pt; }
+  .fix { background: #F3FBEE; border-left: 3px solid var(--green-ink); border-radius: 4px; padding: 6px 9px; }
+  .fix .label { color: var(--green-ink); }
+  .fix p { font-size: 8.6pt; margin-bottom: 4px; }
+  table.occ { margin-top: 8px; }
+  table.occ td.ep { width: 38%; }
+  table.occ tr.sub td { border-bottom: 1px dashed var(--line); padding-top: 0; }
+  pre { font-size: 7.6pt; background: var(--soft); border: 1px solid var(--line); border-radius: 4px; padding: 6px 8px; white-space: pre-wrap; word-break: break-all; color: var(--ink); }
+  .avoid-break { break-inside: avoid-page; }
+
+  .closing { margin-top: 18px; padding-top: 6px; border-top: 1px solid var(--line); font-size: 7.4pt; color: var(--muted); }
+`;
+function renderReportHtml(report) {
+  const body = report.kind === "project" ? projectBody(report) : scanBody(report);
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; img-src data:">
+<meta name="generator" content="NightVision MCP export-report">
+<title>${esc2(report.title)}</title>
+<style>${STYLES}</style>
+</head>
+<body>
+${body}
+</body>
+</html>
+`;
+}
+
+// src/tools/report.ts
+var ReportBlocked = class extends Error {
+  constructor(code, message, blocker) {
+    super(message);
+    this.code = code;
+    this.blocker = blocker;
+  }
+  code;
+  blocker;
+};
+function slug(value) {
+  return value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 60) || "project";
+}
+function defaultReportPath(baseDir, report, format) {
+  const stem = report.kind === "project" ? `nightvision-report-project-${slug(report.project_name)}` : `nightvision-report-${report.scan.scan_id}${report.comparison ? "-compare" : ""}`;
+  return path14.resolve(baseDir, ".nightvision", `${stem}.${format}`);
+}
+function withExtension(filePath, ext) {
+  const parsed = path14.parse(filePath);
+  return path14.join(parsed.dir, `${parsed.name}${ext}`);
+}
+async function buildReport(req, ds, baseDir, now) {
+  const warnings = [];
+  const options = {
+    minSeverity: req.min_severity,
+    includeEvidence: req.include_evidence,
+    maxOccurrencesPerType: req.max_occurrences_per_type,
+    executiveSummary: req.executive_summary ?? null,
+    remediationNotes: req.remediation_notes ?? [],
+    title: req.title ?? null,
+    generatedAt: now
+  };
+  if (req.mode === "project") {
+    let projectId = req.project_id;
+    let projectName = req.project;
+    if (!projectId && req.project) {
+      const project = await ds.getProjectByName(req.project);
+      projectId = project.id;
+      projectName = project.name ?? req.project;
+    }
+    if (!projectId && req.scan_id) {
+      const scan2 = await ds.getScan(req.scan_id);
+      projectId = scan2?.project?.id || scan2?.target?.project;
+      projectName = scan2?.project_name || scan2?.project?.name;
+    }
+    if (!projectId) {
+      throw new ReportBlocked("PROJECT_REQUIRED", "project mode needs project, project_id, or a scan_id from the project.", "nightvision_project_required");
+    }
+    const { scans, truncated: truncated2 } = await latestScansPerTarget(ds, projectId);
+    if (truncated2) warnings.push(`The project has more targets or scan history than one report covers; the ${Math.min(scans.length, MAX_PROJECT_TARGETS)} most recently scanned targets are included.`);
+    const kindStats = /* @__PURE__ */ new Map();
+    for (const scan2 of scans) kindStats.set(String(scan2.id), await ds.getIssueKindStats(String(scan2.id)));
+    const name = projectName || scans[0]?.project_name || projectId;
+    return { report: buildProjectReport({ projectName: String(name), scans, kindStats, options }), warnings };
+  }
+  if (!req.scan_id) {
+    throw new ReportBlocked("SCAN_ID_REQUIRED", `${req.mode} mode needs scan_id.`, "scan_id_required");
+  }
+  const scan = await ds.getScan(req.scan_id);
+  if (!isReportable(scan)) {
+    const running = String(scan?.status_value ?? "").toUpperCase() === "RUNNING" || scan?.status === 2 || scan?.status === 6;
+    throw new ReportBlocked(
+      running ? "SCAN_NOT_TERMINAL" : "SCAN_NO_FINDINGS",
+      running ? `NightVision scan ${req.scan_id} is still running. Wait for it to finish before building a report.` : `NightVision scan ${req.scan_id} ended with status ${scan?.status_value ?? "unknown"} and no findings to report.`,
+      running ? "scan_not_terminal" : "scan_no_findings"
+    );
+  }
+  const { issues, truncated } = await fetchAllIssues(ds, req.scan_id);
+  if (truncated) warnings.push(`This scan has more than ${MAX_ISSUES} findings; the report covers the first ${MAX_ISSUES}.`);
+  const discovered = req.swagger_file ? null : findDiscoveredSpec(baseDir);
+  const specFile = req.swagger_file || discovered?.path || null;
+  const { links, warning } = await collectSourceLinks(ds, req.scan_id, specFile);
+  if (warning) warnings.push(warning);
+  if (discovered?.ambiguous) warnings.push(`Multiple OpenAPI specs were found under .nightvision; ${path14.basename(discovered.path)} was used for source linking. Pass swagger_file to choose.`);
+  let baseline = null;
+  if (req.mode === "compare") {
+    const baselineScan = req.baseline_scan_id ? await ds.getScan(req.baseline_scan_id) : await findBaselineScan(ds, scan);
+    if (req.baseline_scan_id) {
+      const problem = baselineProblem(scan, baselineScan);
+      if (problem) {
+        throw new ReportBlocked("BASELINE_INVALID", `Cannot compare against ${req.baseline_scan_id}: ${problem}. Omit baseline_scan_id to use the previous completed scan of the same target.`, "baseline_invalid");
+      }
+    }
+    if (!baselineScan) {
+      warnings.push("No earlier completed scan of this target was found, so the report has no comparison section.");
+    } else {
+      const fetched = await fetchAllIssues(ds, String(baselineScan.id));
+      if (fetched.truncated) warnings.push(`The baseline scan has more than ${MAX_ISSUES} findings; the comparison uses the first ${MAX_ISSUES}.`);
+      baseline = { scan: baselineScan, issues: fetched.issues };
+    }
+  }
+  const pathsTested = await ds.countScanPaths(req.scan_id);
+  const report = buildScanReport({
+    scan,
+    issues,
+    pathsTested,
+    specFile: specFile ? path14.basename(specFile) : null,
+    sourceLinks: links,
+    baseline,
+    options
+  });
+  return { report, warnings };
+}
+function previewData(report) {
+  if (report.kind === "project") {
+    return {
+      mode: "project",
+      title: report.title,
+      project: report.project_name,
+      counts: report.counts,
+      total_open: report.total_open,
+      targets: report.targets.map((t) => ({ target: t.target_name, scan_id: t.scan_id, scanned_at: t.scanned_at, counts: t.counts })),
+      top_issue_types: report.top_types
+    };
+  }
+  return {
+    mode: report.comparison ? "compare" : "scan",
+    title: report.title,
+    scan: report.scan,
+    counts: report.counts,
+    total_open: report.total_open,
+    distinct_types: report.distinct_types,
+    excluded: report.exclusions,
+    comparison: report.comparison,
+    issue_types: report.findings.map((f) => ({
+      issue_type: f.name,
+      kind_id: f.kind_id,
+      severity: f.severity,
+      categories: f.taxonomy.map((t) => `${t.standard} ${t.code}`),
+      affected_endpoints: f.affected_paths,
+      occurrences: f.occurrence_total,
+      source_linked: f.source_linked,
+      explanation: f.explanation ? f.explanation.slice(0, 400) : null,
+      examples: f.occurrences.slice(0, 3).map((o) => ({
+        method: o.method,
+        path: o.path,
+        parameter: o.parameter,
+        source: o.source ? `${o.source.file}${o.source.line !== null ? `:${o.source.line}` : ""}` : null
+      }))
+    }))
+  };
+}
+function headline(report) {
+  if (report.kind === "project") {
+    return { mode: "project", project: report.project_name, targets: report.targets.length, counts: report.counts, total_open: report.total_open };
+  }
+  return {
+    mode: report.comparison ? "compare" : "scan",
+    scan_id: report.scan.scan_id,
+    target: report.scan.target_name,
+    counts: report.counts,
+    total_open: report.total_open,
+    distinct_types: report.distinct_types,
+    source_linked: report.scan.source_linked,
+    comparison: report.comparison ? { new: report.comparison.new_count, fixed: report.comparison.fixed_count, still_open: report.comparison.still_open_count } : null,
+    top_issue_types: report.top_findings.map((f) => ({ issue_type: f.name, severity: f.severity, endpoints: f.affected_paths }))
+  };
+}
+async function writeReport(report, requestedFormat, outputPath, findChrome = findChromeBinary, print = printHtmlToPdf) {
+  const html = renderReportHtml(report);
+  await mkdir4(path14.dirname(outputPath), { recursive: true });
+  if (requestedFormat === "html") {
+    const htmlPath2 = withExtension(outputPath, ".html");
+    await writeFile2(htmlPath2, html, "utf8");
+    return { path: htmlPath2, format: "html", fallbackReason: null };
+  }
+  const pdfPath = withExtension(outputPath, ".pdf");
+  const chrome = findChrome();
+  let reason;
+  if (chrome) {
+    const dir = await mkdtemp3(path14.join(os6.tmpdir(), "nightvision-report-"));
+    try {
+      const tempHtml = path14.join(dir, "report.html");
+      await writeFile2(tempHtml, html, "utf8");
+      await print(tempHtml, pdfPath, chrome);
+      return { path: pdfPath, format: "pdf", fallbackReason: null };
+    } catch (error51) {
+      reason = `PDF printing failed (${error51?.message ?? error51}).`;
+    } finally {
+      await rm3(dir, { recursive: true, force: true }).catch(() => void 0);
+    }
+  } else {
+    reason = "No Chrome, Chromium, Edge, or Brave browser was found (set NIGHTVISION_CHROME_PATH to point at one).";
+  }
+  const htmlPath = withExtension(outputPath, ".html");
+  await writeFile2(htmlPath, html, "utf8");
+  return { path: htmlPath, format: "html", fallbackReason: reason };
+}
+function registerReportTools(server) {
+  registerNightVisionTool(
+    server,
+    "export-report",
+    ExportReportParamsSchema,
+    async (args, _extra) => {
+      try {
+        const auth = await requireAuthenticatedUser();
+        if (!auth.ok) return auth.response;
+        const req = args;
+        const baseDir = req.project_path ? path14.resolve(req.project_path) : process.cwd();
+        const { report, warnings } = await buildReport(req, liveDataSource, baseDir, /* @__PURE__ */ new Date());
+        if (req.preview) {
+          return jsonText({
+            ok: true,
+            status: "success",
+            data: {
+              // Issue names, paths, parameters and explanations come from the
+              // scanned target and are attacker-influenced.
+              security_notice: UNTRUSTED_NOTICE,
+              preview: JSON.parse(neutralizeFenceMarkers(JSON.stringify(previewData(report)))),
+              next_step: "Write executive_summary (3-5 sentences, only what this data supports) and optional remediation_notes per issue_type, then call export-report again with the same arguments and preview:false."
+            },
+            warnings
+          });
+        }
+        const target = req.output ? path14.resolve(baseDir, req.output) : defaultReportPath(baseDir, report, req.format);
+        const written = await writeReport(report, req.format, target);
+        if (written.fallbackReason) {
+          warnings.push(`${written.fallbackReason} The report was saved as HTML; open it in a browser and print to PDF.`);
+        }
+        if (!report.executive_summary) {
+          warnings.push("No executive_summary was provided, so the report has no summary section. Run with preview:true first to write one.");
+        }
+        return jsonText({
+          ok: true,
+          status: written.fallbackReason ? "partial" : "success",
+          data: {
+            security_notice: UNTRUSTED_NOTICE,
+            report_path: written.path,
+            format: written.format,
+            evidence_included: req.include_evidence,
+            summary: JSON.parse(neutralizeFenceMarkers(JSON.stringify(headline(report))))
+          },
+          warnings
+        });
+      } catch (error51) {
+        if (error51 instanceof ReportBlocked) {
+          return jsonText({
+            ok: false,
+            status: "blocked",
+            error: { code: error51.code, message: error51.message },
+            blockers: [error51.blocker]
+          });
+        }
+        return jsonText({
+          ok: false,
+          status: "error",
+          error: { code: "EXPORT_REPORT_FAILED", message: `Failed to build NightVision report: ${error51?.message ?? error51}` }
+        });
+      }
+    }
+  );
+}
+
 // src/index.ts
 async function main() {
   try {
@@ -55707,6 +57124,7 @@ async function main() {
     registerProjectTools(server);
     registerTrafficTools(server);
     registerFindingTools(server);
+    registerReportTools(server);
     await connectServer(server);
     console.error("NightVision MCP Server running...");
     console.error(`IMPORTANT: This server connects to the NightVision API at ${ENVIRONMENT.CURRENT_API_URL}`);

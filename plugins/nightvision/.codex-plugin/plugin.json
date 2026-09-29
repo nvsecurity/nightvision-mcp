@@ -1,6 +1,6 @@
 {
   "name": "nightvision",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Run NightVision application-security workflows from local Codex.",
   "author": {
     "name": "NightVision Security, Inc.",

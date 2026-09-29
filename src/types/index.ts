@@ -183,6 +183,31 @@ export const ExportCsvParamsSchema = {
 };
 
 /**
+ * Export report (PDF/HTML) tool parameters schema
+ */
+export const ExportReportParamsSchema = {
+  mode: z.enum(["scan", "compare", "project"]).optional().default("scan").describe("scan = one scan; compare = one scan plus new/fixed/still-open versus the previous scan of the same target; project = roll-up of the latest completed scan of every target in a project"),
+  scan_id: z.string().optional().describe("Scan to report on. Required for scan and compare modes. In project mode it may stand in for project/project_id (its project is used)."),
+  baseline_scan_id: z.string().optional().describe("compare mode: the older scan to diff against. Defaults to the previous completed scan of the same target."),
+  project: z.string().optional().describe("project mode: project name"),
+  project_id: z.string().uuid().optional().describe("project mode: project UUID"),
+  preview: z.boolean().optional().default(false).describe("Return the report data (counts, issue types, endpoints, source links) WITHOUT writing a file. Call this first, write executive_summary and remediation_notes from what it returns, then call again with preview false."),
+  executive_summary: z.string().max(4000).optional().describe("Agent-written summary for AppSec/leadership: 3-5 sentences, only claims supported by the report data. Plain text; blank lines separate paragraphs, lines starting with '- ' become bullets."),
+  remediation_notes: z.array(z.object({
+    issue_type: z.string().describe("Issue type name exactly as returned by preview (or its kind_id)"),
+    note: z.string().max(2000).describe("How to fix it, specific to this codebase when known. Plain text."),
+  })).max(50).optional().describe("Agent-written fix guidance per issue type, rendered in the developer appendix"),
+  include_evidence: z.boolean().optional().default(false).describe("Include raw scan evidence and skip secret masking. Leave false for any report that may be shared."),
+  min_severity: z.enum(["critical", "high", "medium", "low", "info"]).optional().default("low").describe("Lowest severity to include; lower findings are counted as excluded"),
+  max_occurrences_per_type: z.number().int().min(1).max(50).optional().default(10).describe("Affected-endpoint rows shown per issue type in the appendix"),
+  title: z.string().max(200).optional().describe("Report title. Defaults to 'Security Report: <target or project>'"),
+  format: z.enum(["pdf", "html"]).optional().default("pdf").describe("pdf (via the local Chrome/Chromium/Edge; falls back to html if none is found) or html"),
+  project_path: z.string().optional().describe("App SOURCE directory that was scanned. Its .nightvision OpenAPI spec links findings to file:line, and the default output goes under it."),
+  swagger_file: z.string().optional().describe("Explicit OpenAPI spec for source linking. Overrides the spec found under project_path."),
+  output: z.string().optional().describe("Output file path. Defaults to <project_path>/.nightvision/nightvision-report-<scan_id or project>.pdf")
+};
+
+/**
  * Doctor/onboarding tool parameters schema
  */
 export const DoctorParamsSchema = {

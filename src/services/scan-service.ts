@@ -613,6 +613,30 @@ export class ScanService {
   }
 
   /**
+   * List scans by target/project UUID and numeric status codes, returning the
+   * parsed page. Used by report generation, which needs raw scan objects (for
+   * issue statistics and ordering) rather than a formatted listing.
+   */
+  async listScansByIds(
+    options: {
+      target_ids?: string[];
+      project_ids?: string[];
+      status_codes?: number[];
+      page?: number;
+      page_size?: number;
+    } = {}
+  ): Promise<{ count?: number; next?: string | null; results: any[] }> {
+    const params: Record<string, any> = {};
+    if (options.target_ids?.length) params.target = options.target_ids;
+    if (options.project_ids?.length) params.project = options.project_ids;
+    if (options.status_codes?.length) params.status = options.status_codes;
+    if (options.page) params.page = options.page;
+    params.page_size = options.page_size || 50;
+    const response = await this.client.apiRequest<any>('scans/', 'GET', params, null, false, serializeRepeatedParams);
+    return { count: response?.count, next: response?.next ?? null, results: Array.isArray(response?.results) ? response.results : [] };
+  }
+
+  /**
    * Get scan status and details
    * @param scanId Scan ID to retrieve
    * @param format Output format

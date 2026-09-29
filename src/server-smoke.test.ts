@@ -144,6 +144,7 @@ test('server boots, advertises the tools capability, and lists the tool set', {
       'discover-api': { readOnlyHint: false, destructiveHint: true, openWorldHint: false },
       'export-sarif': { readOnlyHint: false, destructiveHint: true, openWorldHint: false },
       'export-csv': { readOnlyHint: false, destructiveHint: true, openWorldHint: false },
+      'export-report': { readOnlyHint: false, destructiveHint: true, openWorldHint: false },
       'list-issues': { readOnlyHint: true, destructiveHint: false, openWorldHint: false, idempotentHint: true },
       'get-issue-details': { readOnlyHint: true, destructiveHint: false, openWorldHint: false, idempotentHint: true },
       'get-issue-kind-stats': { readOnlyHint: true, destructiveHint: false, openWorldHint: false, idempotentHint: true },

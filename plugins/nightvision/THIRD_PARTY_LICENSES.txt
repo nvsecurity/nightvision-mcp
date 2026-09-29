@@ -1,6 +1,6 @@
 # Third-party licenses
 
-Generated from the NightVision MCP server in this repository, version 0.2.0.
+Generated from the NightVision MCP server in this repository, version 0.3.0.
 
 ==============================================================================
 @modelcontextprotocol/sdk@1.30.0 (MIT)

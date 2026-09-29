@@ -113,3 +113,25 @@ export function extractSourceFindings(sarif: unknown, limit = Number.MAX_SAFE_IN
 export function countSourceLinked(findings: SourceFinding[]): number {
   return findings.filter((f) => f.file !== null).length;
 }
+
+/**
+ * Map each NightVision issue id to the source location its SARIF result points
+ * at, using the same "/ is the web root, not a source file" rule as
+ * extractSourceFindings. Lets a report join API issues to file:line.
+ */
+export function sourceLinksByIssueId(sarif: unknown): Map<string, { file: string; line: number | null }> {
+  const links = new Map<string, { file: string; line: number | null }>();
+  const runs = Array.isArray((sarif as any)?.runs) ? (sarif as any).runs : [];
+  for (const run of runs) {
+    for (const result of Array.isArray(run?.results) ? run.results : []) {
+      const issueId = result?.partialFingerprints?.['nightvisionIssueID/v1'];
+      const loc = result?.locations?.[0]?.physicalLocation;
+      const uri = loc?.artifactLocation?.uri;
+      if (typeof issueId !== 'string' || typeof uri !== 'string') continue;
+      if (uri.trim().length === 0 || uri === '/') continue;
+      const line = loc?.region?.startLine;
+      links.set(issueId, { file: uri, line: typeof line === 'number' && line > 0 ? line : null });
+    }
+  }
+  return links;
+}
