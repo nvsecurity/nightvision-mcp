@@ -197,6 +197,7 @@ const expectedSkills = [
   'app-security-scan',
   'ci-cd-integration',
   'scan-configuration',
+  'scan-report',
   'scan-triage',
 ];
 const actualSkills = readdirSync(join(pluginRoot, 'skills'))

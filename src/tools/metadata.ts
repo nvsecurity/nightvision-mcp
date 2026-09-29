@@ -118,6 +118,11 @@ export const NIGHTVISION_TOOL_METADATA = {
     description: 'Exports a completed NightVision scan to a local CSV file.',
     annotations: DESTRUCTIVE_INTERNAL_WRITE,
   },
+  'export-report': {
+    title: 'Export scan report as PDF',
+    description: 'Builds a NightVision security report (executive summary plus developer findings appendix) for one scan, a scan compared with the previous one, or a whole project, and writes it as a local PDF or HTML file. preview:true returns the report data without writing.',
+    annotations: DESTRUCTIVE_INTERNAL_WRITE,
+  },
   'list-issues': {
     title: 'List security issues',
     description: 'Lists the NightVision security issues found by one scan, which is required, with optional severity, resolution, and kind filters.',

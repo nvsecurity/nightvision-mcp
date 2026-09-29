@@ -204,6 +204,10 @@ export class NightVisionService {
     return this.scans.listScans(...a);
   }
 
+  listScansByIds(...a: Parameters<ScanService['listScansByIds']>) {
+    return this.scans.listScansByIds(...a);
+  }
+
   getScanStatus(...a: Parameters<ScanService['getScanStatus']>) {
     return this.scans.getScanStatus(...a);
   }

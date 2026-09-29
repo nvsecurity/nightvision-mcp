@@ -14,6 +14,7 @@ A Model Context Protocol (MCP) server that enables AI assistants to interact wit
 - Keep local/private scan CLI processes managed while returning scan IDs to the agent
 - Track scan status and view results
 - Export scan findings to SARIF or CSV, with safeguards against empty or misleading exports
+- Generate a shareable PDF security report (executive summary plus developer findings) for one scan, a scan compared with the previous one, or a whole project
 - View and filter vulnerabilities found in security scans
 - Inspect individual findings with full HTTP request/response detail (secrets redacted)
 - Diagnose setup and authentication readiness with `doctor` and `auth-status`
@@ -741,6 +742,41 @@ Parameters:
 - `output` (string, optional): Output CSV file path. Defaults to `<project_path>/.nightvision/nightvision-<scan_id>.csv`
 - `output_file` (string, optional): Alias for `output`
 - `format` (enum: "json", optional, default: "json"): Format of command output
+
+#### `export-report`
+
+Builds a NightVision security report and writes it as a local PDF (or HTML). The report opens with an executive summary for AppSec and leadership (open findings by severity, top issue types, what was tested, and, in compare mode, what is new, fixed, and still open since the previous scan) and ends with a findings appendix for developers (each issue type with its OWASP/CWE categories, affected endpoints, source `file:line` when the scan used an API spec discovered from source, and a `curl` reproduction).
+
+The recommended flow is two calls. First call with `preview: true`: nothing is written, and the response carries the report data. Write a short `executive_summary` and optional per-issue-type `remediation_notes` from that data, then call again with `preview: false` to write the file. The skill `scan-report` drives this flow.
+
+PDF output uses the Chrome, Chromium, Edge, or Brave already installed on the machine (headless, with a throwaway profile; it never touches your browser session). Set `NIGHTVISION_CHROME_PATH` to point at a specific binary. When no browser is found, the report is written as HTML and the response says so, so it can be printed to PDF from any browser.
+
+Reports are built for sharing: only open findings are included, raw evidence is omitted, and recognizable secrets (tokens, keys, passwords) in payloads, explanations, and reproduction commands are masked. Masking is best effort. `include_evidence: true` turns both off for internal use.
+
+Parameters:
+- `mode` (enum: "scan" | "compare" | "project", optional, default: "scan"): One scan; one scan plus the change since the previous scan of the same target; or a roll-up of the latest completed scan of every target in a project
+- `scan_id` (string, optional): Scan to report on. Required for `scan` and `compare`; in `project` mode it may stand in for the project
+- `baseline_scan_id` (string, optional): `compare` mode baseline. Defaults to the previous completed scan of the same target
+- `project` / `project_id` (string, optional): `project` mode project name or UUID
+- `preview` (boolean, optional, default: false): Return the report data without writing a file
+- `executive_summary` (string, optional): Agent-written summary. Blank lines separate paragraphs; lines starting with `- ` become bullets
+- `remediation_notes` (object[], optional): `{ issue_type, note }` fix guidance per issue type (name as returned by preview, or its `kind_id`)
+- `include_evidence` (boolean, optional, default: false): Include raw evidence and skip secret masking
+- `min_severity` (enum, optional, default: "low"): Lowest severity to include
+- `max_occurrences_per_type` (number, optional, default: 10): Affected-endpoint rows shown per issue type
+- `title` (string, optional): Report title. Defaults to `Security Report: <target or project>`
+- `format` (enum: "pdf" | "html", optional, default: "pdf")
+- `project_path` (string, optional): App source directory. Its `.nightvision` OpenAPI spec links findings to `file:line`, and the default output goes under it
+- `swagger_file` (string, optional): Explicit OpenAPI spec for source linking
+- `output` (string, optional): Output path. Defaults to `<project_path>/.nightvision/nightvision-report-<scan_id>.pdf` (`-compare` suffix in compare mode; `nightvision-report-project-<name>.pdf` in project mode)
+
+Example commands:
+```
+Make a PDF security report for scan 12345678-1234-1234-1234-123456789012 that I can send to our CISO.
+```
+```
+Create a report showing what changed since the last scan of my API.
+```
 
 ### Credential Tools
 

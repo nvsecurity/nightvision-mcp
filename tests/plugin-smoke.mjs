@@ -109,8 +109,8 @@ try {
   const listed = await request('tools/list');
   if (listed.error) throw new Error(JSON.stringify(listed.error));
   const tools = listed.result?.tools ?? [];
-  if (tools.length !== 48) {
-    throw new Error(`Expected 48 MCP tools, received ${tools.length}`);
+  if (tools.length !== 49) {
+    throw new Error(`Expected 49 MCP tools, received ${tools.length}`);
   }
 
   const toolNames = new Set(tools.map((tool) => tool.name));

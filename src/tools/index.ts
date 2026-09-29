@@ -13,3 +13,4 @@ export { registerNucleiTools } from './nuclei.js';
 export { registerProjectTools } from './projects.js';
 export { registerTrafficTools } from './traffic.js';
 export { registerFindingTools } from './findings.js';
+export { registerReportTools } from './report.js';
