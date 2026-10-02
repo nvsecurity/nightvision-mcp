@@ -911,7 +911,8 @@ Parameters:
 - `output` (string, required): Output file path to store the OpenAPI specs
 - `exclude` (string, optional): Files or directories to exclude from analysis (comma-separated, e.g. 'vendor/*,*.json')
 - `version` (string, optional, default: "0.1"): Version for the OpenAPI specs
-- `no_upload` (boolean, optional, default: true): Skip creation of a new target in the Nightvision API
+- `no_target` (boolean, optional, default: true): Extract without a NightVision target, leaving every target unchanged (`openapi extract --no-target`, which still uploads the spec to NightVision, or `--no-upload` on a CLI before 0.19.0). Set to `false`, with `target` or `target_id`, to upload the spec to that target
+- `no_upload` (boolean, optional, default: false): Upload nothing, to a target or to NightVision (`openapi extract --no-upload`), for code-derived files that must not leave the machine. Overrides `no_target`. The former way to upload to a target, `no_upload: false` with `target` or `target_id` and `no_target` left out, still works
 - `dump_code` (boolean, optional): Include code snippets in the generated spec
 
 Example commands:

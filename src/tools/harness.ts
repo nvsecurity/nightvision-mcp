@@ -287,9 +287,9 @@ async function runApiDiscovery(
               target: uploadTarget.name,
               project: uploadTarget.project,
               project_id: uploadTarget.projectId || undefined,
-              no_upload: false
+              no_target: false
             }
-          : { no_upload: true })
+          : { no_target: true })
       },
       'text',
       projectPath

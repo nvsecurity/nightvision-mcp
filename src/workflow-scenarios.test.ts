@@ -100,6 +100,9 @@ function fakeCli(baseDir: string): { binDir: string; logPath: string } {
     'if (args[0] === "--help") { process.stdout.write("help\\n"); process.exit(0); }',
     'if (args[0] === "version") { process.stdout.write("NightVision CLI 0.18.4\\n"); process.exit(0); }',
     'if (args[0] === "project" && args[1] === "list") { json(JSON.parse(process.env.NV_FAKE_PROJECTS || "[]")); process.exit(0); }',
+    'if (args[0] === "openapi" && args[1] === "extract" && args.includes("--help")) {',
+    '  process.stdout.write("Flags:\\n      --no-target   Run without a target\\n      --no-upload   Upload nothing\\n"); process.exit(0);',
+    '}',
     'if (args[0] === "openapi" && args[1] === "extract") {',
     '  const o = argAfter("--output") || argAfter("-o");',
     '  if (o) { fs.mkdirSync(path.dirname(o), {recursive:true}); fs.writeFileSync(o, "openapi: 3.0.0\\ninfo:\\n  title: A\\n  version: 1.0.0\\npaths: {}\\n"); }',
@@ -394,10 +397,10 @@ test('scenario: a NEW target still gets its spec at create time (extract cannot 
     assert.equal(started.payload.data.api_discovery.spec_uploaded, false);
 
     const lines = readFileSync(logPath, 'utf8').trim().split('\n');
-    const extract = lines.find((l) => l.startsWith('openapi extract'))!;
+    const extract = lines.find((l) => l.startsWith('openapi extract') && !l.includes('--help'))!;
 
-    // No target to upload onto yet, so extract stays local...
-    assert.ok(extract.includes('--no-upload'), `extract should not try to upload: ${extract}`);
+    // No target to upload onto yet, so extract runs without one...
+    assert.ok(extract.includes('--no-target'), `extract should not try to upload: ${extract}`);
     assert.ok(!extract.includes('--target'), `extract must not name a target that does not exist: ${extract}`);
 
     // ...and the spec is attached when the target is created (-f is --spec-file), as type API.

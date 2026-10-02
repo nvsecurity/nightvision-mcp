@@ -50048,6 +50048,35 @@ function resolveActualOutputFile(requestedPath, exists) {
   return null;
 }
 
+// src/utils/extract-target-args.ts
+function extractUploadMode(options) {
+  if (options.no_upload === true) return "none";
+  if (options.no_target === false) return "target";
+  if (options.no_target === void 0 && options.no_upload === false && (options.target || options.target_id)) {
+    return "target";
+  }
+  return "nightvision";
+}
+function supportsNoTarget(helpText) {
+  return /^\s+--no-target\b/m.test(helpText);
+}
+function extractTargetArgs(options, noTargetSupported) {
+  switch (extractUploadMode(options)) {
+    case "none":
+      return ["--no-upload"];
+    case "nightvision":
+      return [noTargetSupported ? "--no-target" : "--no-upload"];
+    case "target": {
+      const args = [];
+      if (options.target) args.push("--target", options.target);
+      if (options.target_id) args.push("--target-id", options.target_id);
+      if (options.project) args.push("--project", options.project);
+      if (options.project_id) args.push("--project-id", options.project_id);
+      return args;
+    }
+  }
+}
+
 // src/services/api-discovery-service.ts
 var MAX_EXTRACT_CONCURRENCY = Math.max(
   1,
@@ -50059,6 +50088,17 @@ var ApiDiscoveryService = class {
     this.client = client;
   }
   client;
+  noTargetSupported = null;
+  /**
+   * Whether the installed CLI's `openapi extract` has --no-target, read once
+   * from its help (NV-5668). A CLI that cannot say is treated as older.
+   */
+  supportsNoTarget() {
+    if (this.noTargetSupported === null) {
+      this.noTargetSupported = this.client.executeCommand(["openapi", "extract", "--help"], "text", true).then(supportsNoTarget, () => false);
+    }
+    return this.noTargetSupported;
+  }
   /**
    * Discover API endpoints for a target by analyzing source code
    * @param sourcePaths Array of paths to the source code to analyze
@@ -50127,6 +50167,10 @@ var ApiDiscoveryService = class {
         outputFile = path15.join(redirectDir(), path15.basename(outputFile));
       }
       const fileFormat = /\.json$/i.test(outputFile) ? "json" : "yml";
+      const targetArgs = extractTargetArgs(
+        options,
+        extractUploadMode(options) === "nightvision" && await this.supportsNoTarget()
+      );
       if (languages.length > 1) {
         const results = [];
         const outputs = [];
@@ -50135,18 +50179,7 @@ var ApiDiscoveryService = class {
           console.error(`Processing language: ${lang} with output: ${langOutputFile}`);
           const langArgs = [...args];
           langArgs.push("--lang", lang);
-          if (options.target) {
-            langArgs.push("--target", options.target);
-          }
-          if (options.target_id) {
-            langArgs.push("--target-id", options.target_id);
-          }
-          if (options.project) {
-            langArgs.push("--project", options.project);
-          }
-          if (options.project_id) {
-            langArgs.push("--project-id", options.project_id);
-          }
+          langArgs.push(...targetArgs);
           langArgs.push("--output", langOutputFile);
           langArgs.push("--file-format", fileFormat);
           if (options.exclude) {
@@ -50154,9 +50187,6 @@ var ApiDiscoveryService = class {
           }
           if (options.version) {
             langArgs.push("--version", options.version);
-          }
-          if (options.no_upload !== false) {
-            langArgs.push("--no-upload");
           }
           if (options.dump_code) {
             langArgs.push("--dump-code");
@@ -50184,18 +50214,7 @@ No OpenAPI specification files were produced.`;
         return combinedResult + outputInfo;
       } else {
         args.push("--lang", languages[0]);
-        if (options.target) {
-          args.push("--target", options.target);
-        }
-        if (options.target_id) {
-          args.push("--target-id", options.target_id);
-        }
-        if (options.project) {
-          args.push("--project", options.project);
-        }
-        if (options.project_id) {
-          args.push("--project-id", options.project_id);
-        }
+        args.push(...targetArgs);
         args.push("--output", outputFile);
         args.push("--file-format", fileFormat);
         if (options.exclude) {
@@ -50203,9 +50222,6 @@ No OpenAPI specification files were produced.`;
         }
         if (options.version) {
           args.push("--version", options.version);
-        }
-        if (options.no_upload !== false) {
-          args.push("--no-upload");
         }
         if (options.dump_code) {
           args.push("--dump-code");
@@ -50980,7 +50996,8 @@ var ApiDiscoveryParamsSchema = {
   output: external_exports.string().describe("Output file to store the OpenAPI specs (required)"),
   exclude: external_exports.string().optional().describe("Files or directories to exclude from analysis (comma-separated, e.g. 'vendor/*,*.json')"),
   version: external_exports.string().optional().default("0.1").describe("Version for the OpenAPI specs"),
-  no_upload: external_exports.boolean().optional().default(true).describe("Skip creation of a new target in the Nightvision API"),
+  no_target: external_exports.boolean().optional().describe("Extract without a NightVision target (default true), leaving every target unchanged; the spec is still uploaded to NightVision unless no_upload is true. Set to false, with target or target_id, to upload the spec to that target"),
+  no_upload: external_exports.boolean().optional().describe("Upload nothing, to a target or to NightVision (default false), for code-derived files that must not leave this machine. Overrides no_target. The former way to upload to a target, no_upload false with target or target_id and no_target left out, still works"),
   dump_code: external_exports.boolean().optional().describe("Include code snippets in the generated spec")
 };
 var PreflightAppParamsSchema = {
@@ -51402,12 +51419,12 @@ var NIGHTVISION_TOOL_METADATA = {
   },
   "run-source-intelligence": {
     title: "Run Source Intelligence",
-    description: "Analyzes application source code and writes an OpenAPI specification, optionally uploading it to a NightVision target.",
+    description: "Analyzes application source code and writes an OpenAPI specification. By default the spec also goes to NightVision without a target; it can instead be uploaded to a NightVision target, or kept on this machine with no_upload.",
     annotations: DESTRUCTIVE_INTERNAL_WRITE
   },
   "discover-api": {
     title: "Discover APIs from source",
-    description: "Former name of run-source-intelligence, with the same parameters and behavior: analyzes application source code and writes an OpenAPI specification, optionally uploading it to a NightVision target.",
+    description: "Former name of run-source-intelligence, with the same parameters and behavior: analyzes application source code and writes an OpenAPI specification. By default the spec also goes to NightVision without a target; it can instead be uploaded to a NightVision target, or kept on this machine with no_upload.",
     annotations: DESTRUCTIVE_INTERNAL_WRITE
   },
   "export-sarif": {
@@ -54112,8 +54129,8 @@ async function runApiDiscovery(projectPath, languages, uploadTarget = null) {
           target: uploadTarget.name,
           project: uploadTarget.project,
           project_id: uploadTarget.projectId || void 0,
-          no_upload: false
-        } : { no_upload: true }
+          no_target: false
+        } : { no_target: true }
       },
       "text",
       projectPath
@@ -54849,8 +54866,8 @@ function registerApiTools(server) {
     try {
       const auth = await requireAuthenticatedUser();
       if (!auth.ok) return auth.response;
-      const { source_paths, langs, output, exclude, target, target_id, project, project_id, version: version2, no_upload, dump_code } = params;
-      if (!no_upload && (project || project_id)) {
+      const { source_paths, langs, output, exclude, target, target_id, project, project_id, version: version2, no_target, no_upload, dump_code } = params;
+      if (extractUploadMode(params) === "target" && (project || project_id)) {
         const projectAccess = await requireProjectAccess({
           project,
           project_id,
@@ -54911,6 +54928,7 @@ Please analyze the file extensions and code patterns in the source paths to iden
             project,
             project_id,
             version: version2,
+            no_target,
             no_upload,
             dump_code
           },
