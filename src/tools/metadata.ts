@@ -103,9 +103,14 @@ export const NIGHTVISION_TOOL_METADATA = {
     description: 'Checks whether the current NightVision token is present and valid.',
     annotations: READ_ONLY,
   },
+  'run-source-intelligence': {
+    title: 'Run Source Intelligence',
+    description: 'Analyzes application source code and writes an OpenAPI specification, optionally uploading it to a NightVision target.',
+    annotations: DESTRUCTIVE_INTERNAL_WRITE,
+  },
   'discover-api': {
     title: 'Discover APIs from source',
-    description: 'Analyzes application source code and writes an OpenAPI specification, optionally uploading it to a NightVision target.',
+    description: 'Former name of run-source-intelligence, with the same parameters and behavior: analyzes application source code and writes an OpenAPI specification, optionally uploading it to a NightVision target.',
     annotations: DESTRUCTIVE_INTERNAL_WRITE,
   },
   'export-sarif': {

@@ -887,9 +887,11 @@ List all authentication credentials in project <uuid>.
 
 ### API Tools
 
-#### `discover-api`
+#### `run-source-intelligence`
 
-Discovers API endpoints by analyzing source code using the NightVision CLI's `openapi extract` command. This tool extracts API information from the codebase and generates a Swagger/OpenAPI specification file.
+Also registered as `discover-api`, its former name, with the same parameters and behavior.
+
+Runs Source Intelligence: discovers API endpoints by analyzing source code using the NightVision CLI's `openapi extract` command. This tool extracts API information from the codebase and generates a Swagger/OpenAPI specification file.
 
 **Before calling this tool, the AI client should:**
 1. Identify the programming language of the codebase by checking file extensions or asking the user

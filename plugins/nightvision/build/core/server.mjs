@@ -51400,9 +51400,14 @@ var NIGHTVISION_TOOL_METADATA = {
     description: "Checks whether the current NightVision token is present and valid.",
     annotations: READ_ONLY
   },
+  "run-source-intelligence": {
+    title: "Run Source Intelligence",
+    description: "Analyzes application source code and writes an OpenAPI specification, optionally uploading it to a NightVision target.",
+    annotations: DESTRUCTIVE_INTERNAL_WRITE
+  },
   "discover-api": {
     title: "Discover APIs from source",
-    description: "Analyzes application source code and writes an OpenAPI specification, optionally uploading it to a NightVision target.",
+    description: "Former name of run-source-intelligence, with the same parameters and behavior: analyzes application source code and writes an OpenAPI specification, optionally uploading it to a NightVision target.",
     annotations: DESTRUCTIVE_INTERNAL_WRITE
   },
   "export-sarif": {
@@ -54840,109 +54845,107 @@ function registerDoctorTools(server) {
 
 // src/tools/api.ts
 function registerApiTools(server) {
-  registerNightVisionTool(
-    server,
-    "discover-api",
-    ApiDiscoveryParamsSchema,
-    async (params, _extra) => {
-      try {
-        const auth = await requireAuthenticatedUser();
-        if (!auth.ok) return auth.response;
-        const { source_paths, langs, output, exclude, target, target_id, project, project_id, version: version2, no_upload, dump_code } = params;
-        if (!no_upload && (project || project_id)) {
-          const projectAccess = await requireProjectAccess({
-            project,
-            project_id,
-            action: "running API Discovery with NightVision project upload"
-          });
-          if (!projectAccess.ok) return projectAccess.response;
-        }
-        if (!output) {
-          return {
-            content: [{
-              type: "text",
-              text: "Output file path is required. Please specify where to save the API specification."
-            }],
-            isError: true
-          };
-        }
-        const effectiveSourcePaths = source_paths && source_paths.length > 0 ? source_paths : [process.cwd()];
-        if (!langs) {
-          return {
-            content: [{
-              type: "text",
-              text: `No languages specified. You should analyze the source code to determine the appropriate language(s).
-
-Supported languages are: csharp, go, java, js, php, python, ruby.
-
-Please analyze the file extensions and code patterns in the source paths to identify the language, then call this tool again with the appropriate 'langs' parameter (a single language or an array).`
-            }],
-            isError: true
-          };
-        }
-        let languages = langs;
-        if (!Array.isArray(languages)) {
-          languages = [languages];
-        }
-        const supportedLanguages = ["csharp", "go", "java", "js", "php", "python", "ruby"];
-        for (const language of languages) {
-          if (!supportedLanguages.includes(language)) {
-            return {
-              content: [{
-                type: "text",
-                text: `Unsupported language: ${language}. Supported languages are: ${supportedLanguages.join(", ")}`
-              }],
-              isError: true
-            };
-          }
-        }
-        const projectPath = process.cwd();
-        try {
-          const result = await nightvision_default.discoverApi(
-            effectiveSourcePaths,
-            {
-              lang: langs,
-              // Map langs parameter to lang as expected by service
-              output,
-              exclude,
-              target,
-              target_id,
-              project,
-              project_id,
-              version: version2,
-              no_upload,
-              dump_code
-            },
-            "text",
-            projectPath
-          );
-          return {
-            content: [{
-              type: "text",
-              text: result
-            }]
-          };
-        } catch (apiError) {
-          return {
-            content: [{
-              type: "text",
-              text: `Error discovering API endpoints: ${apiError.message}`
-            }],
-            isError: true
-          };
-        }
-      } catch (error51) {
-        console.error(`Error in discover-api tool:`, error51);
+  const runSourceIntelligence = async (params, _extra) => {
+    try {
+      const auth = await requireAuthenticatedUser();
+      if (!auth.ok) return auth.response;
+      const { source_paths, langs, output, exclude, target, target_id, project, project_id, version: version2, no_upload, dump_code } = params;
+      if (!no_upload && (project || project_id)) {
+        const projectAccess = await requireProjectAccess({
+          project,
+          project_id,
+          action: "running API Discovery with NightVision project upload"
+        });
+        if (!projectAccess.ok) return projectAccess.response;
+      }
+      if (!output) {
         return {
           content: [{
             type: "text",
-            text: `Error discovering API endpoints: ${error51.message}`
+            text: "Output file path is required. Please specify where to save the API specification."
           }],
           isError: true
         };
       }
+      const effectiveSourcePaths = source_paths && source_paths.length > 0 ? source_paths : [process.cwd()];
+      if (!langs) {
+        return {
+          content: [{
+            type: "text",
+            text: `No languages specified. You should analyze the source code to determine the appropriate language(s).
+
+Supported languages are: csharp, go, java, js, php, python, ruby.
+
+Please analyze the file extensions and code patterns in the source paths to identify the language, then call this tool again with the appropriate 'langs' parameter (a single language or an array).`
+          }],
+          isError: true
+        };
+      }
+      let languages = langs;
+      if (!Array.isArray(languages)) {
+        languages = [languages];
+      }
+      const supportedLanguages = ["csharp", "go", "java", "js", "php", "python", "ruby"];
+      for (const language of languages) {
+        if (!supportedLanguages.includes(language)) {
+          return {
+            content: [{
+              type: "text",
+              text: `Unsupported language: ${language}. Supported languages are: ${supportedLanguages.join(", ")}`
+            }],
+            isError: true
+          };
+        }
+      }
+      const projectPath = process.cwd();
+      try {
+        const result = await nightvision_default.discoverApi(
+          effectiveSourcePaths,
+          {
+            lang: langs,
+            // Map langs parameter to lang as expected by service
+            output,
+            exclude,
+            target,
+            target_id,
+            project,
+            project_id,
+            version: version2,
+            no_upload,
+            dump_code
+          },
+          "text",
+          projectPath
+        );
+        return {
+          content: [{
+            type: "text",
+            text: result
+          }]
+        };
+      } catch (apiError) {
+        return {
+          content: [{
+            type: "text",
+            text: `Error discovering API endpoints: ${apiError.message}`
+          }],
+          isError: true
+        };
+      }
+    } catch (error51) {
+      console.error(`Error in run-source-intelligence tool:`, error51);
+      return {
+        content: [{
+          type: "text",
+          text: `Error discovering API endpoints: ${error51.message}`
+        }],
+        isError: true
+      };
     }
-  );
+  };
+  for (const name of ["run-source-intelligence", "discover-api"]) {
+    registerNightVisionTool(server, name, ApiDiscoveryParamsSchema, runSourceIntelligence);
+  }
 }
 
 // src/tools/nuclei.ts

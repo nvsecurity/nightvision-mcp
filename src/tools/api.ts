@@ -1,4 +1,4 @@
-import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import type { McpServer, ToolCallback } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { nightvisionService } from '../services/index.js';
 import { ApiDiscoveryParamsSchema } from '../types/index.js';
 import { requireAuthenticatedUser, requireProjectAccess } from '../utils/auth-guard.js';
@@ -10,7 +10,8 @@ import { registerNightVisionTool } from './metadata.js';
  */
 export function registerApiTools(server: McpServer): void {
   /**
-   * API Discovery Tool
+   * Source Intelligence tool, registered as run-source-intelligence and as
+   * discover-api
    * 
    * Provides a tool to discover API endpoints by analyzing source code using the openapi extract feature.
    * All source_paths must be absolute paths.
@@ -25,9 +26,7 @@ export function registerApiTools(server: McpServer): void {
    * language, appending the language to the output base name while keeping the extension
    * (e.g. 'api-spec_python.yml'), and reports the resulting paths.
    */
-  registerNightVisionTool(server,
-    'discover-api',
-    ApiDiscoveryParamsSchema,
+  const runSourceIntelligence: ToolCallback<typeof ApiDiscoveryParamsSchema> =
     async (params, _extra) => {
       try {
         const auth = await requireAuthenticatedUser();
@@ -139,7 +138,7 @@ export function registerApiTools(server: McpServer): void {
         }
       } catch (error: any) {
         // Handle any errors that occur during execution
-        console.error(`Error in discover-api tool:`, error);
+        console.error(`Error in run-source-intelligence tool:`, error);
         return {
           content: [{ 
             type: "text" as const, 
@@ -148,6 +147,10 @@ export function registerApiTools(server: McpServer): void {
           isError: true
         };
       }
-    }
-  );
+    };
+
+  // discover-api is the tool's former name, kept for existing callers.
+  for (const name of ['run-source-intelligence', 'discover-api'] as const) {
+    registerNightVisionTool(server, name, ApiDiscoveryParamsSchema, runSourceIntelligence);
+  }
 }
