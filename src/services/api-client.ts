@@ -148,8 +148,8 @@ export class ApiClient {
         console.error(`NightVision CLI warning/error: ${stderr}`);
       }
 
-      // Combine stdout and stderr for 'swagger extract' commands to include info logs
-      if (args[0] === 'swagger' && args[1] === 'extract' && stderr && stderr.trim()) {
+      // Combine stdout and stderr for 'openapi extract' commands to include info logs
+      if (args[0] === 'openapi' && args[1] === 'extract' && stderr && stderr.trim()) {
         console.error('Including stderr in command output for API discovery');
         return stdout + (stdout ? '\n' : '') + stderr;
       }

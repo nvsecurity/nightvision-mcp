@@ -28,14 +28,14 @@ A Model Context Protocol (MCP) server that enables AI assistants to interact wit
 ## Prerequisites
 
 - Node.js 22 or later
-- NightVision CLI 0.5.0 or later, installed and on your `PATH`
+- NightVision CLI 0.18.0 or later, installed and on your `PATH`
 - Valid NightVision account and authentication
 
 The server runs the `nightvision` CLI it finds on your `PATH` and depends on its
-command and flag surface (for example `swagger extract --file-format`). It checks
+command and flag surface (for example `openapi extract --file-format`). It checks
 for the CLI at startup and logs a warning if the version is older than the
-supported minimum (0.5.0, where the API-discovery flags this server uses became
-available); a newer CLI is recommended. Upgrade the CLI the way you installed it.
+supported minimum (0.18.0, the first release with the `openapi` command); a
+newer CLI is recommended. Upgrade the CLI the way you installed it.
 
 ## Installation
 
@@ -889,7 +889,7 @@ List all authentication credentials in project <uuid>.
 
 #### `discover-api`
 
-Discovers API endpoints by analyzing source code using the NightVision CLI's `swagger extract` feature. This tool extracts API information from the codebase and generates a Swagger/OpenAPI specification file.
+Discovers API endpoints by analyzing source code using the NightVision CLI's `openapi extract` command. This tool extracts API information from the codebase and generates a Swagger/OpenAPI specification file.
 
 **Before calling this tool, the AI client should:**
 1. Identify the programming language of the codebase by checking file extensions or asking the user
@@ -904,8 +904,8 @@ Parameters:
 - `langs` (enum: "csharp" | "go" | "java" | "js" | "php" | "python" | "ruby" or array of these values): Language(s) of the target code. Must be provided as an array for multi-language projects.
 - `target` (string, optional): Target name to upload the swagger file to
 - `target_id` (string, optional): Target UUID to upload the swagger file to
-- `project` (string, optional): Project name for the swagger extract
-- `project_id` (string, optional): Project UUID for the swagger extract
+- `project` (string, optional): Project name for the openapi extract
+- `project_id` (string, optional): Project UUID for the openapi extract
 - `output` (string, required): Output file path to store the OpenAPI specs
 - `exclude` (string, optional): Files or directories to exclude from analysis (comma-separated, e.g. 'vendor/*,*.json')
 - `version` (string, optional, default: "0.1"): Version for the OpenAPI specs

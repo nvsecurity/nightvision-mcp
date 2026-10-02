@@ -66,9 +66,9 @@ writeFileSync(cliStub, [
   'const after = (f) => { const i = a.indexOf(f); return i >= 0 ? a[i+1] : undefined; };',
   'const json = (v) => process.stdout.write(JSON.stringify(v) + "\\n");',
   'if (a[0] === "--help") { process.stdout.write("help\\n"); process.exit(0); }',
-  'if (a[0] === "version") { process.stdout.write("NightVision CLI 0.12.3\\n"); process.exit(0); }',
+  'if (a[0] === "version") { process.stdout.write("NightVision CLI 0.18.4\\n"); process.exit(0); }',
   'if (a[0] === "project" && a[1] === "list") { json([{ id: "project-1", name: "Claude Generated Apps", is_default: true }]); process.exit(0); }',
-  'if (a[0] === "swagger" && a[1] === "extract") { const o = after("--output") || after("-o"); if (o) { fs.mkdirSync(path.dirname(o), {recursive:true}); fs.writeFileSync(o, "openapi: 3.0.0\\ninfo:\\n  title: A\\n  version: 1.0.0\\npaths:\\n  /api/health:\\n    get: { responses: { \\"200\\": { description: ok } } }\\n"); } process.stdout.write("extracted\\n"); process.exit(0); }',
+  'if (a[0] === "openapi" && a[1] === "extract") { const o = after("--output") || after("-o"); if (o) { fs.mkdirSync(path.dirname(o), {recursive:true}); fs.writeFileSync(o, "openapi: 3.0.0\\ninfo:\\n  title: A\\n  version: 1.0.0\\npaths:\\n  /api/health:\\n    get: { responses: { \\"200\\": { description: ok } } }\\n"); } process.stdout.write("extracted\\n"); process.exit(0); }',
   'if (a[0] === "target" && a[1] === "list") { json([]); process.exit(0); }',
   'if (a[0] === "target") { json({ id: "target-1", name: a[2], project: "project-1", type: after("-t") || "API", is_ready_to_scan: true }); process.exit(0); }',
   'if (a[0] === "scan") { json({ id: "scan-eval-1", target_name: a[1] }); process.exit(0); }',
@@ -188,7 +188,7 @@ async function main() {
   const manifestPath = path.join(appDir, '.nightvision', 'manifest.json');
   const cliCalls = existsSync(cliLog) ? readFileSync(cliLog, 'utf8') : '';
   const calledScan = /(^|\n)scan /.test(cliCalls);
-  const calledDiscovery = /swagger extract/.test(cliCalls);
+  const calledDiscovery = /openapi extract/.test(cliCalls);
   let manifestOk = false, scanId = null;
   if (existsSync(manifestPath)) {
     try {

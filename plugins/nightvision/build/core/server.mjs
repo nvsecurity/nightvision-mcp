@@ -48176,7 +48176,7 @@ var ENVIRONMENT = {
 };
 
 // src/utils/cli-version.ts
-var MIN_CLI_VERSION = "0.5.0";
+var MIN_CLI_VERSION = "0.18.0";
 function extractCliVersion(output) {
   const m = output.match(/v?(\d+)\.(\d+)\.(\d+)/i);
   return m ? `${m[1]}.${m[2]}.${m[3]}` : null;
@@ -48283,7 +48283,7 @@ var ApiClient = class {
       if (stderr && stderr.trim() !== "") {
         console.error(`NightVision CLI warning/error: ${stderr}`);
       }
-      if (args[0] === "swagger" && args[1] === "extract" && stderr && stderr.trim()) {
+      if (args[0] === "openapi" && args[1] === "extract" && stderr && stderr.trim()) {
         console.error("Including stderr in command output for API discovery");
         return stdout + (stdout ? "\n" : "") + stderr;
       }
@@ -50069,7 +50069,7 @@ var ApiDiscoveryService = class {
    */
   async discoverApi(sourcePaths, options, format = "text", projectPath) {
     try {
-      console.error(`Discovering API endpoints for source code using swagger extract...`);
+      console.error(`Discovering API endpoints for source code using openapi extract...`);
       const fs3 = await import("fs");
       const path15 = await import("path");
       const os7 = await import("os");
@@ -50097,7 +50097,7 @@ var ApiDiscoveryService = class {
       if (languages.length === 0) {
         throw new Error("At least one language must be specified for API discovery");
       }
-      const args = ["swagger", "extract", ...absoluteSourcePaths];
+      const args = ["openapi", "extract", ...absoluteSourcePaths];
       let tempDir = null;
       const redirectDir = () => {
         if (tempDir === null) {
@@ -50975,8 +50975,8 @@ var ApiDiscoveryParamsSchema = {
   ]).optional().describe("Language(s) of the target code. Can be a single language or an array of languages for multi-language projects. If not provided, the AI client should analyze the source code to identify the language(s)."),
   target: external_exports.string().optional().describe("Target name to upload the swagger file to"),
   target_id: external_exports.string().uuid().optional().describe("Target UUID to upload the swagger file to"),
-  project: external_exports.string().optional().describe("Project name for the swagger extract"),
-  project_id: external_exports.string().uuid().optional().describe("Project UUID for the swagger extract"),
+  project: external_exports.string().optional().describe("Project name for the openapi extract"),
+  project_id: external_exports.string().uuid().optional().describe("Project UUID for the openapi extract"),
   output: external_exports.string().describe("Output file to store the OpenAPI specs (required)"),
   exclude: external_exports.string().optional().describe("Files or directories to exclude from analysis (comma-separated, e.g. 'vendor/*,*.json')"),
   version: external_exports.string().optional().default("0.1").describe("Version for the OpenAPI specs"),

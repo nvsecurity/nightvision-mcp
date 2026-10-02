@@ -101,9 +101,9 @@ function fakeNightVisionForHarness(baseDir: string): { binDir: string; logPath: 
     'function argAfter(flag) { const i = args.indexOf(flag); return i >= 0 ? args[i + 1] : undefined; }',
     'function json(value) { process.stdout.write(`${JSON.stringify(value)}\\n`); }',
     'if (args[0] === "--help") { process.stdout.write("NightVision help\\n"); process.exit(0); }',
-    'if (args[0] === "version") { process.stdout.write("NightVision CLI 0.12.3\\n"); process.exit(0); }',
+    'if (args[0] === "version") { process.stdout.write("NightVision CLI 0.18.4\\n"); process.exit(0); }',
     'if (args[0] === "project" && args[1] === "list") { json({ results: [{ id: "project-1", name: "Demo Project", is_default: true }] }); process.exit(0); }',
-    'if (args[0] === "swagger" && args[1] === "extract") {',
+    'if (args[0] === "openapi" && args[1] === "extract") {',
     '  const output = argAfter("--output") || argAfter("-o");',
     '  if (output) { fs.mkdirSync(path.dirname(output), { recursive: true }); fs.writeFileSync(output, "openapi: 3.0.0\\ninfo:\\n  title: Fixture API\\n  version: 1.0.0\\npaths:\\n  /health:\\n    get:\\n      responses:\\n        \\"200\\":\\n          description: ok\\n"); }',
     '  process.stdout.write("Swagger file extracted successfully.\\n");',
@@ -565,7 +565,7 @@ test('run-app-security-scan starts a mocked authenticated scan without waiting b
     assert.equal(manifest.nightvision.user.email, 'demo@example.com');
 
     const cliCalls = readFileSync(logPath, 'utf8');
-    assert.match(cliCalls, /swagger extract/);
+    assert.match(cliCalls, /openapi extract/);
     assert.match(cliCalls, /target list/);
     assert.match(cliCalls, /target create/);
     assert.match(cliCalls, /scan /);

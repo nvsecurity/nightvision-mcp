@@ -12,7 +12,7 @@ export function registerApiTools(server: McpServer): void {
   /**
    * API Discovery Tool
    * 
-   * Provides a tool to discover API endpoints by analyzing source code using the swagger extract feature.
+   * Provides a tool to discover API endpoints by analyzing source code using the openapi extract feature.
    * All source_paths must be absolute paths.
    * If source_paths is not specified by the user, use the project root path.
    * The langs parameter may be a single language or an array of languages (e.g. 'python' or ['python', 'js']) for the source code analysis.

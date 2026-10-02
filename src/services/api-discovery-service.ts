@@ -5,7 +5,7 @@ import { ApiClient } from './api-client.js';
 import type { OutputFormat } from './api-client.js';
 
 /**
- * Cap the number of simultaneous `nightvision swagger extract` subprocesses
+ * Cap the number of simultaneous `nightvision openapi extract` subprocesses
  * (each runs the heavy api-excavator engine). Running many at once under the
  * single server process can exhaust local memory, CPU, and file descriptors.
  * Override the limit with the NIGHTVISION_EXTRACT_CONCURRENCY environment variable.
@@ -17,7 +17,7 @@ const MAX_EXTRACT_CONCURRENCY = Math.max(
 const extractLimiter = new Semaphore(MAX_EXTRACT_CONCURRENCY);
 
 /**
- * API discovery via `nightvision swagger extract`.
+ * API discovery via `nightvision openapi extract`.
  */
 export class ApiDiscoveryService {
   constructor(private client: ApiClient) {}
@@ -48,7 +48,7 @@ export class ApiDiscoveryService {
     projectPath: string
   ): Promise<string> {
     try {
-      console.error(`Discovering API endpoints for source code using swagger extract...`);
+      console.error(`Discovering API endpoints for source code using openapi extract...`);
 
       // Import required modules
       const fs = await import('fs');
@@ -91,7 +91,7 @@ export class ApiDiscoveryService {
       }
 
       // Build the CLI command arguments based on the NightVision CLI
-      const args = ['swagger', 'extract', ...absoluteSourcePaths];
+      const args = ['openapi', 'extract', ...absoluteSourcePaths];
 
       // Add output file name with absolute path to a writable directory
       // Lazily create a unique per-call temp directory for output redirects, so
