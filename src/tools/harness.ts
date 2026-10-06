@@ -273,7 +273,7 @@ async function runApiDiscovery(
       ...languages.map((language) => languageOutputPath(outputBase, language))
     ].map(removeIfExists));
 
-    // `swagger extract --target` uploads the spec it just generated straight onto the
+    // `openapi extract --target` uploads the spec it just generated straight onto the
     // target, so the scan cannot race a separate push. It only works on a target that
     // already exists: the CLI errors with "The specified Target does not exist under the
     // Project" otherwise, so a brand-new target still gets its spec at create time.
@@ -287,9 +287,9 @@ async function runApiDiscovery(
               target: uploadTarget.name,
               project: uploadTarget.project,
               project_id: uploadTarget.projectId || undefined,
-              no_upload: false
+              no_target: false
             }
-          : { no_upload: true })
+          : { no_target: true })
       },
       'text',
       projectPath
@@ -337,7 +337,7 @@ async function ensureTarget(
 ): Promise<TargetResolution> {
   const warnings: string[] = resolved ? [...resolved.warnings] : [];
 
-  // API Discovery may have already pushed this spec via `swagger extract --target`. Pushing
+  // API Discovery may have already pushed this spec via `openapi extract --target`. Pushing
   // it a second time here would be redundant, so only send spec_file when it did not.
   const pendingSpec = resolved?.specUploaded ? null : specFile;
 
@@ -718,7 +718,7 @@ export function registerHarnessTools(server: McpServer): void {
           });
         }
 
-        // Resolve the target before discovery: `swagger extract --target` uploads the spec
+        // Resolve the target before discovery: `openapi extract --target` uploads the spec
         // it generates, but only onto a target that already exists. A target we are about to
         // create instead receives its spec at create time, below.
         const targetWarnings: string[] = [];

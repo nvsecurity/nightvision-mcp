@@ -1,7 +1,8 @@
-import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import type { McpServer, ToolCallback } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { nightvisionService } from '../services/index.js';
 import { ApiDiscoveryParamsSchema } from '../types/index.js';
 import { requireAuthenticatedUser, requireProjectAccess } from '../utils/auth-guard.js';
+import { extractUploadMode } from '../utils/extract-target-args.js';
 import { registerNightVisionTool } from './metadata.js';
 
 /**
@@ -10,9 +11,10 @@ import { registerNightVisionTool } from './metadata.js';
  */
 export function registerApiTools(server: McpServer): void {
   /**
-   * API Discovery Tool
+   * Source Intelligence tool, registered as run-source-intelligence and as
+   * discover-api
    * 
-   * Provides a tool to discover API endpoints by analyzing source code using the swagger extract feature.
+   * Provides a tool to discover API endpoints by analyzing source code using the openapi extract feature.
    * All source_paths must be absolute paths.
    * If source_paths is not specified by the user, use the project root path.
    * The langs parameter may be a single language or an array of languages (e.g. 'python' or ['python', 'js']) for the source code analysis.
@@ -25,25 +27,23 @@ export function registerApiTools(server: McpServer): void {
    * language, appending the language to the output base name while keeping the extension
    * (e.g. 'api-spec_python.yml'), and reports the resulting paths.
    */
-  registerNightVisionTool(server,
-    'discover-api',
-    ApiDiscoveryParamsSchema,
+  const runSourceIntelligence: ToolCallback<typeof ApiDiscoveryParamsSchema> =
     async (params, _extra) => {
       try {
         const auth = await requireAuthenticatedUser();
         if (!auth.ok) return auth.response;
 
         // Extract params from request
-        const { source_paths, langs, output, exclude, target, target_id, project, project_id, version, no_upload, dump_code } = params;
+        const { source_paths, langs, output, exclude, target, target_id, project, project_id, version, no_target, no_upload, dump_code } = params;
 
-        // project/project_id name the UPLOAD DESTINATION. no_upload defaults to
-        // true, so without an explicit upload the CLI extracts locally and never
-        // touches the project, leaving the label inert. Authorizing an inert
-        // label would make a purely local extract depend on the API being
-        // reachable (a transient outage would then block it) and would surface a
-        // confusing "project access denied" for an operation that uploads
-        // nothing. Gate the guard on the effective upload condition instead.
-        if (!no_upload && (project || project_id)) {
+        // project/project_id name the UPLOAD DESTINATION. Unless the caller
+        // asks to upload to a target, the CLI never touches the project,
+        // leaving the label inert. Authorizing an inert label would make a run
+        // without a target depend on the API being reachable (a transient
+        // outage would then block it) and would surface a confusing "project
+        // access denied" for an operation that leaves the project alone. Gate
+        // the guard on the effective upload mode instead.
+        if (extractUploadMode(params) === 'target' && (project || project_id)) {
           const projectAccess = await requireProjectAccess({
             project,
             project_id,
@@ -115,6 +115,7 @@ export function registerApiTools(server: McpServer): void {
               project,
               project_id,
               version,
+              no_target,
               no_upload,
               dump_code
             },
@@ -139,7 +140,7 @@ export function registerApiTools(server: McpServer): void {
         }
       } catch (error: any) {
         // Handle any errors that occur during execution
-        console.error(`Error in discover-api tool:`, error);
+        console.error(`Error in run-source-intelligence tool:`, error);
         return {
           content: [{ 
             type: "text" as const, 
@@ -148,6 +149,10 @@ export function registerApiTools(server: McpServer): void {
           isError: true
         };
       }
-    }
-  );
+    };
+
+  // discover-api is the tool's former name, kept for existing callers.
+  for (const name of ['run-source-intelligence', 'discover-api'] as const) {
+    registerNightVisionTool(server, name, ApiDiscoveryParamsSchema, runSourceIntelligence);
+  }
 }

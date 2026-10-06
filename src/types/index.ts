@@ -291,12 +291,13 @@ export const ApiDiscoveryParamsSchema = {
   ]).optional().describe("Language(s) of the target code. Can be a single language or an array of languages for multi-language projects. If not provided, the AI client should analyze the source code to identify the language(s)."),
   target: z.string().optional().describe("Target name to upload the swagger file to"),
   target_id: z.string().uuid().optional().describe("Target UUID to upload the swagger file to"),
-  project: z.string().optional().describe("Project name for the swagger extract"),
-  project_id: z.string().uuid().optional().describe("Project UUID for the swagger extract"),
+  project: z.string().optional().describe("Project name for the openapi extract"),
+  project_id: z.string().uuid().optional().describe("Project UUID for the openapi extract"),
   output: z.string().describe("Output file to store the OpenAPI specs (required)"),
   exclude: z.string().optional().describe("Files or directories to exclude from analysis (comma-separated, e.g. 'vendor/*,*.json')"),
   version: z.string().optional().default("0.1").describe("Version for the OpenAPI specs"),
-  no_upload: z.boolean().optional().default(true).describe("Skip creation of a new target in the Nightvision API"),
+  no_target: z.boolean().optional().describe("Extract without a NightVision target (default true), leaving every target unchanged; the spec is still uploaded to NightVision unless no_upload is true. Set to false, with target or target_id, to upload the spec to that target"),
+  no_upload: z.boolean().optional().describe("Upload nothing, to a target or to NightVision (default false), for code-derived files that must not leave this machine. Overrides no_target. The former way to upload to a target, no_upload false with target or target_id and no_target left out, still works"),
   dump_code: z.boolean().optional().describe("Include code snippets in the generated spec")
 };
 

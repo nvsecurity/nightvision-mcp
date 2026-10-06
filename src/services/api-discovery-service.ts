@@ -1,11 +1,12 @@
 import { Semaphore } from '../utils/semaphore.js';
 import { languageOutputPath } from '../utils/output-naming.js';
 import { resolveActualOutputFile } from '../utils/discover-output-path.js';
+import { extractTargetArgs, extractUploadMode, supportsNoTarget } from '../utils/extract-target-args.js';
 import { ApiClient } from './api-client.js';
 import type { OutputFormat } from './api-client.js';
 
 /**
- * Cap the number of simultaneous `nightvision swagger extract` subprocesses
+ * Cap the number of simultaneous `nightvision openapi extract` subprocesses
  * (each runs the heavy api-excavator engine). Running many at once under the
  * single server process can exhaust local memory, CPU, and file descriptors.
  * Override the limit with the NIGHTVISION_EXTRACT_CONCURRENCY environment variable.
@@ -17,10 +18,25 @@ const MAX_EXTRACT_CONCURRENCY = Math.max(
 const extractLimiter = new Semaphore(MAX_EXTRACT_CONCURRENCY);
 
 /**
- * API discovery via `nightvision swagger extract`.
+ * API discovery via `nightvision openapi extract`.
  */
 export class ApiDiscoveryService {
+  private noTargetSupported: Promise<boolean> | null = null;
+
   constructor(private client: ApiClient) {}
+
+  /**
+   * Whether the installed CLI's `openapi extract` has --no-target, read once
+   * from its help (NV-5668). A CLI that cannot say is treated as older.
+   */
+  private supportsNoTarget(): Promise<boolean> {
+    if (this.noTargetSupported === null) {
+      this.noTargetSupported = this.client
+        .executeCommand(['openapi', 'extract', '--help'], 'text', true)
+        .then(supportsNoTarget, () => false);
+    }
+    return this.noTargetSupported;
+  }
 
   /**
    * Discover API endpoints for a target by analyzing source code
@@ -41,6 +57,7 @@ export class ApiDiscoveryService {
       output: string;
       exclude?: string;
       version?: string;
+      no_target?: boolean;
       no_upload?: boolean;
       dump_code?: boolean;
     },
@@ -48,7 +65,7 @@ export class ApiDiscoveryService {
     projectPath: string
   ): Promise<string> {
     try {
-      console.error(`Discovering API endpoints for source code using swagger extract...`);
+      console.error(`Discovering API endpoints for source code using openapi extract...`);
 
       // Import required modules
       const fs = await import('fs');
@@ -91,7 +108,7 @@ export class ApiDiscoveryService {
       }
 
       // Build the CLI command arguments based on the NightVision CLI
-      const args = ['swagger', 'extract', ...absoluteSourcePaths];
+      const args = ['openapi', 'extract', ...absoluteSourcePaths];
 
       // Add output file name with absolute path to a writable directory
       // Lazily create a unique per-call temp directory for output redirects, so
@@ -137,6 +154,12 @@ export class ApiDiscoveryService {
       // .json request then actually produces JSON rather than YAML (NV-4473).
       const fileFormat = /\.json$/i.test(outputFile) ? 'json' : 'yml';
 
+      // A target is changed only on request
+      const targetArgs = extractTargetArgs(
+        options,
+        extractUploadMode(options) === 'nightvision' && await this.supportsNoTarget()
+      );
+
       // For multiple languages, we need to run the command multiple times
       // and merge the results
       if (languages.length > 1) {
@@ -154,23 +177,8 @@ export class ApiDiscoveryService {
           // Add language option
           langArgs.push('--lang', lang);
 
-          // Add target information if provided
-          if (options.target) {
-            langArgs.push('--target', options.target);
-          }
-
-          if (options.target_id) {
-            langArgs.push('--target-id', options.target_id);
-          }
-
-          // Add project information if provided
-          if (options.project) {
-            langArgs.push('--project', options.project);
-          }
-
-          if (options.project_id) {
-            langArgs.push('--project-id', options.project_id);
-          }
+          // Add the target to upload to, or run without one
+          langArgs.push(...targetArgs);
 
           // Add the vetted output file and the matching file format
           langArgs.push('--output', langOutputFile);
@@ -184,11 +192,6 @@ export class ApiDiscoveryService {
           // Add version if provided
           if (options.version) {
             langArgs.push('--version', options.version);
-          }
-
-          // Add no-upload flag (default to true for safety)
-          if (options.no_upload !== false) {
-            langArgs.push('--no-upload');
           }
 
           // Add dump-code flag if requested
@@ -226,23 +229,8 @@ export class ApiDiscoveryService {
         // Add mandatory language option
         args.push('--lang', languages[0]);
 
-        // Add target information if provided
-        if (options.target) {
-          args.push('--target', options.target);
-        }
-
-        if (options.target_id) {
-          args.push('--target-id', options.target_id);
-        }
-
-        // Add project information if provided
-        if (options.project) {
-          args.push('--project', options.project);
-        }
-
-        if (options.project_id) {
-          args.push('--project-id', options.project_id);
-        }
+        // Add the target to upload to, or run without one
+        args.push(...targetArgs);
 
         // Add the vetted output file and the matching file format
         args.push('--output', outputFile);
@@ -256,11 +244,6 @@ export class ApiDiscoveryService {
         // Add version if provided
         if (options.version) {
           args.push('--version', options.version);
-        }
-
-        // Add no-upload flag (default to true for safety)
-        if (options.no_upload !== false) {
-          args.push('--no-upload');
         }
 
         // Add dump-code flag if requested

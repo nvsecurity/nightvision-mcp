@@ -98,9 +98,12 @@ function fakeCli(baseDir: string): { binDir: string; logPath: string } {
     'function argAfter(f){const i=args.indexOf(f);return i>=0?args[i+1]:undefined;}',
     'function json(v){process.stdout.write(`${JSON.stringify(v)}\\n`);}',
     'if (args[0] === "--help") { process.stdout.write("help\\n"); process.exit(0); }',
-    'if (args[0] === "version") { process.stdout.write("NightVision CLI 0.12.3\\n"); process.exit(0); }',
+    'if (args[0] === "version") { process.stdout.write("NightVision CLI 0.18.4\\n"); process.exit(0); }',
     'if (args[0] === "project" && args[1] === "list") { json(JSON.parse(process.env.NV_FAKE_PROJECTS || "[]")); process.exit(0); }',
-    'if (args[0] === "swagger" && args[1] === "extract") {',
+    'if (args[0] === "openapi" && args[1] === "extract" && args.includes("--help")) {',
+    '  process.stdout.write("Flags:\\n      --no-target   Run without a target\\n      --no-upload   Upload nothing\\n"); process.exit(0);',
+    '}',
+    'if (args[0] === "openapi" && args[1] === "extract") {',
     '  const o = argAfter("--output") || argAfter("-o");',
     '  if (o) { fs.mkdirSync(path.dirname(o), {recursive:true}); fs.writeFileSync(o, "openapi: 3.0.0\\ninfo:\\n  title: A\\n  version: 1.0.0\\npaths: {}\\n"); }',
     '  process.stdout.write("extracted\\n"); process.exit(0);',
@@ -322,14 +325,14 @@ test('scenario: "scan the app I just built" runs the full workflow and produces 
   }
 });
 
-test('scenario: an EXISTING target gets its fresh spec uploaded by swagger extract itself, before the scan starts', { timeout: 30000, skip }, async (t) => {
+test('scenario: an EXISTING target gets its fresh spec uploaded by openapi extract itself, before the scan starts', { timeout: 30000, skip }, async (t) => {
   const baseDir = mkdtempSync(path.join(os.tmpdir(), 'nv-sc-existing-'));
   const { binDir, logPath } = fakeCli(baseDir);
   const projectPath = makeApp(baseDir);
   const app = await startLocalApp();
   if (!app) return t.skip('loopback blocked');
   const api = await fakeApi({
-    // The target already exists, so `swagger extract --target` can upload onto it.
+    // The target already exists, so `openapi extract --target` can upload onto it.
     targets: [{ id: 'target-1', name: 'demo-api', project: 'project-1', project_name: 'Demo Project', location: 'http://localhost:1', type: 'OPENAPI' }],
     scanStatus: { id: 'scan-123', status: 'RUNNING', status_value: 2 }
   });
@@ -347,8 +350,8 @@ test('scenario: an EXISTING target gets its fresh spec uploaded by swagger extra
     assert.equal(started.payload.data.api_discovery.spec_uploaded, true);
 
     const lines = readFileSync(logPath, 'utf8').trim().split('\n');
-    const extract = lines.find((l) => l.startsWith('swagger extract'));
-    assert.ok(extract, 'swagger extract should have run');
+    const extract = lines.find((l) => l.startsWith('openapi extract'));
+    assert.ok(extract, 'openapi extract should have run');
 
     // The fresh spec is uploaded by extract itself, onto the existing target.
     assert.match(extract!, /--target demo-api/);
@@ -364,7 +367,7 @@ test('scenario: an EXISTING target gets its fresh spec uploaded by swagger extra
     }
 
     // Ordering is what matters: the spec lands BEFORE the scan starts.
-    const extractIdx = lines.findIndex((l) => l.startsWith('swagger extract'));
+    const extractIdx = lines.findIndex((l) => l.startsWith('openapi extract'));
     const scanIdx = lines.findIndex((l) => l.startsWith('scan'));
     assert.ok(scanIdx > extractIdx, 'DAST must start only after API discovery uploaded the spec');
   } finally {
@@ -394,10 +397,10 @@ test('scenario: a NEW target still gets its spec at create time (extract cannot 
     assert.equal(started.payload.data.api_discovery.spec_uploaded, false);
 
     const lines = readFileSync(logPath, 'utf8').trim().split('\n');
-    const extract = lines.find((l) => l.startsWith('swagger extract'))!;
+    const extract = lines.find((l) => l.startsWith('openapi extract') && !l.includes('--help'))!;
 
-    // No target to upload onto yet, so extract stays local...
-    assert.ok(extract.includes('--no-upload'), `extract should not try to upload: ${extract}`);
+    // No target to upload onto yet, so extract runs without one...
+    assert.ok(extract.includes('--no-target'), `extract should not try to upload: ${extract}`);
     assert.ok(!extract.includes('--target'), `extract must not name a target that does not exist: ${extract}`);
 
     // ...and the spec is attached when the target is created (-f is --spec-file), as type API.

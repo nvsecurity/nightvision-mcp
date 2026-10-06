@@ -199,6 +199,7 @@ const expectedSkills = [
   'scan-configuration',
   'scan-report',
   'scan-triage',
+  'source-intelligence',
 ];
 const actualSkills = readdirSync(join(pluginRoot, 'skills'))
   .filter((entry) => existsSync(join(pluginRoot, 'skills', entry, 'SKILL.md')))

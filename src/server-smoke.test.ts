@@ -141,6 +141,7 @@ test('server boots, advertises the tools capability, and lists the tool set', {
       'login-help': { readOnlyHint: true, destructiveHint: false, openWorldHint: false, idempotentHint: true },
       'doctor': { readOnlyHint: true, destructiveHint: false, openWorldHint: false, idempotentHint: true },
       'auth-status': { readOnlyHint: true, destructiveHint: false, openWorldHint: false, idempotentHint: true },
+      'run-source-intelligence': { readOnlyHint: false, destructiveHint: true, openWorldHint: false },
       'discover-api': { readOnlyHint: false, destructiveHint: true, openWorldHint: false },
       'export-sarif': { readOnlyHint: false, destructiveHint: true, openWorldHint: false },
       'export-csv': { readOnlyHint: false, destructiveHint: true, openWorldHint: false },
