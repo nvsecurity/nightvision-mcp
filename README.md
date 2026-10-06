@@ -85,7 +85,7 @@ newer CLI is recommended. Upgrade the CLI the way you installed it.
 `plugins/nightvision/` installs into either agent. It is one plugin directory
 carrying two manifests, because Codex reads `.codex-plugin/plugin.json` and
 Claude Code reads `.claude-plugin/plugin.json`; each ignores the other's. Both
-get the same server, the same 48 tools, and the same five NightVision skills.
+get the same server, the same tools, and the same NightVision skills.
 
 The two manifests declare the MCP server differently, and that is deliberate.
 Codex resolves a relative `cwd` against the plugin's install directory, so
@@ -1313,7 +1313,7 @@ The MCP package version in `package.json` is the single version source:
 `plugin:build` writes it into the plugin manifest, the packaged runtime
 manifest, and `build-info.json`, so they cannot drift apart.
 
-The five skills under `plugins/nightvision/skills/` are vendored from
+The skills under `plugins/nightvision/skills/` are vendored from
 [nightvision-skills](https://github.com/nvsecurity/nightvision-skills) at the
 commit recorded in `plugins/nightvision/skills-source.json`, along with the
 Codex-specific adaptations applied to them.
