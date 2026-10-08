@@ -1,6 +1,7 @@
 import type { McpServer, ToolCallback } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { nightvisionService } from '../services/index.js';
 import { ApiDiscoveryParamsSchema } from '../types/index.js';
+import { normalizeLanguages } from '../utils/extract-languages.js';
 import { requireAuthenticatedUser, requireProjectAccess } from '../utils/auth-guard.js';
 import { extractUploadMode } from '../utils/extract-target-args.js';
 import { registerNightVisionTool } from './metadata.js';
@@ -17,11 +18,9 @@ export function registerApiTools(server: McpServer): void {
    * Provides a tool to discover API endpoints by analyzing source code using the openapi extract feature.
    * All source_paths must be absolute paths.
    * If source_paths is not specified by the user, use the project root path.
-   * The langs parameter may be a single language or an array of languages (e.g. 'python' or ['python', 'js']) for the source code analysis.
-   * 
-   * Note on language detection: Some languages may be difficult to recognize in recursive directories.
-   * Before running API discovery, perform a recursive file scan of the target directory tree to identify
-   * source files and their languages. This helps determine the correct langs value to use.
+   * The langs parameter is optional. Without it the CLI detects project roots and languages on
+   * its own. A single language or an array (e.g. 'python' or ['python', 'js']) restricts the
+   * analysis; the CLI's aliases (dotnet, typescript, ...) are accepted and normalized.
    * 
    * When discovering APIs for multiple languages, the tool writes one specification file per
    * language, appending the language to the output base name while keeping the extension
@@ -68,35 +67,19 @@ export function registerApiTools(server: McpServer): void {
           ? source_paths 
           : [process.cwd()];
         
-        // Check if langs is provided
-        if (!langs) {
+        // Normalize the optional language restriction to the CLI's canonical
+        // names; an empty list leaves language detection to the CLI.
+        let languages;
+        try {
+          languages = normalizeLanguages(langs);
+        } catch (langError: any) {
           return {
             content: [{ 
               type: "text" as const, 
-              text: `No languages specified. You should analyze the source code to determine the appropriate language(s).\n\nSupported languages are: csharp, go, java, js, php, python, ruby.\n\nPlease analyze the file extensions and code patterns in the source paths to identify the language, then call this tool again with the appropriate 'langs' parameter (a single language or an array).` 
+              text: langError.message 
             }],
             isError: true
           };
-        }
-        
-        // Validate langs parameter
-        let languages = langs;
-        if (!Array.isArray(languages)) {
-          languages = [languages];
-        }
-
-        // Check languages are supported
-        const supportedLanguages = ['csharp', 'go', 'java', 'js', 'php', 'python', 'ruby'];
-        for (const language of languages) {
-          if (!supportedLanguages.includes(language)) {
-            return {
-              content: [{ 
-                type: "text" as const, 
-                text: `Unsupported language: ${language}. Supported languages are: ${supportedLanguages.join(', ')}` 
-              }],
-              isError: true
-            };
-          }
         }
 
         // Get project path for resolving relative paths
@@ -107,7 +90,7 @@ export function registerApiTools(server: McpServer): void {
           const result = await nightvisionService.discoverApi(
             effectiveSourcePaths,
             {
-              lang: langs, // Map langs parameter to lang as expected by service
+              lang: languages.length === 0 ? undefined : languages.length === 1 ? languages[0] : languages,
               output,
               exclude,
               target,

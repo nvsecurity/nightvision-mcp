@@ -50077,6 +50077,57 @@ function extractTargetArgs(options, noTargetSupported) {
   }
 }
 
+// src/utils/extract-languages.ts
+var LANGUAGE_ALIASES = {
+  csharp: "csharp",
+  "c#": "csharp",
+  dotnet: "csharp",
+  go: "go",
+  golang: "go",
+  java: "java",
+  js: "js",
+  javascript: "js",
+  ts: "js",
+  typescript: "js",
+  php: "php",
+  python: "python",
+  py: "python",
+  python3: "python",
+  ruby: "ruby"
+};
+var LANGUAGE_INPUTS = Object.keys(LANGUAGE_ALIASES);
+function normalizeLanguages(langs) {
+  const inputs = langs === void 0 ? [] : Array.isArray(langs) ? langs : [langs];
+  const out = [];
+  for (const input of inputs) {
+    const canonical = LANGUAGE_ALIASES[input.trim().toLowerCase()];
+    if (!canonical) {
+      throw new Error(`Unsupported language: ${input}. Supported languages are: csharp, go, java, js, php, python, ruby.`);
+    }
+    if (!out.includes(canonical)) {
+      out.push(canonical);
+    }
+  }
+  return out;
+}
+function diagnosticsPathFor(outputFile) {
+  return `${outputFile.replace(/\.(json|yaml|yml)$/, "")}.diagnostics.json`;
+}
+var LOG_PREFIX = /^\[[^\]]*\]\s+(?:DEBUG|INFO|WARN|ERROR)\s+/;
+function zeroRouteSummary(log) {
+  if (!log) return "";
+  const lines = log.split(/\r?\n/);
+  const start = lines.findIndex((line) => line.includes("No routes were discovered"));
+  if (start < 0) return "";
+  const kept = [];
+  for (const line of lines.slice(start)) {
+    if (line.includes("error extracting API info")) break;
+    const text = line.replace(LOG_PREFIX, "").trimEnd();
+    if (text) kept.push(text);
+  }
+  return kept.join("\n");
+}
+
 // src/services/api-discovery-service.ts
 var MAX_EXTRACT_CONCURRENCY = Math.max(
   1,
@@ -50124,18 +50175,11 @@ var ApiDiscoveryService = class {
         }
         return sourcePath;
       });
-      let languages;
-      if (Array.isArray(options.lang)) {
-        languages = options.lang;
-        console.error(`Multiple languages requested: ${languages.join(", ")}`);
-      } else if (options.lang) {
-        languages = [options.lang];
-        console.error(`Single language requested: ${options.lang}`);
-      } else {
-        throw new Error("Language is required for API discovery");
-      }
+      const languages = Array.isArray(options.lang) ? options.lang : options.lang ? [options.lang] : [];
       if (languages.length === 0) {
-        throw new Error("At least one language must be specified for API discovery");
+        console.error("No language restriction: the CLI detects project roots and languages");
+      } else {
+        console.error(`Languages requested: ${languages.join(", ")}`);
       }
       const args = ["openapi", "extract", ...absoluteSourcePaths];
       let tempDir = null;
@@ -50213,7 +50257,9 @@ ${outputs.map((o) => `- ${o}`).join("\n")}` : `
 No OpenAPI specification files were produced.`;
         return combinedResult + outputInfo;
       } else {
-        args.push("--lang", languages[0]);
+        if (languages.length === 1) {
+          args.push("--lang", languages[0]);
+        }
         args.push(...targetArgs);
         args.push("--output", outputFile);
         args.push("--file-format", fileFormat);
@@ -50238,8 +50284,15 @@ No OpenAPI specification file was produced.`;
           return result + outputInfo;
         } catch (cliError) {
           const errorMessage = cliError.message;
-          if (errorMessage.includes("0 paths discovered")) {
-            throw new Error(`No API endpoints found in [${sourcePaths.join(", ")}] using ${languages[0]}. Try more specific directories.`);
+          const cliLog = typeof cliError.stderr === "string" ? cliError.stderr : errorMessage;
+          if (cliLog.includes("0 paths discovered") || errorMessage.includes("0 paths discovered")) {
+            const scope = languages.length === 1 ? ` (restricted to ${languages[0]})` : "";
+            const account = zeroRouteSummary(cliLog);
+            throw new Error([
+              `Source Intelligence found no API endpoints in [${sourcePaths.join(", ")}]${scope}.`,
+              account,
+              `The run's diagnostics were written to ${diagnosticsPathFor(outputFile)}; summarize them with: nightvision openapi diagnose ${outputFile}`
+            ].filter(Boolean).join("\n"));
           }
           if (errorMessage.includes("read-only file system") || errorMessage.includes("permission denied") || errorMessage.includes("no such file or directory")) {
             throw new Error(`File system error: Unable to write to ${outputFile}.
@@ -50986,9 +51039,9 @@ var CreateNucleiTemplateParamsSchema = {
 var ApiDiscoveryParamsSchema = {
   source_paths: external_exports.array(external_exports.string()).describe("Absolute paths to code directories to analyze (must be absolute paths, not relative). The provided paths should be used exactly as specified by the user."),
   langs: external_exports.union([
-    external_exports.enum(["csharp", "go", "java", "js", "php", "python", "ruby"]),
-    external_exports.array(external_exports.enum(["csharp", "go", "java", "js", "php", "python", "ruby"]))
-  ]).optional().describe("Language(s) of the target code. Can be a single language or an array of languages for multi-language projects. If not provided, the AI client should analyze the source code to identify the language(s)."),
+    external_exports.enum(LANGUAGE_INPUTS),
+    external_exports.array(external_exports.enum(LANGUAGE_INPUTS))
+  ]).optional().describe("Optional. Restrict the analysis to one or more languages: csharp (alias dotnet), go, java, js (aliases javascript, typescript, ts), php, python, ruby. Omit it to let the CLI detect project roots and languages itself, which is the normal case; pass several languages only to write one spec per language."),
   target: external_exports.string().optional().describe("Target name to upload the swagger file to"),
   target_id: external_exports.string().uuid().optional().describe("Target UUID to upload the swagger file to"),
   project: external_exports.string().optional().describe("Project name for the openapi extract"),
@@ -51419,7 +51472,7 @@ var NIGHTVISION_TOOL_METADATA = {
   },
   "run-source-intelligence": {
     title: "Run Source Intelligence",
-    description: "Analyzes application source code and writes an OpenAPI specification. By default the spec also goes to NightVision without a target; it can instead be uploaded to a NightVision target, or kept on this machine with no_upload.",
+    description: "Analyzes application source code and writes an OpenAPI specification. Project roots and languages are detected automatically unless langs restricts the run. By default the spec also goes to NightVision without a target; it can instead be uploaded to a NightVision target, or kept on this machine with no_upload.",
     annotations: DESTRUCTIVE_INTERNAL_WRITE
   },
   "discover-api": {
@@ -54885,42 +54938,24 @@ function registerApiTools(server) {
         };
       }
       const effectiveSourcePaths = source_paths && source_paths.length > 0 ? source_paths : [process.cwd()];
-      if (!langs) {
+      let languages;
+      try {
+        languages = normalizeLanguages(langs);
+      } catch (langError) {
         return {
           content: [{
             type: "text",
-            text: `No languages specified. You should analyze the source code to determine the appropriate language(s).
-
-Supported languages are: csharp, go, java, js, php, python, ruby.
-
-Please analyze the file extensions and code patterns in the source paths to identify the language, then call this tool again with the appropriate 'langs' parameter (a single language or an array).`
+            text: langError.message
           }],
           isError: true
         };
-      }
-      let languages = langs;
-      if (!Array.isArray(languages)) {
-        languages = [languages];
-      }
-      const supportedLanguages = ["csharp", "go", "java", "js", "php", "python", "ruby"];
-      for (const language of languages) {
-        if (!supportedLanguages.includes(language)) {
-          return {
-            content: [{
-              type: "text",
-              text: `Unsupported language: ${language}. Supported languages are: ${supportedLanguages.join(", ")}`
-            }],
-            isError: true
-          };
-        }
       }
       const projectPath = process.cwd();
       try {
         const result = await nightvision_default.discoverApi(
           effectiveSourcePaths,
           {
-            lang: langs,
-            // Map langs parameter to lang as expected by service
+            lang: languages.length === 0 ? void 0 : languages.length === 1 ? languages[0] : languages,
             output,
             exclude,
             target,

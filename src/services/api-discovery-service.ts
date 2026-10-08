@@ -2,6 +2,8 @@ import { Semaphore } from '../utils/semaphore.js';
 import { languageOutputPath } from '../utils/output-naming.js';
 import { resolveActualOutputFile } from '../utils/discover-output-path.js';
 import { extractTargetArgs, extractUploadMode, supportsNoTarget } from '../utils/extract-target-args.js';
+import { diagnosticsPathFor, zeroRouteSummary } from '../utils/extract-languages.js';
+import type { NightVisionLanguage } from '../utils/language-detect.js';
 import { ApiClient } from './api-client.js';
 import type { OutputFormat } from './api-client.js';
 
@@ -49,7 +51,7 @@ export class ApiDiscoveryService {
   async discoverApi(
     sourcePaths: string[],
     options: {
-      lang: 'csharp' | 'go' | 'java' | 'js' | 'php' | 'python' | 'ruby' | Array<'csharp' | 'go' | 'java' | 'js' | 'php' | 'python' | 'ruby'>;
+      lang?: NightVisionLanguage | NightVisionLanguage[];
       target?: string;
       target_id?: string;
       project?: string;
@@ -89,22 +91,18 @@ export class ApiDiscoveryService {
         return sourcePath;
       });
 
-      // Handle single language or multiple languages
-      let languages: Array<'csharp' | 'go' | 'java' | 'js' | 'php' | 'python' | 'ruby'>;
-
-      if (Array.isArray(options.lang)) {
-        languages = options.lang;
-        console.error(`Multiple languages requested: ${languages.join(', ')}`);
-      } else if (options.lang) {
-        languages = [options.lang];
-        console.error(`Single language requested: ${options.lang}`);
-      } else {
-        throw new Error("Language is required for API discovery");
-      }
-
-      // Validate languages
+      // An absent language restriction leaves detection to the CLI, which
+      // finds project roots and languages itself. One language restricts the
+      // run; several run the CLI once per language.
+      const languages: NightVisionLanguage[] = Array.isArray(options.lang)
+        ? options.lang
+        : options.lang
+          ? [options.lang]
+          : [];
       if (languages.length === 0) {
-        throw new Error("At least one language must be specified for API discovery");
+        console.error('No language restriction: the CLI detects project roots and languages');
+      } else {
+        console.error(`Languages requested: ${languages.join(', ')}`);
       }
 
       // Build the CLI command arguments based on the NightVision CLI
@@ -225,9 +223,10 @@ export class ApiDiscoveryService {
 
         return combinedResult + outputInfo;
       } else {
-        // Single language processing (original implementation)
-        // Add mandatory language option
-        args.push('--lang', languages[0]);
+        // One run, restricted to a language only when one was requested
+        if (languages.length === 1) {
+          args.push('--lang', languages[0]);
+        }
 
         // Add the target to upload to, or run without one
         args.push(...targetArgs);
@@ -277,9 +276,19 @@ export class ApiDiscoveryService {
           // Enrich error message with more context about the command
           const errorMessage = cliError.message;
 
-          if (errorMessage.includes("0 paths discovered")) {
-            // Provide lightweight error message
-            throw new Error(`No API endpoints found in [${sourcePaths.join(', ')}] using ${languages[0]}. Try more specific directories.`);
+          // A run that found no route is an answer, not a usage error: carry
+          // the CLI's own account of why (the roots it scanned, the unresolved
+          // imports that look like a web framework) and point at the
+          // diagnostics file it wrote, rather than advising narrower paths.
+          const cliLog: string = typeof cliError.stderr === 'string' ? cliError.stderr : errorMessage;
+          if (cliLog.includes("0 paths discovered") || errorMessage.includes("0 paths discovered")) {
+            const scope = languages.length === 1 ? ` (restricted to ${languages[0]})` : '';
+            const account = zeroRouteSummary(cliLog);
+            throw new Error([
+              `Source Intelligence found no API endpoints in [${sourcePaths.join(', ')}]${scope}.`,
+              account,
+              `The run's diagnostics were written to ${diagnosticsPathFor(outputFile)}; summarize them with: nightvision openapi diagnose ${outputFile}`
+            ].filter(Boolean).join('\n'));
           }
 
           // Check for file system errors and handle them explicitly
