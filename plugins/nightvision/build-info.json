@@ -1,8 +1,8 @@
 {
   "source": "src/index.ts in this repository",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "entrypoint": "src/index.ts",
   "builder": "esbuild@0.28.1",
   "bundle": "build/core/server.mjs",
-  "sha256": "0775c82193c21bd76891042b063b88169add50acfa9f53b94424d0dd2b3f13ee"
+  "sha256": "adaeb0407a56967308ba5f7d2bd2afaf1f490f3f3eb39f02b7a5dd273626b8f7"
 }

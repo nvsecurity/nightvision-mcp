@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { LANGUAGE_INPUTS } from '../utils/extract-languages.js';
 
 /**
  * Common MCP tool response structure
@@ -286,9 +287,9 @@ export interface FormattedTargetList {
 export const ApiDiscoveryParamsSchema = {
   source_paths: z.array(z.string()).describe("Absolute paths to code directories to analyze (must be absolute paths, not relative). The provided paths should be used exactly as specified by the user."),
   langs: z.union([
-    z.enum(["csharp", "go", "java", "js", "php", "python", "ruby"]),
-    z.array(z.enum(["csharp", "go", "java", "js", "php", "python", "ruby"]))
-  ]).optional().describe("Language(s) of the target code. Can be a single language or an array of languages for multi-language projects. If not provided, the AI client should analyze the source code to identify the language(s)."),
+    z.enum(LANGUAGE_INPUTS),
+    z.array(z.enum(LANGUAGE_INPUTS))
+  ]).optional().describe("Optional. Restrict the analysis to one or more languages: csharp (alias dotnet), go, java, js (aliases javascript, typescript, ts), php, python, ruby. Omit it to let the CLI detect project roots and languages itself, which is the normal case; pass several languages only to write one spec per language."),
   target: z.string().optional().describe("Target name to upload the swagger file to"),
   target_id: z.string().uuid().optional().describe("Target UUID to upload the swagger file to"),
   project: z.string().optional().describe("Project name for the openapi extract"),
