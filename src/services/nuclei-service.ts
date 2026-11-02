@@ -1,6 +1,7 @@
 import FormData from 'form-data';
 import { serializeRepeatedParams } from '../utils/query-params.js';
 import { assertValidNucleiTemplatePath } from '../utils/nuclei-template.js';
+import type { NucleiTemplateRef } from '../utils/check-catalog.js';
 import { ApiClient } from './api-client.js';
 import type { OutputFormat } from './api-client.js';
 
@@ -302,6 +303,38 @@ Created: ${response.created || 'N/A'}`;
       console.error(`Error listing nuclei templates: ${error.message}`);
       throw new Error(`Failed to list nuclei templates: ${error.message}`);
     }
+  }
+
+  /**
+   * Every custom nuclei template assigned to a target, across all pages of
+   * the listing (the same `target` filter list-nuclei-templates uses).
+   * @param targetId UUID of the target
+   * @returns The assigned templates' ids, names and statuses
+   * @throws When the page cap is reached with pages left, because a partial
+   * list would let an unlisted template run while the scan reports otherwise
+   */
+  async listTargetNucleiTemplates(targetId: string): Promise<NucleiTemplateRef[]> {
+    const templates: NucleiTemplateRef[] = [];
+    // A hard page cap keeps a misbehaving `next` link from looping forever.
+    const maxPages = 50;
+    for (let page = 1; page <= maxPages; page++) {
+      const response = await this.client.apiRequest<any>(
+        'nuclei-templates/',
+        'GET',
+        { target: targetId, page, page_size: 100 },
+        null,
+        false,
+        serializeRepeatedParams
+      );
+      const results: any[] = Array.isArray(response?.results) ? response.results : [];
+      for (const template of results) {
+        if (template?.id) {
+          templates.push({ id: String(template.id), name: String(template.name ?? ''), status: template.status });
+        }
+      }
+      if (!response?.next || results.length === 0) return templates;
+    }
+    throw new Error(`Target ${targetId} has more than ${maxPages} pages of custom Nuclei templates, so the full list could not be read.`);
   }
 
   /**

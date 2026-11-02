@@ -80,7 +80,11 @@ export const StartScanParamsSchema = {
   run_only_zap_checks: z.array(z.string()).optional()
     .describe("Run ONLY these ZAP vulnerability checks by name (e.g. ['SQL Injection']). Use list-check-categories to see available names. All other ZAP checks are disabled."),
   run_only_nuclei_folders: z.array(z.string()).optional()
-    .describe("Run ONLY these Nuclei template folders by name. Use list-check-categories to see available folders. All other Nuclei folders are disabled.")
+    .describe("Run ONLY these Nuclei template folders by name. Use list-check-categories to see available folders. All other Nuclei folders are disabled."),
+  no_zap: z.boolean().optional()
+    .describe("Turn off the ZAP engine so only Nuclei runs. Cannot be combined with run_only_zap_checks."),
+  run_only_nuclei_templates: z.array(z.string()).optional()
+    .describe("Run ONLY these custom Nuclei templates, by name or id. They must be assigned to the target (see list-nuclei-templates with the target filter). Every other assigned custom template is skipped. Unless run_only_nuclei_folders is also given, all built-in Nuclei folders are turned off too. Needs a NightVision CLI that supports --disable-nuclei-templates. To run a single custom template: no_zap: true, run_only_nuclei_templates: [\"<template name>\"].")
   // Note: start-scan always returns structured JSON, so no output-format param.
 };
 

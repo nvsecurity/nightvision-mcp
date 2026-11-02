@@ -88,6 +88,104 @@ export function getNucleiExclusionFolders(
 }
 
 /**
+ * A custom Nuclei template assigned to a target, as the nuclei-templates
+ * listing returns it (only the fields the selection needs).
+ */
+export interface NucleiTemplateRef {
+  id: string;
+  name: string;
+  /** `VALID` when a file exists, `NO_FILE` otherwise. Older APIs omit it. */
+  status?: string;
+}
+
+/** How one requested value matched a template. */
+export interface NucleiTemplateMatch {
+  requested: string;
+  template: NucleiTemplateRef;
+  by: 'id' | 'name' | 'partial-name';
+}
+
+export type NucleiTemplateSelection =
+  | {
+      ok: true;
+      run: NucleiTemplateRef[];
+      skip: NucleiTemplateRef[];
+      matches: NucleiTemplateMatch[];
+    }
+  | {
+      ok: false;
+      unmatched: string[];
+      ambiguous: Array<{ requested: string; candidates: NucleiTemplateRef[] }>;
+    };
+
+/**
+ * Given custom template names or ids to include, split the target's assigned
+ * templates into the ones to run and the ones to skip (NV-6605).
+ *
+ * Each value matches by exact id first, then by case-insensitive exact name,
+ * then by case-insensitive partial name, where the value must be part of the
+ * template name and never the reverse. A value that matches several templates
+ * at the same step is ambiguous and is never resolved silently. The selection
+ * fails when any value is ambiguous or matches nothing, so a typo cannot make
+ * the scan quietly skip a template the user asked for.
+ */
+export function selectNucleiTemplates(
+  assigned: NucleiTemplateRef[],
+  requested: string[]
+): NucleiTemplateSelection {
+  const unmatched: string[] = [];
+  const ambiguous: Array<{ requested: string; candidates: NucleiTemplateRef[] }> = [];
+  const matches: NucleiTemplateMatch[] = [];
+
+  for (const raw of requested) {
+    const value = raw.trim();
+    if (!value) {
+      unmatched.push(raw);
+      continue;
+    }
+    const lower = value.toLowerCase();
+
+    const byId = assigned.filter((t) => t.id.toLowerCase() === lower);
+    if (byId.length > 0) {
+      matches.push({ requested: raw, template: byId[0], by: 'id' });
+      continue;
+    }
+
+    const steps: Array<[NucleiTemplateMatch['by'], NucleiTemplateRef[]]> = [
+      ['name', assigned.filter((t) => t.name.toLowerCase() === lower)],
+      ['partial-name', assigned.filter((t) => t.name.toLowerCase().includes(lower))],
+    ];
+    const step = steps.find(([, found]) => found.length > 0);
+    if (!step) {
+      unmatched.push(raw);
+    } else if (step[1].length > 1) {
+      ambiguous.push({ requested: raw, candidates: step[1] });
+    } else {
+      matches.push({ requested: raw, template: step[1][0], by: step[0] });
+    }
+  }
+
+  if (unmatched.length > 0 || ambiguous.length > 0) {
+    return { ok: false, unmatched, ambiguous };
+  }
+
+  const runIds = new Set(matches.map((m) => m.template.id));
+  return {
+    ok: true,
+    run: assigned.filter((t) => runIds.has(t.id)),
+    skip: assigned.filter((t) => !runIds.has(t.id)),
+    matches,
+  };
+}
+
+/**
+ * Format a list of templates as "name (id)" lines for error messages.
+ */
+export function formatNucleiTemplateList(templates: NucleiTemplateRef[]): string {
+  return templates.map((t) => `  - ${t.name} (${t.id})`).join('\n');
+}
+
+/**
  * Format all available checks for display.
  */
 export function formatCheckList(checks: ConfiguredChecks): string {

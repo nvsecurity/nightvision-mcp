@@ -48901,6 +48901,13 @@ function extractScanId(output) {
   return idFromObject(parsed) || idFromCliStreams(parsed);
 }
 
+// src/utils/cli-capabilities.ts
+var DISABLE_NUCLEI_TEMPLATES_FLAG = "--disable-nuclei-templates";
+function helpListsFlag(helpText, flag) {
+  const escaped = flag.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return new RegExp(`^\\s+(?:-\\w,\\s+)?${escaped}(?![\\w-])`, "m").test(helpText);
+}
+
 // src/utils/scan-check-format.ts
 var NA = "N/A";
 var cell = (v) => v === void 0 || v === null || v === "" ? NA : String(v);
@@ -49059,6 +49066,10 @@ function buildScanArgs(targetName, options) {
   if (options.disable_nuclei_folders && options.disable_nuclei_folders.length > 0) {
     args.push("--disable-nuclei-folders", options.disable_nuclei_folders.join(","));
   }
+  if (options.no_zap) args.push("--no-zap");
+  if (options.disable_nuclei_templates && options.disable_nuclei_templates.length > 0) {
+    args.push(DISABLE_NUCLEI_TEMPLATES_FLAG, options.disable_nuclei_templates.join(","));
+  }
   return args;
 }
 var ScanService = class {
@@ -49069,6 +49080,7 @@ var ScanService = class {
   client;
   resolver;
   cachedChecks = null;
+  disableNucleiTemplatesSupported = false;
   managedScanProcesses = /* @__PURE__ */ new Map();
   /**
    * Start a scan against a target
@@ -49573,13 +49585,33 @@ var ScanService = class {
   }
   /**
    * Fetch the configured check catalog from the API.
-   * Cached for the lifetime of the server process.
+   * Cached for the lifetime of the server process. Pass `fresh` to skip the
+   * cache and refresh it: a stale list can miss a Nuclei folder added since
+   * the server started, and an exclusion list built from it would let that
+   * folder run.
    */
-  async getConfiguredChecks() {
-    if (this.cachedChecks) return this.cachedChecks;
+  async getConfiguredChecks(options = {}) {
+    if (this.cachedChecks && !options.fresh) return this.cachedChecks;
     const response = await this.client.apiRequest("common/configured-checks/", "GET");
     this.cachedChecks = response;
     return response;
+  }
+  /**
+   * Whether the installed CLI's `scan` command has --disable-nuclei-templates
+   * (NV-6604), read from its help. Only a positive answer is cached, so an
+   * upgrade of the CLI is picked up without restarting the server. A help call
+   * that fails counts as not supported.
+   */
+  async supportsDisableNucleiTemplates() {
+    if (this.disableNucleiTemplatesSupported) return true;
+    try {
+      const help = await this.client.executeCommand(["scan", "--help"], "text", true);
+      this.disableNucleiTemplatesSupported = helpListsFlag(help, DISABLE_NUCLEI_TEMPLATES_FLAG);
+    } catch (error51) {
+      console.error(`Could not read 'nightvision scan --help': ${error51.message}`);
+      return false;
+    }
+    return this.disableNucleiTemplatesSupported;
   }
 };
 
@@ -49800,6 +49832,36 @@ Total Templates: ${response.count || 0}`;
       console.error(`Error listing nuclei templates: ${error51.message}`);
       throw new Error(`Failed to list nuclei templates: ${error51.message}`);
     }
+  }
+  /**
+   * Every custom nuclei template assigned to a target, across all pages of
+   * the listing (the same `target` filter list-nuclei-templates uses).
+   * @param targetId UUID of the target
+   * @returns The assigned templates' ids, names and statuses
+   * @throws When the page cap is reached with pages left, because a partial
+   * list would let an unlisted template run while the scan reports otherwise
+   */
+  async listTargetNucleiTemplates(targetId) {
+    const templates = [];
+    const maxPages = 50;
+    for (let page = 1; page <= maxPages; page++) {
+      const response = await this.client.apiRequest(
+        "nuclei-templates/",
+        "GET",
+        { target: targetId, page, page_size: 100 },
+        null,
+        false,
+        serializeRepeatedParams
+      );
+      const results = Array.isArray(response?.results) ? response.results : [];
+      for (const template of results) {
+        if (template?.id) {
+          templates.push({ id: String(template.id), name: String(template.name ?? ""), status: template.status });
+        }
+      }
+      if (!response?.next || results.length === 0) return templates;
+    }
+    throw new Error(`Target ${targetId} has more than ${maxPages} pages of custom Nuclei templates, so the full list could not be read.`);
   }
   /**
    * Assign a nuclei template to a target
@@ -50793,6 +50855,9 @@ var NightVisionService = class {
   getConfiguredChecks(...a) {
     return this.scans.getConfiguredChecks(...a);
   }
+  supportsDisableNucleiTemplates(...a) {
+    return this.scans.supportsDisableNucleiTemplates(...a);
+  }
   // --- Nuclei ---
   uploadNucleiTemplate(...a) {
     return this.nuclei.uploadNucleiTemplate(...a);
@@ -50805,6 +50870,9 @@ var NightVisionService = class {
   }
   assignNucleiTemplate(...a) {
     return this.nuclei.assignNucleiTemplate(...a);
+  }
+  listTargetNucleiTemplates(...a) {
+    return this.nuclei.listTargetNucleiTemplates(...a);
   }
   // --- Traffic ---
   recordTraffic(...a) {
@@ -50926,7 +50994,9 @@ var StartScanParamsSchema = {
   project_id: external_exports.string().uuid().optional().describe("Project UUID of the target to scan"),
   force_private_scan: external_exports.boolean().optional().default(false).describe("Force the CLI Smart Proxy/private scan path only when automatic private-scan detection needs an override"),
   run_only_zap_checks: external_exports.array(external_exports.string()).optional().describe("Run ONLY these ZAP vulnerability checks by name (e.g. ['SQL Injection']). Use list-check-categories to see available names. All other ZAP checks are disabled."),
-  run_only_nuclei_folders: external_exports.array(external_exports.string()).optional().describe("Run ONLY these Nuclei template folders by name. Use list-check-categories to see available folders. All other Nuclei folders are disabled.")
+  run_only_nuclei_folders: external_exports.array(external_exports.string()).optional().describe("Run ONLY these Nuclei template folders by name. Use list-check-categories to see available folders. All other Nuclei folders are disabled."),
+  no_zap: external_exports.boolean().optional().describe("Turn off the ZAP engine so only Nuclei runs. Cannot be combined with run_only_zap_checks."),
+  run_only_nuclei_templates: external_exports.array(external_exports.string()).optional().describe('Run ONLY these custom Nuclei templates, by name or id. They must be assigned to the target (see list-nuclei-templates with the target filter). Every other assigned custom template is skipped. Unless run_only_nuclei_folders is also given, all built-in Nuclei folders are turned off too. Needs a NightVision CLI that supports --disable-nuclei-templates. To run a single custom template: no_zap: true, run_only_nuclei_templates: ["<template name>"].')
   // Note: start-scan always returns structured JSON, so no output-format param.
 };
 var ListCheckCategoriesParamsSchema = {};
@@ -52550,6 +52620,49 @@ function getNucleiExclusionFolders(checks, includeNames) {
   const excludeFolders = allFolders.filter((f) => !includeSet.has(f));
   return { excludeFolders, matchedFolders: matched };
 }
+function selectNucleiTemplates(assigned, requested) {
+  const unmatched = [];
+  const ambiguous = [];
+  const matches = [];
+  for (const raw of requested) {
+    const value = raw.trim();
+    if (!value) {
+      unmatched.push(raw);
+      continue;
+    }
+    const lower = value.toLowerCase();
+    const byId = assigned.filter((t) => t.id.toLowerCase() === lower);
+    if (byId.length > 0) {
+      matches.push({ requested: raw, template: byId[0], by: "id" });
+      continue;
+    }
+    const steps = [
+      ["name", assigned.filter((t) => t.name.toLowerCase() === lower)],
+      ["partial-name", assigned.filter((t) => t.name.toLowerCase().includes(lower))]
+    ];
+    const step = steps.find(([, found]) => found.length > 0);
+    if (!step) {
+      unmatched.push(raw);
+    } else if (step[1].length > 1) {
+      ambiguous.push({ requested: raw, candidates: step[1] });
+    } else {
+      matches.push({ requested: raw, template: step[1][0], by: step[0] });
+    }
+  }
+  if (unmatched.length > 0 || ambiguous.length > 0) {
+    return { ok: false, unmatched, ambiguous };
+  }
+  const runIds = new Set(matches.map((m) => m.template.id));
+  return {
+    ok: true,
+    run: assigned.filter((t) => runIds.has(t.id)),
+    skip: assigned.filter((t) => !runIds.has(t.id)),
+    matches
+  };
+}
+function formatNucleiTemplateList(templates) {
+  return templates.map((t) => `  - ${t.name} (${t.id})`).join("\n");
+}
 function formatCheckList(checks) {
   const lines = [];
   if (checks.zap.standard?.length) {
@@ -52682,10 +52795,24 @@ function registerScanTools(server) {
           project_id,
           force_private_scan = false,
           run_only_zap_checks,
-          run_only_nuclei_folders
+          run_only_nuclei_folders,
+          no_zap,
+          run_only_nuclei_templates
         } = args;
         const authGuard = await requireAuthenticatedUser();
         if (!authGuard.ok) return authGuard.response;
+        const wantsZapChecks = !!run_only_zap_checks && run_only_zap_checks.length > 0;
+        const wantsNucleiFolders = !!run_only_nuclei_folders && run_only_nuclei_folders.length > 0;
+        const wantsNucleiTemplates = !!run_only_nuclei_templates && run_only_nuclei_templates.length > 0;
+        if (no_zap && wantsZapChecks) {
+          return {
+            content: [{
+              type: "text",
+              text: "no_zap turns ZAP off, and run_only_zap_checks asks ZAP to run some checks. Use one of them, not both."
+            }],
+            isError: true
+          };
+        }
         if (!project && !project_id) {
           return {
             content: [{
@@ -52703,9 +52830,78 @@ function registerScanTools(server) {
         if (!projectAccess.ok) return projectAccess.response;
         let disableZapActiveAlerts;
         let disableNucleiFolders;
-        if (run_only_zap_checks && run_only_zap_checks.length > 0 || run_only_nuclei_folders && run_only_nuclei_folders.length > 0) {
+        let disableNucleiTemplates;
+        let templateSelection;
+        const selectionWarnings = [];
+        if (wantsNucleiTemplates) {
           try {
-            const checks = await nightvision_default.getConfiguredChecks();
+            const targetId = await nightvision_default.resolveTargetId(targetName, project, project_id);
+            const assigned = await nightvision_default.listTargetNucleiTemplates(targetId);
+            if (assigned.length === 0) {
+              return {
+                content: [{
+                  type: "text",
+                  text: `Target '${targetName}' has no custom Nuclei templates assigned, so run_only_nuclei_templates cannot match anything. Assign one with assign-nuclei-template first.`
+                }],
+                isError: true
+              };
+            }
+            const selection = selectNucleiTemplates(assigned, run_only_nuclei_templates);
+            if (!selection.ok) {
+              const parts = [];
+              if (selection.unmatched.length > 0) {
+                parts.push(`No custom Nuclei template assigned to target '${targetName}' matches: ${selection.unmatched.join(", ")}.`);
+              }
+              for (const { requested, candidates } of selection.ambiguous) {
+                parts.push(`'${requested}' matches several templates; use the exact name or id:
+${formatNucleiTemplateList(candidates)}`);
+              }
+              parts.push(`Templates assigned to target '${targetName}':
+${formatNucleiTemplateList(assigned)}`);
+              return {
+                content: [{ type: "text", text: parts.join("\n\n") }],
+                isError: true
+              };
+            }
+            const noFile = selection.run.filter((t) => t.status && t.status !== "VALID");
+            if (noFile.length > 0) {
+              return {
+                content: [{
+                  type: "text",
+                  text: `These custom Nuclei templates cannot run because their file was never uploaded:
+${formatNucleiTemplateList(noFile)}
+
+Upload the file with upload-nuclei-template or pick another template. No scan was started.`
+                }],
+                isError: true
+              };
+            }
+            for (const match of selection.matches) {
+              if (match.by === "partial-name") {
+                selectionWarnings.push(`'${match.requested}' matched custom Nuclei template '${match.template.name}' by partial name.`);
+              }
+            }
+            templateSelection = { run: selection.run, skip: selection.skip };
+            disableNucleiTemplates = selection.skip.map((t) => t.id);
+          } catch (error51) {
+            return {
+              content: [{ type: "text", text: `Failed to resolve custom Nuclei template selection: ${error51.message} No scan was started.` }],
+              isError: true
+            };
+          }
+          if (disableNucleiTemplates.length > 0 && !await nightvision_default.supportsDisableNucleiTemplates()) {
+            return {
+              content: [{
+                type: "text",
+                text: `The installed NightVision CLI does not support ${DISABLE_NUCLEI_TEMPLATES_FLAG}, which run_only_nuclei_templates needs to skip the other custom templates. Upgrade the NightVision CLI to the latest release and try again. No scan was started.`
+              }],
+              isError: true
+            };
+          }
+        }
+        if (wantsZapChecks || wantsNucleiFolders || wantsNucleiTemplates) {
+          try {
+            const checks = await nightvision_default.getConfiguredChecks({ fresh: wantsNucleiTemplates });
             if (run_only_zap_checks && run_only_zap_checks.length > 0) {
               const { excludeIds, matchedAlerts } = getExclusionIds(checks, run_only_zap_checks);
               if (matchedAlerts.length === 0) {
@@ -52737,6 +52933,18 @@ ${formatCheckList(checks)}`
                 };
               }
               disableNucleiFolders = excludeFolders;
+            } else if (wantsNucleiTemplates) {
+              const allFolders = checks.nuclei || [];
+              if (allFolders.length === 0) {
+                return {
+                  content: [{
+                    type: "text",
+                    text: "The configured-checks list has no built-in Nuclei folders, so they cannot be turned off for run_only_nuclei_templates. No scan was started."
+                  }],
+                  isError: true
+                };
+              }
+              disableNucleiFolders = [...allFolders];
             }
           } catch (error51) {
             return {
@@ -52757,11 +52965,21 @@ ${formatCheckList(checks)}`
               project_id,
               force_private_scan,
               disable_zap_active_alerts: disableZapActiveAlerts,
-              disable_nuclei_folders: disableNucleiFolders
+              disable_nuclei_folders: disableNucleiFolders,
+              no_zap,
+              disable_nuclei_templates: disableNucleiTemplates
             },
             "json"
           );
           const scanId = extractScanId(result);
+          const engineSelection = {
+            ...no_zap ? { no_zap: true } : {},
+            ...templateSelection ? {
+              nuclei_templates_run: templateSelection.run.map((t) => t.name),
+              nuclei_templates_skipped: templateSelection.skip.map((t) => t.name)
+            } : {},
+            ...wantsNucleiTemplates && !wantsNucleiFolders ? { builtin_nuclei_folders_disabled: true } : {}
+          };
           if (!scanId) {
             let parsedResult = null;
             try {
@@ -52780,9 +52998,10 @@ ${formatCheckList(checks)}`
                   project: project || null,
                   project_id: project_id || null,
                   cli_process: parsedResult.cli_process || null,
+                  ...engineSelection,
                   message: "NightVision scan is starting and the CLI relay is running. Poll list-scans or list-managed-scan-processes to obtain the scan ID."
                 },
-                warnings: ["Scan ID not yet reported. The managed CLI relay is still running; do not stop the MCP server for local/private scans until the scan reaches a terminal status."]
+                warnings: ["Scan ID not yet reported. The managed CLI relay is still running; do not stop the MCP server for local/private scans until the scan reaches a terminal status.", ...selectionWarnings]
               });
             }
             return jsonText({
@@ -52813,8 +53032,10 @@ ${formatCheckList(checks)}`
               auth_id: auth_id || null,
               no_auth: !!no_auth,
               force_private_scan: !!force_private_scan,
+              ...engineSelection,
               raw
-            }
+            },
+            ...selectionWarnings.length > 0 ? { warnings: selectionWarnings } : {}
           });
         } catch (error51) {
           console.error(`Error starting scan: ${error51.message}`);

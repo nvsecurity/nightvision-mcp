@@ -459,6 +459,10 @@ Parameters:
 - `force_private_scan` (boolean, optional, default: false): Force the CLI Smart Proxy/private scan path; only needed when automatic private-scan detection needs an override
 - `run_only_zap_checks` (string[], optional): Run ONLY these ZAP vulnerability checks by name (e.g. `["SQL Injection"]`); all other ZAP checks are disabled. Use `list-check-categories` to see the available names.
 - `run_only_nuclei_folders` (string[], optional): Run ONLY these Nuclei template folders by name; all other Nuclei folders are disabled. Use `list-check-categories` to see the available folders.
+- `no_zap` (boolean, optional): Turn off the ZAP engine so only Nuclei runs. Cannot be combined with `run_only_zap_checks`.
+- `run_only_nuclei_templates` (string[], optional): Run ONLY these custom Nuclei templates, by name or id. They must be assigned to the target (`list-nuclei-templates` with the target filter shows them). Every other assigned custom template is skipped. Unless `run_only_nuclei_folders` is also given, all built-in Nuclei folders are turned off too. A name that matches nothing or several templates is an error that lists the target's templates. The result lists the templates that run and the ones skipped. Needs a NightVision CLI that supports `--disable-nuclei-templates`; with an older CLI the tool asks you to upgrade and starts no scan.
+
+To run a single custom template, pass `no_zap: true, run_only_nuclei_templates: ["<template name>"]`.
 
 Example commands:
 ```
@@ -469,6 +473,9 @@ Can you run a NightVision scan against the "petstore-api" target using the "api-
 ```
 ```
 Run a scan on "my-test-app" that only checks for SQL Injection and Cross Site Scripting.
+```
+```
+Scan "my-test-app" with only my custom Nuclei template "Admin Panel Check", without ZAP.
 ```
 
 #### `list-scans`
