@@ -224,6 +224,10 @@ export class NightVisionService {
     return this.scans.getConfiguredChecks(...a);
   }
 
+  supportsDisableNucleiTemplates(...a: Parameters<ScanService['supportsDisableNucleiTemplates']>) {
+    return this.scans.supportsDisableNucleiTemplates(...a);
+  }
+
   // --- Nuclei ---
 
   uploadNucleiTemplate(...a: Parameters<NucleiService['uploadNucleiTemplate']>) {
@@ -240,6 +244,10 @@ export class NightVisionService {
 
   assignNucleiTemplate(...a: Parameters<NucleiService['assignNucleiTemplate']>) {
     return this.nuclei.assignNucleiTemplate(...a);
+  }
+
+  listTargetNucleiTemplates(...a: Parameters<NucleiService['listTargetNucleiTemplates']>) {
+    return this.nuclei.listTargetNucleiTemplates(...a);
   }
 
   // --- Traffic ---

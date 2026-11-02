@@ -11,7 +11,15 @@ import {
   GetScanPathsParamsSchema,
   ListCheckCategoriesParamsSchema
 } from '../types/index.js';
-import { getExclusionIds, getNucleiExclusionFolders, formatCheckList } from '../utils/check-catalog.js';
+import {
+  getExclusionIds,
+  getNucleiExclusionFolders,
+  formatCheckList,
+  formatNucleiTemplateList,
+  selectNucleiTemplates,
+  type NucleiTemplateRef
+} from '../utils/check-catalog.js';
+import { DISABLE_NUCLEI_TEMPLATES_FLAG } from '../utils/cli-capabilities.js';
 import { requireAuthenticatedUser, requireProjectAccess } from '../utils/auth-guard.js';
 import { extractScanId } from '../utils/scan-id.js';
 import { summarizeScanChecks } from '../utils/scan-findings-summary.js';
@@ -51,11 +59,27 @@ export function registerScanTools(server: McpServer): void {
           project_id,
           force_private_scan = false,
           run_only_zap_checks,
-          run_only_nuclei_folders
+          run_only_nuclei_folders,
+          no_zap,
+          run_only_nuclei_templates
         } = args;
         
         const authGuard = await requireAuthenticatedUser();
         if (!authGuard.ok) return authGuard.response;
+
+        const wantsZapChecks = !!run_only_zap_checks && run_only_zap_checks.length > 0;
+        const wantsNucleiFolders = !!run_only_nuclei_folders && run_only_nuclei_folders.length > 0;
+        const wantsNucleiTemplates = !!run_only_nuclei_templates && run_only_nuclei_templates.length > 0;
+
+        if (no_zap && wantsZapChecks) {
+          return {
+            content: [{
+              type: "text" as const,
+              text: "no_zap turns ZAP off, and run_only_zap_checks asks ZAP to run some checks. Use one of them, not both."
+            }],
+            isError: true
+          };
+        }
         
         // Check if project is provided (required)
         if (!project && !project_id) {
@@ -80,10 +104,89 @@ export function registerScanTools(server: McpServer): void {
         // than silently in the background scan.
         let disableZapActiveAlerts: string[] | undefined;
         let disableNucleiFolders: string[] | undefined;
-        if ((run_only_zap_checks && run_only_zap_checks.length > 0) ||
-            (run_only_nuclei_folders && run_only_nuclei_folders.length > 0)) {
+        let disableNucleiTemplates: string[] | undefined;
+        let templateSelection: { run: NucleiTemplateRef[]; skip: NucleiTemplateRef[] } | undefined;
+        const selectionWarnings: string[] = [];
+
+        // Custom templates: split the target's assigned templates into the
+        // requested ones and the rest, which are skipped (NV-6605).
+        if (wantsNucleiTemplates) {
           try {
-            const checks = await nightvisionService.getConfiguredChecks();
+            const targetId = await nightvisionService.resolveTargetId(targetName, project, project_id);
+            const assigned = await nightvisionService.listTargetNucleiTemplates(targetId);
+            if (assigned.length === 0) {
+              return {
+                content: [{
+                  type: "text" as const,
+                  text: `Target '${targetName}' has no custom Nuclei templates assigned, so run_only_nuclei_templates cannot match anything. Assign one with assign-nuclei-template first.`
+                }],
+                isError: true
+              };
+            }
+
+            const selection = selectNucleiTemplates(assigned, run_only_nuclei_templates!);
+            if (!selection.ok) {
+              const parts: string[] = [];
+              if (selection.unmatched.length > 0) {
+                parts.push(`No custom Nuclei template assigned to target '${targetName}' matches: ${selection.unmatched.join(', ')}.`);
+              }
+              for (const { requested, candidates } of selection.ambiguous) {
+                parts.push(`'${requested}' matches several templates; use the exact name or id:\n${formatNucleiTemplateList(candidates)}`);
+              }
+              parts.push(`Templates assigned to target '${targetName}':\n${formatNucleiTemplateList(assigned)}`);
+              return {
+                content: [{ type: "text" as const, text: parts.join('\n\n') }],
+                isError: true
+              };
+            }
+
+            // The backend sends only templates with a file. A missing status
+            // comes from an older API and counts as VALID.
+            const noFile = selection.run.filter((t) => t.status && t.status !== 'VALID');
+            if (noFile.length > 0) {
+              return {
+                content: [{
+                  type: "text" as const,
+                  text: `These custom Nuclei templates cannot run because their file was never uploaded:\n${formatNucleiTemplateList(noFile)}\n\nUpload the file with upload-nuclei-template or pick another template. No scan was started.`
+                }],
+                isError: true
+              };
+            }
+
+            for (const match of selection.matches) {
+              if (match.by === 'partial-name') {
+                selectionWarnings.push(`'${match.requested}' matched custom Nuclei template '${match.template.name}' by partial name.`);
+              }
+            }
+            templateSelection = { run: selection.run, skip: selection.skip };
+            disableNucleiTemplates = selection.skip.map((t) => t.id);
+          } catch (error: any) {
+            return {
+              content: [{ type: "text" as const, text: `Failed to resolve custom Nuclei template selection: ${error.message} No scan was started.` }],
+              isError: true
+            };
+          }
+
+          // Skipping templates needs the NV-6604 CLI flag. Check before the
+          // scan starts so an old CLI fails here, not in the background scan.
+          if (disableNucleiTemplates.length > 0 &&
+              !(await nightvisionService.supportsDisableNucleiTemplates())) {
+            return {
+              content: [{
+                type: "text" as const,
+                text: `The installed NightVision CLI does not support ${DISABLE_NUCLEI_TEMPLATES_FLAG}, which run_only_nuclei_templates needs to skip the other custom templates. Upgrade the NightVision CLI to the latest release and try again. No scan was started.`
+              }],
+              isError: true
+            };
+          }
+        }
+
+        if (wantsZapChecks || wantsNucleiFolders || wantsNucleiTemplates) {
+          try {
+            // Read the catalog fresh when every built-in folder must be turned
+            // off: a cached list can miss a folder added since the server
+            // started, and that folder would then run.
+            const checks = await nightvisionService.getConfiguredChecks({ fresh: wantsNucleiTemplates });
 
             if (run_only_zap_checks && run_only_zap_checks.length > 0) {
               const { excludeIds, matchedAlerts } = getExclusionIds(checks, run_only_zap_checks);
@@ -111,6 +214,20 @@ export function registerScanTools(server: McpServer): void {
                 };
               }
               disableNucleiFolders = excludeFolders;
+            } else if (wantsNucleiTemplates) {
+              // Custom templates only: turn off every built-in Nuclei folder,
+              // NightVision's own templates included.
+              const allFolders = checks.nuclei || [];
+              if (allFolders.length === 0) {
+                return {
+                  content: [{
+                    type: "text" as const,
+                    text: "The configured-checks list has no built-in Nuclei folders, so they cannot be turned off for run_only_nuclei_templates. No scan was started."
+                  }],
+                  isError: true
+                };
+              }
+              disableNucleiFolders = [...allFolders];
             }
           } catch (error: any) {
             return {
@@ -132,11 +249,22 @@ export function registerScanTools(server: McpServer): void {
               project_id,
               force_private_scan,
               disable_zap_active_alerts: disableZapActiveAlerts,
-              disable_nuclei_folders: disableNucleiFolders
+              disable_nuclei_folders: disableNucleiFolders,
+              no_zap,
+              disable_nuclei_templates: disableNucleiTemplates
             },
             'json'
           );
           const scanId = extractScanId(result);
+          // Tell the agent which custom templates run and which are skipped.
+          const engineSelection = {
+            ...(no_zap ? { no_zap: true } : {}),
+            ...(templateSelection ? {
+              nuclei_templates_run: templateSelection.run.map((t) => t.name),
+              nuclei_templates_skipped: templateSelection.skip.map((t) => t.name)
+            } : {}),
+            ...(wantsNucleiTemplates && !wantsNucleiFolders ? { builtin_nuclei_folders_disabled: true } : {})
+          };
 
           if (!scanId) {
             let parsedResult: any = null;
@@ -162,9 +290,10 @@ export function registerScanTools(server: McpServer): void {
                   project: project || null,
                   project_id: project_id || null,
                   cli_process: parsedResult.cli_process || null,
+                  ...engineSelection,
                   message: 'NightVision scan is starting and the CLI relay is running. Poll list-scans or list-managed-scan-processes to obtain the scan ID.'
                 },
-                warnings: ['Scan ID not yet reported. The managed CLI relay is still running; do not stop the MCP server for local/private scans until the scan reaches a terminal status.']
+                warnings: ['Scan ID not yet reported. The managed CLI relay is still running; do not stop the MCP server for local/private scans until the scan reaches a terminal status.', ...selectionWarnings]
               });
             }
 
@@ -199,8 +328,10 @@ export function registerScanTools(server: McpServer): void {
               auth_id: auth_id || null,
               no_auth: !!no_auth,
               force_private_scan: !!force_private_scan,
+              ...engineSelection,
               raw
-            }
+            },
+            ...(selectionWarnings.length > 0 ? { warnings: selectionWarnings } : {})
           });
         } catch (error: any) {
           console.error(`Error starting scan: ${error.message}`);

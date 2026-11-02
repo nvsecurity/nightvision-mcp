@@ -39,9 +39,9 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
   mod
 ));
 
-// node_modules/ajv/dist/compile/codegen/code.js
+// ../../../repos/nightvision-mcp/node_modules/ajv/dist/compile/codegen/code.js
 var require_code = __commonJS({
-  "node_modules/ajv/dist/compile/codegen/code.js"(exports) {
+  "../../../repos/nightvision-mcp/node_modules/ajv/dist/compile/codegen/code.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.regexpCode = exports.getEsmExportName = exports.getProperty = exports.safeStringify = exports.stringify = exports.strConcat = exports.addCodeArg = exports.str = exports._ = exports.nil = exports._Code = exports.Name = exports.IDENTIFIER = exports._CodeOrName = void 0;
@@ -193,9 +193,9 @@ var require_code = __commonJS({
   }
 });
 
-// node_modules/ajv/dist/compile/codegen/scope.js
+// ../../../repos/nightvision-mcp/node_modules/ajv/dist/compile/codegen/scope.js
 var require_scope = __commonJS({
-  "node_modules/ajv/dist/compile/codegen/scope.js"(exports) {
+  "../../../repos/nightvision-mcp/node_modules/ajv/dist/compile/codegen/scope.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ValueScope = exports.ValueScopeName = exports.Scope = exports.varKinds = exports.UsedValueState = void 0;
@@ -338,9 +338,9 @@ var require_scope = __commonJS({
   }
 });
 
-// node_modules/ajv/dist/compile/codegen/index.js
+// ../../../repos/nightvision-mcp/node_modules/ajv/dist/compile/codegen/index.js
 var require_codegen = __commonJS({
-  "node_modules/ajv/dist/compile/codegen/index.js"(exports) {
+  "../../../repos/nightvision-mcp/node_modules/ajv/dist/compile/codegen/index.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.or = exports.and = exports.not = exports.CodeGen = exports.operators = exports.varKinds = exports.ValueScopeName = exports.ValueScope = exports.Scope = exports.Name = exports.regexpCode = exports.stringify = exports.getProperty = exports.nil = exports.strConcat = exports.str = exports._ = void 0;
@@ -1058,9 +1058,9 @@ var require_codegen = __commonJS({
   }
 });
 
-// node_modules/ajv/dist/compile/util.js
+// ../../../repos/nightvision-mcp/node_modules/ajv/dist/compile/util.js
 var require_util = __commonJS({
-  "node_modules/ajv/dist/compile/util.js"(exports) {
+  "../../../repos/nightvision-mcp/node_modules/ajv/dist/compile/util.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.checkStrictMode = exports.getErrorPath = exports.Type = exports.useFunc = exports.setEvaluated = exports.evaluatedPropsToName = exports.mergeEvaluated = exports.eachItem = exports.unescapeJsonPointer = exports.escapeJsonPointer = exports.escapeFragment = exports.unescapeFragment = exports.schemaRefOrVal = exports.schemaHasRulesButRef = exports.schemaHasRules = exports.checkUnknownRules = exports.alwaysValidSchema = exports.toHash = void 0;
@@ -1225,9 +1225,9 @@ var require_util = __commonJS({
   }
 });
 
-// node_modules/ajv/dist/compile/names.js
+// ../../../repos/nightvision-mcp/node_modules/ajv/dist/compile/names.js
 var require_names = __commonJS({
-  "node_modules/ajv/dist/compile/names.js"(exports) {
+  "../../../repos/nightvision-mcp/node_modules/ajv/dist/compile/names.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var codegen_1 = require_codegen();
@@ -1264,9 +1264,9 @@ var require_names = __commonJS({
   }
 });
 
-// node_modules/ajv/dist/compile/errors.js
+// ../../../repos/nightvision-mcp/node_modules/ajv/dist/compile/errors.js
 var require_errors = __commonJS({
-  "node_modules/ajv/dist/compile/errors.js"(exports) {
+  "../../../repos/nightvision-mcp/node_modules/ajv/dist/compile/errors.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.extendErrors = exports.resetErrorsCount = exports.reportExtraError = exports.reportError = exports.keyword$DataError = exports.keywordError = void 0;
@@ -1386,9 +1386,9 @@ var require_errors = __commonJS({
   }
 });
 
-// node_modules/ajv/dist/compile/validate/boolSchema.js
+// ../../../repos/nightvision-mcp/node_modules/ajv/dist/compile/validate/boolSchema.js
 var require_boolSchema = __commonJS({
-  "node_modules/ajv/dist/compile/validate/boolSchema.js"(exports) {
+  "../../../repos/nightvision-mcp/node_modules/ajv/dist/compile/validate/boolSchema.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.boolOrEmptySchema = exports.topBoolOrEmptySchema = void 0;
@@ -1437,9 +1437,9 @@ var require_boolSchema = __commonJS({
   }
 });
 
-// node_modules/ajv/dist/compile/rules.js
+// ../../../repos/nightvision-mcp/node_modules/ajv/dist/compile/rules.js
 var require_rules = __commonJS({
-  "node_modules/ajv/dist/compile/rules.js"(exports) {
+  "../../../repos/nightvision-mcp/node_modules/ajv/dist/compile/rules.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.getRules = exports.isJSONType = void 0;
@@ -1468,9 +1468,9 @@ var require_rules = __commonJS({
   }
 });
 
-// node_modules/ajv/dist/compile/validate/applicability.js
+// ../../../repos/nightvision-mcp/node_modules/ajv/dist/compile/validate/applicability.js
 var require_applicability = __commonJS({
-  "node_modules/ajv/dist/compile/validate/applicability.js"(exports) {
+  "../../../repos/nightvision-mcp/node_modules/ajv/dist/compile/validate/applicability.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.shouldUseRule = exports.shouldUseGroup = exports.schemaHasRulesForType = void 0;
@@ -1491,9 +1491,9 @@ var require_applicability = __commonJS({
   }
 });
 
-// node_modules/ajv/dist/compile/validate/dataType.js
+// ../../../repos/nightvision-mcp/node_modules/ajv/dist/compile/validate/dataType.js
 var require_dataType = __commonJS({
-  "node_modules/ajv/dist/compile/validate/dataType.js"(exports) {
+  "../../../repos/nightvision-mcp/node_modules/ajv/dist/compile/validate/dataType.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.reportTypeError = exports.checkDataTypes = exports.checkDataType = exports.coerceAndCheckDataType = exports.getJSONTypes = exports.getSchemaTypes = exports.DataType = void 0;
@@ -1675,9 +1675,9 @@ var require_dataType = __commonJS({
   }
 });
 
-// node_modules/ajv/dist/compile/validate/defaults.js
+// ../../../repos/nightvision-mcp/node_modules/ajv/dist/compile/validate/defaults.js
 var require_defaults = __commonJS({
-  "node_modules/ajv/dist/compile/validate/defaults.js"(exports) {
+  "../../../repos/nightvision-mcp/node_modules/ajv/dist/compile/validate/defaults.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.assignDefaults = void 0;
@@ -1712,9 +1712,9 @@ var require_defaults = __commonJS({
   }
 });
 
-// node_modules/ajv/dist/vocabularies/code.js
+// ../../../repos/nightvision-mcp/node_modules/ajv/dist/vocabularies/code.js
 var require_code2 = __commonJS({
-  "node_modules/ajv/dist/vocabularies/code.js"(exports) {
+  "../../../repos/nightvision-mcp/node_modules/ajv/dist/vocabularies/code.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.validateUnion = exports.validateArray = exports.usePattern = exports.callValidateCode = exports.schemaProperties = exports.allSchemaProperties = exports.noPropertyInData = exports.propertyInData = exports.isOwnProperty = exports.hasPropFunc = exports.reportMissingProp = exports.checkMissingProp = exports.checkReportMissingProp = void 0;
@@ -1845,9 +1845,9 @@ var require_code2 = __commonJS({
   }
 });
 
-// node_modules/ajv/dist/compile/validate/keyword.js
+// ../../../repos/nightvision-mcp/node_modules/ajv/dist/compile/validate/keyword.js
 var require_keyword = __commonJS({
-  "node_modules/ajv/dist/compile/validate/keyword.js"(exports) {
+  "../../../repos/nightvision-mcp/node_modules/ajv/dist/compile/validate/keyword.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.validateKeywordUsage = exports.validSchemaType = exports.funcKeywordCode = exports.macroKeywordCode = void 0;
@@ -1963,9 +1963,9 @@ var require_keyword = __commonJS({
   }
 });
 
-// node_modules/ajv/dist/compile/validate/subschema.js
+// ../../../repos/nightvision-mcp/node_modules/ajv/dist/compile/validate/subschema.js
 var require_subschema = __commonJS({
-  "node_modules/ajv/dist/compile/validate/subschema.js"(exports) {
+  "../../../repos/nightvision-mcp/node_modules/ajv/dist/compile/validate/subschema.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.extendSubschemaMode = exports.extendSubschemaData = exports.getSubschema = void 0;
@@ -2046,9 +2046,9 @@ var require_subschema = __commonJS({
   }
 });
 
-// node_modules/fast-deep-equal/index.js
+// ../../../repos/nightvision-mcp/node_modules/fast-deep-equal/index.js
 var require_fast_deep_equal = __commonJS({
-  "node_modules/fast-deep-equal/index.js"(exports, module) {
+  "../../../repos/nightvision-mcp/node_modules/fast-deep-equal/index.js"(exports, module) {
     "use strict";
     module.exports = function equal(a, b) {
       if (a === b) return true;
@@ -2081,9 +2081,9 @@ var require_fast_deep_equal = __commonJS({
   }
 });
 
-// node_modules/json-schema-traverse/index.js
+// ../../../repos/nightvision-mcp/node_modules/json-schema-traverse/index.js
 var require_json_schema_traverse = __commonJS({
-  "node_modules/json-schema-traverse/index.js"(exports, module) {
+  "../../../repos/nightvision-mcp/node_modules/json-schema-traverse/index.js"(exports, module) {
     "use strict";
     var traverse = module.exports = function(schema, opts, cb) {
       if (typeof opts == "function") {
@@ -2169,9 +2169,9 @@ var require_json_schema_traverse = __commonJS({
   }
 });
 
-// node_modules/ajv/dist/compile/resolve.js
+// ../../../repos/nightvision-mcp/node_modules/ajv/dist/compile/resolve.js
 var require_resolve = __commonJS({
-  "node_modules/ajv/dist/compile/resolve.js"(exports) {
+  "../../../repos/nightvision-mcp/node_modules/ajv/dist/compile/resolve.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.getSchemaRefs = exports.resolveUrl = exports.normalizeId = exports._getFullPath = exports.getFullPath = exports.inlineRef = void 0;
@@ -2325,9 +2325,9 @@ var require_resolve = __commonJS({
   }
 });
 
-// node_modules/ajv/dist/compile/validate/index.js
+// ../../../repos/nightvision-mcp/node_modules/ajv/dist/compile/validate/index.js
 var require_validate = __commonJS({
-  "node_modules/ajv/dist/compile/validate/index.js"(exports) {
+  "../../../repos/nightvision-mcp/node_modules/ajv/dist/compile/validate/index.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.getData = exports.KeywordCxt = exports.validateFunctionCode = void 0;
@@ -2833,9 +2833,9 @@ var require_validate = __commonJS({
   }
 });
 
-// node_modules/ajv/dist/runtime/validation_error.js
+// ../../../repos/nightvision-mcp/node_modules/ajv/dist/runtime/validation_error.js
 var require_validation_error = __commonJS({
-  "node_modules/ajv/dist/runtime/validation_error.js"(exports) {
+  "../../../repos/nightvision-mcp/node_modules/ajv/dist/runtime/validation_error.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var ValidationError = class extends Error {
@@ -2849,9 +2849,9 @@ var require_validation_error = __commonJS({
   }
 });
 
-// node_modules/ajv/dist/compile/ref_error.js
+// ../../../repos/nightvision-mcp/node_modules/ajv/dist/compile/ref_error.js
 var require_ref_error = __commonJS({
-  "node_modules/ajv/dist/compile/ref_error.js"(exports) {
+  "../../../repos/nightvision-mcp/node_modules/ajv/dist/compile/ref_error.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var resolve_1 = require_resolve();
@@ -2866,9 +2866,9 @@ var require_ref_error = __commonJS({
   }
 });
 
-// node_modules/ajv/dist/compile/index.js
+// ../../../repos/nightvision-mcp/node_modules/ajv/dist/compile/index.js
 var require_compile = __commonJS({
-  "node_modules/ajv/dist/compile/index.js"(exports) {
+  "../../../repos/nightvision-mcp/node_modules/ajv/dist/compile/index.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.resolveSchema = exports.getCompilingSchema = exports.resolveRef = exports.compileSchema = exports.SchemaEnv = void 0;
@@ -3090,9 +3090,9 @@ var require_compile = __commonJS({
   }
 });
 
-// node_modules/ajv/dist/refs/data.json
+// ../../../repos/nightvision-mcp/node_modules/ajv/dist/refs/data.json
 var require_data = __commonJS({
-  "node_modules/ajv/dist/refs/data.json"(exports, module) {
+  "../../../repos/nightvision-mcp/node_modules/ajv/dist/refs/data.json"(exports, module) {
     module.exports = {
       $id: "https://raw.githubusercontent.com/ajv-validator/ajv/master/lib/refs/data.json#",
       description: "Meta-schema for $data reference (JSON AnySchema extension proposal)",
@@ -3109,9 +3109,9 @@ var require_data = __commonJS({
   }
 });
 
-// node_modules/fast-uri/lib/utils.js
+// ../../../repos/nightvision-mcp/node_modules/fast-uri/lib/utils.js
 var require_utils = __commonJS({
-  "node_modules/fast-uri/lib/utils.js"(exports, module) {
+  "../../../repos/nightvision-mcp/node_modules/fast-uri/lib/utils.js"(exports, module) {
     "use strict";
     var isUUID = RegExp.prototype.test.bind(/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/iu);
     var isIPv4 = RegExp.prototype.test.bind(/^(?:(?:25[0-5]|2[0-4]\d|1\d{2}|[1-9]\d|\d)\.){3}(?:25[0-5]|2[0-4]\d|1\d{2}|[1-9]\d|\d)$/u);
@@ -3422,9 +3422,9 @@ var require_utils = __commonJS({
   }
 });
 
-// node_modules/fast-uri/lib/schemes.js
+// ../../../repos/nightvision-mcp/node_modules/fast-uri/lib/schemes.js
 var require_schemes = __commonJS({
-  "node_modules/fast-uri/lib/schemes.js"(exports, module) {
+  "../../../repos/nightvision-mcp/node_modules/fast-uri/lib/schemes.js"(exports, module) {
     "use strict";
     var { isUUID } = require_utils();
     var URN_REG = /([\da-z][\d\-a-z]{0,31}):((?:[\w!$'()*+,\-.:;=@]|%[\da-f]{2})+)/iu;
@@ -3632,9 +3632,9 @@ var require_schemes = __commonJS({
   }
 });
 
-// node_modules/fast-uri/index.js
+// ../../../repos/nightvision-mcp/node_modules/fast-uri/index.js
 var require_fast_uri = __commonJS({
-  "node_modules/fast-uri/index.js"(exports, module) {
+  "../../../repos/nightvision-mcp/node_modules/fast-uri/index.js"(exports, module) {
     "use strict";
     var { normalizeIPv6, removeDotSegments, recomposeAuthority, normalizePercentEncoding, normalizePathEncoding, escapePreservingEscapes, reescapeHostDelimiters, isIPv4, nonSimpleDomain } = require_utils();
     var { SCHEMES, getSchemeHandler } = require_schemes();
@@ -3924,9 +3924,9 @@ var require_fast_uri = __commonJS({
   }
 });
 
-// node_modules/ajv/dist/runtime/uri.js
+// ../../../repos/nightvision-mcp/node_modules/ajv/dist/runtime/uri.js
 var require_uri = __commonJS({
-  "node_modules/ajv/dist/runtime/uri.js"(exports) {
+  "../../../repos/nightvision-mcp/node_modules/ajv/dist/runtime/uri.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var uri = require_fast_uri();
@@ -3935,9 +3935,9 @@ var require_uri = __commonJS({
   }
 });
 
-// node_modules/ajv/dist/core.js
+// ../../../repos/nightvision-mcp/node_modules/ajv/dist/core.js
 var require_core = __commonJS({
-  "node_modules/ajv/dist/core.js"(exports) {
+  "../../../repos/nightvision-mcp/node_modules/ajv/dist/core.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.CodeGen = exports.Name = exports.nil = exports.stringify = exports.str = exports._ = exports.KeywordCxt = void 0;
@@ -4546,9 +4546,9 @@ var require_core = __commonJS({
   }
 });
 
-// node_modules/ajv/dist/vocabularies/core/id.js
+// ../../../repos/nightvision-mcp/node_modules/ajv/dist/vocabularies/core/id.js
 var require_id = __commonJS({
-  "node_modules/ajv/dist/vocabularies/core/id.js"(exports) {
+  "../../../repos/nightvision-mcp/node_modules/ajv/dist/vocabularies/core/id.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var def = {
@@ -4561,9 +4561,9 @@ var require_id = __commonJS({
   }
 });
 
-// node_modules/ajv/dist/vocabularies/core/ref.js
+// ../../../repos/nightvision-mcp/node_modules/ajv/dist/vocabularies/core/ref.js
 var require_ref = __commonJS({
-  "node_modules/ajv/dist/vocabularies/core/ref.js"(exports) {
+  "../../../repos/nightvision-mcp/node_modules/ajv/dist/vocabularies/core/ref.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.callRef = exports.getValidate = void 0;
@@ -4683,9 +4683,9 @@ var require_ref = __commonJS({
   }
 });
 
-// node_modules/ajv/dist/vocabularies/core/index.js
+// ../../../repos/nightvision-mcp/node_modules/ajv/dist/vocabularies/core/index.js
 var require_core2 = __commonJS({
-  "node_modules/ajv/dist/vocabularies/core/index.js"(exports) {
+  "../../../repos/nightvision-mcp/node_modules/ajv/dist/vocabularies/core/index.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var id_1 = require_id();
@@ -4704,9 +4704,9 @@ var require_core2 = __commonJS({
   }
 });
 
-// node_modules/ajv/dist/vocabularies/validation/limitNumber.js
+// ../../../repos/nightvision-mcp/node_modules/ajv/dist/vocabularies/validation/limitNumber.js
 var require_limitNumber = __commonJS({
-  "node_modules/ajv/dist/vocabularies/validation/limitNumber.js"(exports) {
+  "../../../repos/nightvision-mcp/node_modules/ajv/dist/vocabularies/validation/limitNumber.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var codegen_1 = require_codegen();
@@ -4736,9 +4736,9 @@ var require_limitNumber = __commonJS({
   }
 });
 
-// node_modules/ajv/dist/vocabularies/validation/multipleOf.js
+// ../../../repos/nightvision-mcp/node_modules/ajv/dist/vocabularies/validation/multipleOf.js
 var require_multipleOf = __commonJS({
-  "node_modules/ajv/dist/vocabularies/validation/multipleOf.js"(exports) {
+  "../../../repos/nightvision-mcp/node_modules/ajv/dist/vocabularies/validation/multipleOf.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var codegen_1 = require_codegen();
@@ -4764,9 +4764,9 @@ var require_multipleOf = __commonJS({
   }
 });
 
-// node_modules/ajv/dist/runtime/ucs2length.js
+// ../../../repos/nightvision-mcp/node_modules/ajv/dist/runtime/ucs2length.js
 var require_ucs2length = __commonJS({
-  "node_modules/ajv/dist/runtime/ucs2length.js"(exports) {
+  "../../../repos/nightvision-mcp/node_modules/ajv/dist/runtime/ucs2length.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     function ucs2length(str) {
@@ -4790,9 +4790,9 @@ var require_ucs2length = __commonJS({
   }
 });
 
-// node_modules/ajv/dist/vocabularies/validation/limitLength.js
+// ../../../repos/nightvision-mcp/node_modules/ajv/dist/vocabularies/validation/limitLength.js
 var require_limitLength = __commonJS({
-  "node_modules/ajv/dist/vocabularies/validation/limitLength.js"(exports) {
+  "../../../repos/nightvision-mcp/node_modules/ajv/dist/vocabularies/validation/limitLength.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var codegen_1 = require_codegen();
@@ -4822,9 +4822,9 @@ var require_limitLength = __commonJS({
   }
 });
 
-// node_modules/ajv/dist/vocabularies/validation/pattern.js
+// ../../../repos/nightvision-mcp/node_modules/ajv/dist/vocabularies/validation/pattern.js
 var require_pattern = __commonJS({
-  "node_modules/ajv/dist/vocabularies/validation/pattern.js"(exports) {
+  "../../../repos/nightvision-mcp/node_modules/ajv/dist/vocabularies/validation/pattern.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var code_1 = require_code2();
@@ -4859,9 +4859,9 @@ var require_pattern = __commonJS({
   }
 });
 
-// node_modules/ajv/dist/vocabularies/validation/limitProperties.js
+// ../../../repos/nightvision-mcp/node_modules/ajv/dist/vocabularies/validation/limitProperties.js
 var require_limitProperties = __commonJS({
-  "node_modules/ajv/dist/vocabularies/validation/limitProperties.js"(exports) {
+  "../../../repos/nightvision-mcp/node_modules/ajv/dist/vocabularies/validation/limitProperties.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var codegen_1 = require_codegen();
@@ -4888,9 +4888,9 @@ var require_limitProperties = __commonJS({
   }
 });
 
-// node_modules/ajv/dist/vocabularies/validation/required.js
+// ../../../repos/nightvision-mcp/node_modules/ajv/dist/vocabularies/validation/required.js
 var require_required = __commonJS({
-  "node_modules/ajv/dist/vocabularies/validation/required.js"(exports) {
+  "../../../repos/nightvision-mcp/node_modules/ajv/dist/vocabularies/validation/required.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var code_1 = require_code2();
@@ -4970,9 +4970,9 @@ var require_required = __commonJS({
   }
 });
 
-// node_modules/ajv/dist/vocabularies/validation/limitItems.js
+// ../../../repos/nightvision-mcp/node_modules/ajv/dist/vocabularies/validation/limitItems.js
 var require_limitItems = __commonJS({
-  "node_modules/ajv/dist/vocabularies/validation/limitItems.js"(exports) {
+  "../../../repos/nightvision-mcp/node_modules/ajv/dist/vocabularies/validation/limitItems.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var codegen_1 = require_codegen();
@@ -4999,9 +4999,9 @@ var require_limitItems = __commonJS({
   }
 });
 
-// node_modules/ajv/dist/runtime/equal.js
+// ../../../repos/nightvision-mcp/node_modules/ajv/dist/runtime/equal.js
 var require_equal = __commonJS({
-  "node_modules/ajv/dist/runtime/equal.js"(exports) {
+  "../../../repos/nightvision-mcp/node_modules/ajv/dist/runtime/equal.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var equal = require_fast_deep_equal();
@@ -5010,9 +5010,9 @@ var require_equal = __commonJS({
   }
 });
 
-// node_modules/ajv/dist/vocabularies/validation/uniqueItems.js
+// ../../../repos/nightvision-mcp/node_modules/ajv/dist/vocabularies/validation/uniqueItems.js
 var require_uniqueItems = __commonJS({
-  "node_modules/ajv/dist/vocabularies/validation/uniqueItems.js"(exports) {
+  "../../../repos/nightvision-mcp/node_modules/ajv/dist/vocabularies/validation/uniqueItems.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var dataType_1 = require_dataType();
@@ -5077,9 +5077,9 @@ var require_uniqueItems = __commonJS({
   }
 });
 
-// node_modules/ajv/dist/vocabularies/validation/const.js
+// ../../../repos/nightvision-mcp/node_modules/ajv/dist/vocabularies/validation/const.js
 var require_const = __commonJS({
-  "node_modules/ajv/dist/vocabularies/validation/const.js"(exports) {
+  "../../../repos/nightvision-mcp/node_modules/ajv/dist/vocabularies/validation/const.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var codegen_1 = require_codegen();
@@ -5106,9 +5106,9 @@ var require_const = __commonJS({
   }
 });
 
-// node_modules/ajv/dist/vocabularies/validation/enum.js
+// ../../../repos/nightvision-mcp/node_modules/ajv/dist/vocabularies/validation/enum.js
 var require_enum = __commonJS({
-  "node_modules/ajv/dist/vocabularies/validation/enum.js"(exports) {
+  "../../../repos/nightvision-mcp/node_modules/ajv/dist/vocabularies/validation/enum.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var codegen_1 = require_codegen();
@@ -5155,9 +5155,9 @@ var require_enum = __commonJS({
   }
 });
 
-// node_modules/ajv/dist/vocabularies/validation/index.js
+// ../../../repos/nightvision-mcp/node_modules/ajv/dist/vocabularies/validation/index.js
 var require_validation = __commonJS({
-  "node_modules/ajv/dist/vocabularies/validation/index.js"(exports) {
+  "../../../repos/nightvision-mcp/node_modules/ajv/dist/vocabularies/validation/index.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var limitNumber_1 = require_limitNumber();
@@ -5193,9 +5193,9 @@ var require_validation = __commonJS({
   }
 });
 
-// node_modules/ajv/dist/vocabularies/applicator/additionalItems.js
+// ../../../repos/nightvision-mcp/node_modules/ajv/dist/vocabularies/applicator/additionalItems.js
 var require_additionalItems = __commonJS({
-  "node_modules/ajv/dist/vocabularies/applicator/additionalItems.js"(exports) {
+  "../../../repos/nightvision-mcp/node_modules/ajv/dist/vocabularies/applicator/additionalItems.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.validateAdditionalItems = void 0;
@@ -5246,9 +5246,9 @@ var require_additionalItems = __commonJS({
   }
 });
 
-// node_modules/ajv/dist/vocabularies/applicator/items.js
+// ../../../repos/nightvision-mcp/node_modules/ajv/dist/vocabularies/applicator/items.js
 var require_items = __commonJS({
-  "node_modules/ajv/dist/vocabularies/applicator/items.js"(exports) {
+  "../../../repos/nightvision-mcp/node_modules/ajv/dist/vocabularies/applicator/items.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.validateTuple = void 0;
@@ -5303,9 +5303,9 @@ var require_items = __commonJS({
   }
 });
 
-// node_modules/ajv/dist/vocabularies/applicator/prefixItems.js
+// ../../../repos/nightvision-mcp/node_modules/ajv/dist/vocabularies/applicator/prefixItems.js
 var require_prefixItems = __commonJS({
-  "node_modules/ajv/dist/vocabularies/applicator/prefixItems.js"(exports) {
+  "../../../repos/nightvision-mcp/node_modules/ajv/dist/vocabularies/applicator/prefixItems.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var items_1 = require_items();
@@ -5320,9 +5320,9 @@ var require_prefixItems = __commonJS({
   }
 });
 
-// node_modules/ajv/dist/vocabularies/applicator/items2020.js
+// ../../../repos/nightvision-mcp/node_modules/ajv/dist/vocabularies/applicator/items2020.js
 var require_items2020 = __commonJS({
-  "node_modules/ajv/dist/vocabularies/applicator/items2020.js"(exports) {
+  "../../../repos/nightvision-mcp/node_modules/ajv/dist/vocabularies/applicator/items2020.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var codegen_1 = require_codegen();
@@ -5355,9 +5355,9 @@ var require_items2020 = __commonJS({
   }
 });
 
-// node_modules/ajv/dist/vocabularies/applicator/contains.js
+// ../../../repos/nightvision-mcp/node_modules/ajv/dist/vocabularies/applicator/contains.js
 var require_contains = __commonJS({
-  "node_modules/ajv/dist/vocabularies/applicator/contains.js"(exports) {
+  "../../../repos/nightvision-mcp/node_modules/ajv/dist/vocabularies/applicator/contains.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var codegen_1 = require_codegen();
@@ -5449,9 +5449,9 @@ var require_contains = __commonJS({
   }
 });
 
-// node_modules/ajv/dist/vocabularies/applicator/dependencies.js
+// ../../../repos/nightvision-mcp/node_modules/ajv/dist/vocabularies/applicator/dependencies.js
 var require_dependencies = __commonJS({
-  "node_modules/ajv/dist/vocabularies/applicator/dependencies.js"(exports) {
+  "../../../repos/nightvision-mcp/node_modules/ajv/dist/vocabularies/applicator/dependencies.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.validateSchemaDeps = exports.validatePropertyDeps = exports.error = void 0;
@@ -5543,9 +5543,9 @@ var require_dependencies = __commonJS({
   }
 });
 
-// node_modules/ajv/dist/vocabularies/applicator/propertyNames.js
+// ../../../repos/nightvision-mcp/node_modules/ajv/dist/vocabularies/applicator/propertyNames.js
 var require_propertyNames = __commonJS({
-  "node_modules/ajv/dist/vocabularies/applicator/propertyNames.js"(exports) {
+  "../../../repos/nightvision-mcp/node_modules/ajv/dist/vocabularies/applicator/propertyNames.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var codegen_1 = require_codegen();
@@ -5586,9 +5586,9 @@ var require_propertyNames = __commonJS({
   }
 });
 
-// node_modules/ajv/dist/vocabularies/applicator/additionalProperties.js
+// ../../../repos/nightvision-mcp/node_modules/ajv/dist/vocabularies/applicator/additionalProperties.js
 var require_additionalProperties = __commonJS({
-  "node_modules/ajv/dist/vocabularies/applicator/additionalProperties.js"(exports) {
+  "../../../repos/nightvision-mcp/node_modules/ajv/dist/vocabularies/applicator/additionalProperties.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var code_1 = require_code2();
@@ -5692,9 +5692,9 @@ var require_additionalProperties = __commonJS({
   }
 });
 
-// node_modules/ajv/dist/vocabularies/applicator/properties.js
+// ../../../repos/nightvision-mcp/node_modules/ajv/dist/vocabularies/applicator/properties.js
 var require_properties = __commonJS({
-  "node_modules/ajv/dist/vocabularies/applicator/properties.js"(exports) {
+  "../../../repos/nightvision-mcp/node_modules/ajv/dist/vocabularies/applicator/properties.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var validate_1 = require_validate();
@@ -5750,9 +5750,9 @@ var require_properties = __commonJS({
   }
 });
 
-// node_modules/ajv/dist/vocabularies/applicator/patternProperties.js
+// ../../../repos/nightvision-mcp/node_modules/ajv/dist/vocabularies/applicator/patternProperties.js
 var require_patternProperties = __commonJS({
-  "node_modules/ajv/dist/vocabularies/applicator/patternProperties.js"(exports) {
+  "../../../repos/nightvision-mcp/node_modules/ajv/dist/vocabularies/applicator/patternProperties.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var code_1 = require_code2();
@@ -5824,9 +5824,9 @@ var require_patternProperties = __commonJS({
   }
 });
 
-// node_modules/ajv/dist/vocabularies/applicator/not.js
+// ../../../repos/nightvision-mcp/node_modules/ajv/dist/vocabularies/applicator/not.js
 var require_not = __commonJS({
-  "node_modules/ajv/dist/vocabularies/applicator/not.js"(exports) {
+  "../../../repos/nightvision-mcp/node_modules/ajv/dist/vocabularies/applicator/not.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var util_1 = require_util();
@@ -5855,9 +5855,9 @@ var require_not = __commonJS({
   }
 });
 
-// node_modules/ajv/dist/vocabularies/applicator/anyOf.js
+// ../../../repos/nightvision-mcp/node_modules/ajv/dist/vocabularies/applicator/anyOf.js
 var require_anyOf = __commonJS({
-  "node_modules/ajv/dist/vocabularies/applicator/anyOf.js"(exports) {
+  "../../../repos/nightvision-mcp/node_modules/ajv/dist/vocabularies/applicator/anyOf.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var code_1 = require_code2();
@@ -5872,9 +5872,9 @@ var require_anyOf = __commonJS({
   }
 });
 
-// node_modules/ajv/dist/vocabularies/applicator/oneOf.js
+// ../../../repos/nightvision-mcp/node_modules/ajv/dist/vocabularies/applicator/oneOf.js
 var require_oneOf = __commonJS({
-  "node_modules/ajv/dist/vocabularies/applicator/oneOf.js"(exports) {
+  "../../../repos/nightvision-mcp/node_modules/ajv/dist/vocabularies/applicator/oneOf.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var codegen_1 = require_codegen();
@@ -5930,9 +5930,9 @@ var require_oneOf = __commonJS({
   }
 });
 
-// node_modules/ajv/dist/vocabularies/applicator/allOf.js
+// ../../../repos/nightvision-mcp/node_modules/ajv/dist/vocabularies/applicator/allOf.js
 var require_allOf = __commonJS({
-  "node_modules/ajv/dist/vocabularies/applicator/allOf.js"(exports) {
+  "../../../repos/nightvision-mcp/node_modules/ajv/dist/vocabularies/applicator/allOf.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var util_1 = require_util();
@@ -5957,9 +5957,9 @@ var require_allOf = __commonJS({
   }
 });
 
-// node_modules/ajv/dist/vocabularies/applicator/if.js
+// ../../../repos/nightvision-mcp/node_modules/ajv/dist/vocabularies/applicator/if.js
 var require_if = __commonJS({
-  "node_modules/ajv/dist/vocabularies/applicator/if.js"(exports) {
+  "../../../repos/nightvision-mcp/node_modules/ajv/dist/vocabularies/applicator/if.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var codegen_1 = require_codegen();
@@ -6026,9 +6026,9 @@ var require_if = __commonJS({
   }
 });
 
-// node_modules/ajv/dist/vocabularies/applicator/thenElse.js
+// ../../../repos/nightvision-mcp/node_modules/ajv/dist/vocabularies/applicator/thenElse.js
 var require_thenElse = __commonJS({
-  "node_modules/ajv/dist/vocabularies/applicator/thenElse.js"(exports) {
+  "../../../repos/nightvision-mcp/node_modules/ajv/dist/vocabularies/applicator/thenElse.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var util_1 = require_util();
@@ -6044,9 +6044,9 @@ var require_thenElse = __commonJS({
   }
 });
 
-// node_modules/ajv/dist/vocabularies/applicator/index.js
+// ../../../repos/nightvision-mcp/node_modules/ajv/dist/vocabularies/applicator/index.js
 var require_applicator = __commonJS({
-  "node_modules/ajv/dist/vocabularies/applicator/index.js"(exports) {
+  "../../../repos/nightvision-mcp/node_modules/ajv/dist/vocabularies/applicator/index.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var additionalItems_1 = require_additionalItems();
@@ -6092,9 +6092,9 @@ var require_applicator = __commonJS({
   }
 });
 
-// node_modules/ajv/dist/vocabularies/format/format.js
+// ../../../repos/nightvision-mcp/node_modules/ajv/dist/vocabularies/format/format.js
 var require_format = __commonJS({
-  "node_modules/ajv/dist/vocabularies/format/format.js"(exports) {
+  "../../../repos/nightvision-mcp/node_modules/ajv/dist/vocabularies/format/format.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var codegen_1 = require_codegen();
@@ -6182,9 +6182,9 @@ var require_format = __commonJS({
   }
 });
 
-// node_modules/ajv/dist/vocabularies/format/index.js
+// ../../../repos/nightvision-mcp/node_modules/ajv/dist/vocabularies/format/index.js
 var require_format2 = __commonJS({
-  "node_modules/ajv/dist/vocabularies/format/index.js"(exports) {
+  "../../../repos/nightvision-mcp/node_modules/ajv/dist/vocabularies/format/index.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var format_1 = require_format();
@@ -6193,9 +6193,9 @@ var require_format2 = __commonJS({
   }
 });
 
-// node_modules/ajv/dist/vocabularies/metadata.js
+// ../../../repos/nightvision-mcp/node_modules/ajv/dist/vocabularies/metadata.js
 var require_metadata = __commonJS({
-  "node_modules/ajv/dist/vocabularies/metadata.js"(exports) {
+  "../../../repos/nightvision-mcp/node_modules/ajv/dist/vocabularies/metadata.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.contentVocabulary = exports.metadataVocabulary = void 0;
@@ -6216,9 +6216,9 @@ var require_metadata = __commonJS({
   }
 });
 
-// node_modules/ajv/dist/vocabularies/draft7.js
+// ../../../repos/nightvision-mcp/node_modules/ajv/dist/vocabularies/draft7.js
 var require_draft7 = __commonJS({
-  "node_modules/ajv/dist/vocabularies/draft7.js"(exports) {
+  "../../../repos/nightvision-mcp/node_modules/ajv/dist/vocabularies/draft7.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var core_1 = require_core2();
@@ -6238,9 +6238,9 @@ var require_draft7 = __commonJS({
   }
 });
 
-// node_modules/ajv/dist/vocabularies/discriminator/types.js
+// ../../../repos/nightvision-mcp/node_modules/ajv/dist/vocabularies/discriminator/types.js
 var require_types = __commonJS({
-  "node_modules/ajv/dist/vocabularies/discriminator/types.js"(exports) {
+  "../../../repos/nightvision-mcp/node_modules/ajv/dist/vocabularies/discriminator/types.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.DiscrError = void 0;
@@ -6252,9 +6252,9 @@ var require_types = __commonJS({
   }
 });
 
-// node_modules/ajv/dist/vocabularies/discriminator/index.js
+// ../../../repos/nightvision-mcp/node_modules/ajv/dist/vocabularies/discriminator/index.js
 var require_discriminator = __commonJS({
-  "node_modules/ajv/dist/vocabularies/discriminator/index.js"(exports) {
+  "../../../repos/nightvision-mcp/node_modules/ajv/dist/vocabularies/discriminator/index.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var codegen_1 = require_codegen();
@@ -6357,9 +6357,9 @@ var require_discriminator = __commonJS({
   }
 });
 
-// node_modules/ajv/dist/refs/json-schema-draft-07.json
+// ../../../repos/nightvision-mcp/node_modules/ajv/dist/refs/json-schema-draft-07.json
 var require_json_schema_draft_07 = __commonJS({
-  "node_modules/ajv/dist/refs/json-schema-draft-07.json"(exports, module) {
+  "../../../repos/nightvision-mcp/node_modules/ajv/dist/refs/json-schema-draft-07.json"(exports, module) {
     module.exports = {
       $schema: "http://json-schema.org/draft-07/schema#",
       $id: "http://json-schema.org/draft-07/schema#",
@@ -6514,9 +6514,9 @@ var require_json_schema_draft_07 = __commonJS({
   }
 });
 
-// node_modules/ajv/dist/ajv.js
+// ../../../repos/nightvision-mcp/node_modules/ajv/dist/ajv.js
 var require_ajv = __commonJS({
-  "node_modules/ajv/dist/ajv.js"(exports, module) {
+  "../../../repos/nightvision-mcp/node_modules/ajv/dist/ajv.js"(exports, module) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.MissingRefError = exports.ValidationError = exports.CodeGen = exports.Name = exports.nil = exports.stringify = exports.str = exports._ = exports.KeywordCxt = exports.Ajv = void 0;
@@ -6584,9 +6584,9 @@ var require_ajv = __commonJS({
   }
 });
 
-// node_modules/ajv-formats/dist/formats.js
+// ../../../repos/nightvision-mcp/node_modules/ajv-formats/dist/formats.js
 var require_formats = __commonJS({
-  "node_modules/ajv-formats/dist/formats.js"(exports) {
+  "../../../repos/nightvision-mcp/node_modules/ajv-formats/dist/formats.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.formatNames = exports.fastFormats = exports.fullFormats = void 0;
@@ -6787,9 +6787,9 @@ var require_formats = __commonJS({
   }
 });
 
-// node_modules/ajv-formats/dist/limit.js
+// ../../../repos/nightvision-mcp/node_modules/ajv-formats/dist/limit.js
 var require_limit = __commonJS({
-  "node_modules/ajv-formats/dist/limit.js"(exports) {
+  "../../../repos/nightvision-mcp/node_modules/ajv-formats/dist/limit.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.formatLimitDefinition = void 0;
@@ -6859,9 +6859,9 @@ var require_limit = __commonJS({
   }
 });
 
-// node_modules/ajv-formats/dist/index.js
+// ../../../repos/nightvision-mcp/node_modules/ajv-formats/dist/index.js
 var require_dist = __commonJS({
-  "node_modules/ajv-formats/dist/index.js"(exports, module) {
+  "../../../repos/nightvision-mcp/node_modules/ajv-formats/dist/index.js"(exports, module) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var formats_1 = require_formats();
@@ -6901,9 +6901,9 @@ var require_dist = __commonJS({
   }
 });
 
-// node_modules/delayed-stream/lib/delayed_stream.js
+// ../../../repos/nightvision-mcp/node_modules/delayed-stream/lib/delayed_stream.js
 var require_delayed_stream = __commonJS({
-  "node_modules/delayed-stream/lib/delayed_stream.js"(exports, module) {
+  "../../../repos/nightvision-mcp/node_modules/delayed-stream/lib/delayed_stream.js"(exports, module) {
     var Stream = __require("stream").Stream;
     var util5 = __require("util");
     module.exports = DelayedStream;
@@ -6992,9 +6992,9 @@ var require_delayed_stream = __commonJS({
   }
 });
 
-// node_modules/combined-stream/lib/combined_stream.js
+// ../../../repos/nightvision-mcp/node_modules/combined-stream/lib/combined_stream.js
 var require_combined_stream = __commonJS({
-  "node_modules/combined-stream/lib/combined_stream.js"(exports, module) {
+  "../../../repos/nightvision-mcp/node_modules/combined-stream/lib/combined_stream.js"(exports, module) {
     var util5 = __require("util");
     var Stream = __require("stream").Stream;
     var DelayedStream = require_delayed_stream();
@@ -7161,9 +7161,9 @@ var require_combined_stream = __commonJS({
   }
 });
 
-// node_modules/form-data/node_modules/mime-db/db.json
+// ../../../repos/nightvision-mcp/node_modules/form-data/node_modules/mime-db/db.json
 var require_db = __commonJS({
-  "node_modules/form-data/node_modules/mime-db/db.json"(exports, module) {
+  "../../../repos/nightvision-mcp/node_modules/form-data/node_modules/mime-db/db.json"(exports, module) {
     module.exports = {
       "application/1d-interleaved-parityfec": {
         source: "iana"
@@ -15686,16 +15686,16 @@ var require_db = __commonJS({
   }
 });
 
-// node_modules/form-data/node_modules/mime-db/index.js
+// ../../../repos/nightvision-mcp/node_modules/form-data/node_modules/mime-db/index.js
 var require_mime_db = __commonJS({
-  "node_modules/form-data/node_modules/mime-db/index.js"(exports, module) {
+  "../../../repos/nightvision-mcp/node_modules/form-data/node_modules/mime-db/index.js"(exports, module) {
     module.exports = require_db();
   }
 });
 
-// node_modules/form-data/node_modules/mime-types/index.js
+// ../../../repos/nightvision-mcp/node_modules/form-data/node_modules/mime-types/index.js
 var require_mime_types = __commonJS({
-  "node_modules/form-data/node_modules/mime-types/index.js"(exports) {
+  "../../../repos/nightvision-mcp/node_modules/form-data/node_modules/mime-types/index.js"(exports) {
     "use strict";
     var db = require_mime_db();
     var extname = __require("path").extname;
@@ -15783,9 +15783,9 @@ var require_mime_types = __commonJS({
   }
 });
 
-// node_modules/asynckit/lib/defer.js
+// ../../../repos/nightvision-mcp/node_modules/asynckit/lib/defer.js
 var require_defer = __commonJS({
-  "node_modules/asynckit/lib/defer.js"(exports, module) {
+  "../../../repos/nightvision-mcp/node_modules/asynckit/lib/defer.js"(exports, module) {
     module.exports = defer;
     function defer(fn) {
       var nextTick = typeof setImmediate == "function" ? setImmediate : typeof process == "object" && typeof process.nextTick == "function" ? process.nextTick : null;
@@ -15798,9 +15798,9 @@ var require_defer = __commonJS({
   }
 });
 
-// node_modules/asynckit/lib/async.js
+// ../../../repos/nightvision-mcp/node_modules/asynckit/lib/async.js
 var require_async = __commonJS({
-  "node_modules/asynckit/lib/async.js"(exports, module) {
+  "../../../repos/nightvision-mcp/node_modules/asynckit/lib/async.js"(exports, module) {
     var defer = require_defer();
     module.exports = async;
     function async(callback) {
@@ -15821,9 +15821,9 @@ var require_async = __commonJS({
   }
 });
 
-// node_modules/asynckit/lib/abort.js
+// ../../../repos/nightvision-mcp/node_modules/asynckit/lib/abort.js
 var require_abort = __commonJS({
-  "node_modules/asynckit/lib/abort.js"(exports, module) {
+  "../../../repos/nightvision-mcp/node_modules/asynckit/lib/abort.js"(exports, module) {
     module.exports = abort;
     function abort(state) {
       Object.keys(state.jobs).forEach(clean2.bind(state));
@@ -15837,9 +15837,9 @@ var require_abort = __commonJS({
   }
 });
 
-// node_modules/asynckit/lib/iterate.js
+// ../../../repos/nightvision-mcp/node_modules/asynckit/lib/iterate.js
 var require_iterate = __commonJS({
-  "node_modules/asynckit/lib/iterate.js"(exports, module) {
+  "../../../repos/nightvision-mcp/node_modules/asynckit/lib/iterate.js"(exports, module) {
     var async = require_async();
     var abort = require_abort();
     module.exports = iterate;
@@ -15870,9 +15870,9 @@ var require_iterate = __commonJS({
   }
 });
 
-// node_modules/asynckit/lib/state.js
+// ../../../repos/nightvision-mcp/node_modules/asynckit/lib/state.js
 var require_state = __commonJS({
-  "node_modules/asynckit/lib/state.js"(exports, module) {
+  "../../../repos/nightvision-mcp/node_modules/asynckit/lib/state.js"(exports, module) {
     module.exports = state;
     function state(list, sortMethod) {
       var isNamedList = !Array.isArray(list), initState = {
@@ -15892,9 +15892,9 @@ var require_state = __commonJS({
   }
 });
 
-// node_modules/asynckit/lib/terminator.js
+// ../../../repos/nightvision-mcp/node_modules/asynckit/lib/terminator.js
 var require_terminator = __commonJS({
-  "node_modules/asynckit/lib/terminator.js"(exports, module) {
+  "../../../repos/nightvision-mcp/node_modules/asynckit/lib/terminator.js"(exports, module) {
     var abort = require_abort();
     var async = require_async();
     module.exports = terminator;
@@ -15909,9 +15909,9 @@ var require_terminator = __commonJS({
   }
 });
 
-// node_modules/asynckit/parallel.js
+// ../../../repos/nightvision-mcp/node_modules/asynckit/parallel.js
 var require_parallel = __commonJS({
-  "node_modules/asynckit/parallel.js"(exports, module) {
+  "../../../repos/nightvision-mcp/node_modules/asynckit/parallel.js"(exports, module) {
     var iterate = require_iterate();
     var initState = require_state();
     var terminator = require_terminator();
@@ -15936,9 +15936,9 @@ var require_parallel = __commonJS({
   }
 });
 
-// node_modules/asynckit/serialOrdered.js
+// ../../../repos/nightvision-mcp/node_modules/asynckit/serialOrdered.js
 var require_serialOrdered = __commonJS({
-  "node_modules/asynckit/serialOrdered.js"(exports, module) {
+  "../../../repos/nightvision-mcp/node_modules/asynckit/serialOrdered.js"(exports, module) {
     var iterate = require_iterate();
     var initState = require_state();
     var terminator = require_terminator();
@@ -15970,9 +15970,9 @@ var require_serialOrdered = __commonJS({
   }
 });
 
-// node_modules/asynckit/serial.js
+// ../../../repos/nightvision-mcp/node_modules/asynckit/serial.js
 var require_serial = __commonJS({
-  "node_modules/asynckit/serial.js"(exports, module) {
+  "../../../repos/nightvision-mcp/node_modules/asynckit/serial.js"(exports, module) {
     var serialOrdered = require_serialOrdered();
     module.exports = serial;
     function serial(list, iterator2, callback) {
@@ -15981,9 +15981,9 @@ var require_serial = __commonJS({
   }
 });
 
-// node_modules/asynckit/index.js
+// ../../../repos/nightvision-mcp/node_modules/asynckit/index.js
 var require_asynckit = __commonJS({
-  "node_modules/asynckit/index.js"(exports, module) {
+  "../../../repos/nightvision-mcp/node_modules/asynckit/index.js"(exports, module) {
     module.exports = {
       parallel: require_parallel(),
       serial: require_serial(),
@@ -15992,121 +15992,121 @@ var require_asynckit = __commonJS({
   }
 });
 
-// node_modules/es-object-atoms/index.js
+// ../../../repos/nightvision-mcp/node_modules/es-object-atoms/index.js
 var require_es_object_atoms = __commonJS({
-  "node_modules/es-object-atoms/index.js"(exports, module) {
+  "../../../repos/nightvision-mcp/node_modules/es-object-atoms/index.js"(exports, module) {
     "use strict";
     module.exports = Object;
   }
 });
 
-// node_modules/es-errors/index.js
+// ../../../repos/nightvision-mcp/node_modules/es-errors/index.js
 var require_es_errors = __commonJS({
-  "node_modules/es-errors/index.js"(exports, module) {
+  "../../../repos/nightvision-mcp/node_modules/es-errors/index.js"(exports, module) {
     "use strict";
     module.exports = Error;
   }
 });
 
-// node_modules/es-errors/eval.js
+// ../../../repos/nightvision-mcp/node_modules/es-errors/eval.js
 var require_eval = __commonJS({
-  "node_modules/es-errors/eval.js"(exports, module) {
+  "../../../repos/nightvision-mcp/node_modules/es-errors/eval.js"(exports, module) {
     "use strict";
     module.exports = EvalError;
   }
 });
 
-// node_modules/es-errors/range.js
+// ../../../repos/nightvision-mcp/node_modules/es-errors/range.js
 var require_range = __commonJS({
-  "node_modules/es-errors/range.js"(exports, module) {
+  "../../../repos/nightvision-mcp/node_modules/es-errors/range.js"(exports, module) {
     "use strict";
     module.exports = RangeError;
   }
 });
 
-// node_modules/es-errors/ref.js
+// ../../../repos/nightvision-mcp/node_modules/es-errors/ref.js
 var require_ref2 = __commonJS({
-  "node_modules/es-errors/ref.js"(exports, module) {
+  "../../../repos/nightvision-mcp/node_modules/es-errors/ref.js"(exports, module) {
     "use strict";
     module.exports = ReferenceError;
   }
 });
 
-// node_modules/es-errors/syntax.js
+// ../../../repos/nightvision-mcp/node_modules/es-errors/syntax.js
 var require_syntax = __commonJS({
-  "node_modules/es-errors/syntax.js"(exports, module) {
+  "../../../repos/nightvision-mcp/node_modules/es-errors/syntax.js"(exports, module) {
     "use strict";
     module.exports = SyntaxError;
   }
 });
 
-// node_modules/es-errors/type.js
+// ../../../repos/nightvision-mcp/node_modules/es-errors/type.js
 var require_type = __commonJS({
-  "node_modules/es-errors/type.js"(exports, module) {
+  "../../../repos/nightvision-mcp/node_modules/es-errors/type.js"(exports, module) {
     "use strict";
     module.exports = TypeError;
   }
 });
 
-// node_modules/es-errors/uri.js
+// ../../../repos/nightvision-mcp/node_modules/es-errors/uri.js
 var require_uri2 = __commonJS({
-  "node_modules/es-errors/uri.js"(exports, module) {
+  "../../../repos/nightvision-mcp/node_modules/es-errors/uri.js"(exports, module) {
     "use strict";
     module.exports = URIError;
   }
 });
 
-// node_modules/math-intrinsics/abs.js
+// ../../../repos/nightvision-mcp/node_modules/math-intrinsics/abs.js
 var require_abs = __commonJS({
-  "node_modules/math-intrinsics/abs.js"(exports, module) {
+  "../../../repos/nightvision-mcp/node_modules/math-intrinsics/abs.js"(exports, module) {
     "use strict";
     module.exports = Math.abs;
   }
 });
 
-// node_modules/math-intrinsics/floor.js
+// ../../../repos/nightvision-mcp/node_modules/math-intrinsics/floor.js
 var require_floor = __commonJS({
-  "node_modules/math-intrinsics/floor.js"(exports, module) {
+  "../../../repos/nightvision-mcp/node_modules/math-intrinsics/floor.js"(exports, module) {
     "use strict";
     module.exports = Math.floor;
   }
 });
 
-// node_modules/math-intrinsics/max.js
+// ../../../repos/nightvision-mcp/node_modules/math-intrinsics/max.js
 var require_max = __commonJS({
-  "node_modules/math-intrinsics/max.js"(exports, module) {
+  "../../../repos/nightvision-mcp/node_modules/math-intrinsics/max.js"(exports, module) {
     "use strict";
     module.exports = Math.max;
   }
 });
 
-// node_modules/math-intrinsics/min.js
+// ../../../repos/nightvision-mcp/node_modules/math-intrinsics/min.js
 var require_min = __commonJS({
-  "node_modules/math-intrinsics/min.js"(exports, module) {
+  "../../../repos/nightvision-mcp/node_modules/math-intrinsics/min.js"(exports, module) {
     "use strict";
     module.exports = Math.min;
   }
 });
 
-// node_modules/math-intrinsics/pow.js
+// ../../../repos/nightvision-mcp/node_modules/math-intrinsics/pow.js
 var require_pow = __commonJS({
-  "node_modules/math-intrinsics/pow.js"(exports, module) {
+  "../../../repos/nightvision-mcp/node_modules/math-intrinsics/pow.js"(exports, module) {
     "use strict";
     module.exports = Math.pow;
   }
 });
 
-// node_modules/math-intrinsics/round.js
+// ../../../repos/nightvision-mcp/node_modules/math-intrinsics/round.js
 var require_round = __commonJS({
-  "node_modules/math-intrinsics/round.js"(exports, module) {
+  "../../../repos/nightvision-mcp/node_modules/math-intrinsics/round.js"(exports, module) {
     "use strict";
     module.exports = Math.round;
   }
 });
 
-// node_modules/math-intrinsics/isNaN.js
+// ../../../repos/nightvision-mcp/node_modules/math-intrinsics/isNaN.js
 var require_isNaN = __commonJS({
-  "node_modules/math-intrinsics/isNaN.js"(exports, module) {
+  "../../../repos/nightvision-mcp/node_modules/math-intrinsics/isNaN.js"(exports, module) {
     "use strict";
     module.exports = Number.isNaN || function isNaN2(a) {
       return a !== a;
@@ -16114,9 +16114,9 @@ var require_isNaN = __commonJS({
   }
 });
 
-// node_modules/math-intrinsics/sign.js
+// ../../../repos/nightvision-mcp/node_modules/math-intrinsics/sign.js
 var require_sign = __commonJS({
-  "node_modules/math-intrinsics/sign.js"(exports, module) {
+  "../../../repos/nightvision-mcp/node_modules/math-intrinsics/sign.js"(exports, module) {
     "use strict";
     var $isNaN = require_isNaN();
     module.exports = function sign(number4) {
@@ -16128,17 +16128,17 @@ var require_sign = __commonJS({
   }
 });
 
-// node_modules/gopd/gOPD.js
+// ../../../repos/nightvision-mcp/node_modules/gopd/gOPD.js
 var require_gOPD = __commonJS({
-  "node_modules/gopd/gOPD.js"(exports, module) {
+  "../../../repos/nightvision-mcp/node_modules/gopd/gOPD.js"(exports, module) {
     "use strict";
     module.exports = Object.getOwnPropertyDescriptor;
   }
 });
 
-// node_modules/gopd/index.js
+// ../../../repos/nightvision-mcp/node_modules/gopd/index.js
 var require_gopd = __commonJS({
-  "node_modules/gopd/index.js"(exports, module) {
+  "../../../repos/nightvision-mcp/node_modules/gopd/index.js"(exports, module) {
     "use strict";
     var $gOPD = require_gOPD();
     if ($gOPD) {
@@ -16152,9 +16152,9 @@ var require_gopd = __commonJS({
   }
 });
 
-// node_modules/es-define-property/index.js
+// ../../../repos/nightvision-mcp/node_modules/es-define-property/index.js
 var require_es_define_property = __commonJS({
-  "node_modules/es-define-property/index.js"(exports, module) {
+  "../../../repos/nightvision-mcp/node_modules/es-define-property/index.js"(exports, module) {
     "use strict";
     var $defineProperty = Object.defineProperty || false;
     if ($defineProperty) {
@@ -16168,9 +16168,9 @@ var require_es_define_property = __commonJS({
   }
 });
 
-// node_modules/has-symbols/shams.js
+// ../../../repos/nightvision-mcp/node_modules/has-symbols/shams.js
 var require_shams = __commonJS({
-  "node_modules/has-symbols/shams.js"(exports, module) {
+  "../../../repos/nightvision-mcp/node_modules/has-symbols/shams.js"(exports, module) {
     "use strict";
     module.exports = function hasSymbols() {
       if (typeof Symbol !== "function" || typeof Object.getOwnPropertySymbols !== "function") {
@@ -16223,9 +16223,9 @@ var require_shams = __commonJS({
   }
 });
 
-// node_modules/has-symbols/index.js
+// ../../../repos/nightvision-mcp/node_modules/has-symbols/index.js
 var require_has_symbols = __commonJS({
-  "node_modules/has-symbols/index.js"(exports, module) {
+  "../../../repos/nightvision-mcp/node_modules/has-symbols/index.js"(exports, module) {
     "use strict";
     var origSymbol = typeof Symbol !== "undefined" && Symbol;
     var hasSymbolSham = require_shams();
@@ -16247,26 +16247,26 @@ var require_has_symbols = __commonJS({
   }
 });
 
-// node_modules/get-proto/Reflect.getPrototypeOf.js
+// ../../../repos/nightvision-mcp/node_modules/get-proto/Reflect.getPrototypeOf.js
 var require_Reflect_getPrototypeOf = __commonJS({
-  "node_modules/get-proto/Reflect.getPrototypeOf.js"(exports, module) {
+  "../../../repos/nightvision-mcp/node_modules/get-proto/Reflect.getPrototypeOf.js"(exports, module) {
     "use strict";
     module.exports = typeof Reflect !== "undefined" && Reflect.getPrototypeOf || null;
   }
 });
 
-// node_modules/get-proto/Object.getPrototypeOf.js
+// ../../../repos/nightvision-mcp/node_modules/get-proto/Object.getPrototypeOf.js
 var require_Object_getPrototypeOf = __commonJS({
-  "node_modules/get-proto/Object.getPrototypeOf.js"(exports, module) {
+  "../../../repos/nightvision-mcp/node_modules/get-proto/Object.getPrototypeOf.js"(exports, module) {
     "use strict";
     var $Object = require_es_object_atoms();
     module.exports = $Object.getPrototypeOf || null;
   }
 });
 
-// node_modules/function-bind/implementation.js
+// ../../../repos/nightvision-mcp/node_modules/function-bind/implementation.js
 var require_implementation = __commonJS({
-  "node_modules/function-bind/implementation.js"(exports, module) {
+  "../../../repos/nightvision-mcp/node_modules/function-bind/implementation.js"(exports, module) {
     "use strict";
     var ERROR_MESSAGE = "Function.prototype.bind called on incompatible ";
     var toStr = Object.prototype.toString;
@@ -16340,42 +16340,42 @@ var require_implementation = __commonJS({
   }
 });
 
-// node_modules/function-bind/index.js
+// ../../../repos/nightvision-mcp/node_modules/function-bind/index.js
 var require_function_bind = __commonJS({
-  "node_modules/function-bind/index.js"(exports, module) {
+  "../../../repos/nightvision-mcp/node_modules/function-bind/index.js"(exports, module) {
     "use strict";
     var implementation = require_implementation();
     module.exports = Function.prototype.bind || implementation;
   }
 });
 
-// node_modules/call-bind-apply-helpers/functionCall.js
+// ../../../repos/nightvision-mcp/node_modules/call-bind-apply-helpers/functionCall.js
 var require_functionCall = __commonJS({
-  "node_modules/call-bind-apply-helpers/functionCall.js"(exports, module) {
+  "../../../repos/nightvision-mcp/node_modules/call-bind-apply-helpers/functionCall.js"(exports, module) {
     "use strict";
     module.exports = Function.prototype.call;
   }
 });
 
-// node_modules/call-bind-apply-helpers/functionApply.js
+// ../../../repos/nightvision-mcp/node_modules/call-bind-apply-helpers/functionApply.js
 var require_functionApply = __commonJS({
-  "node_modules/call-bind-apply-helpers/functionApply.js"(exports, module) {
+  "../../../repos/nightvision-mcp/node_modules/call-bind-apply-helpers/functionApply.js"(exports, module) {
     "use strict";
     module.exports = Function.prototype.apply;
   }
 });
 
-// node_modules/call-bind-apply-helpers/reflectApply.js
+// ../../../repos/nightvision-mcp/node_modules/call-bind-apply-helpers/reflectApply.js
 var require_reflectApply = __commonJS({
-  "node_modules/call-bind-apply-helpers/reflectApply.js"(exports, module) {
+  "../../../repos/nightvision-mcp/node_modules/call-bind-apply-helpers/reflectApply.js"(exports, module) {
     "use strict";
     module.exports = typeof Reflect !== "undefined" && Reflect && Reflect.apply;
   }
 });
 
-// node_modules/call-bind-apply-helpers/actualApply.js
+// ../../../repos/nightvision-mcp/node_modules/call-bind-apply-helpers/actualApply.js
 var require_actualApply = __commonJS({
-  "node_modules/call-bind-apply-helpers/actualApply.js"(exports, module) {
+  "../../../repos/nightvision-mcp/node_modules/call-bind-apply-helpers/actualApply.js"(exports, module) {
     "use strict";
     var bind2 = require_function_bind();
     var $apply = require_functionApply();
@@ -16385,9 +16385,9 @@ var require_actualApply = __commonJS({
   }
 });
 
-// node_modules/call-bind-apply-helpers/index.js
+// ../../../repos/nightvision-mcp/node_modules/call-bind-apply-helpers/index.js
 var require_call_bind_apply_helpers = __commonJS({
-  "node_modules/call-bind-apply-helpers/index.js"(exports, module) {
+  "../../../repos/nightvision-mcp/node_modules/call-bind-apply-helpers/index.js"(exports, module) {
     "use strict";
     var bind2 = require_function_bind();
     var $TypeError = require_type();
@@ -16402,9 +16402,9 @@ var require_call_bind_apply_helpers = __commonJS({
   }
 });
 
-// node_modules/dunder-proto/get.js
+// ../../../repos/nightvision-mcp/node_modules/dunder-proto/get.js
 var require_get = __commonJS({
-  "node_modules/dunder-proto/get.js"(exports, module) {
+  "../../../repos/nightvision-mcp/node_modules/dunder-proto/get.js"(exports, module) {
     "use strict";
     var callBind = require_call_bind_apply_helpers();
     var gOPD = require_gopd();
@@ -16433,9 +16433,9 @@ var require_get = __commonJS({
   }
 });
 
-// node_modules/get-proto/index.js
+// ../../../repos/nightvision-mcp/node_modules/get-proto/index.js
 var require_get_proto = __commonJS({
-  "node_modules/get-proto/index.js"(exports, module) {
+  "../../../repos/nightvision-mcp/node_modules/get-proto/index.js"(exports, module) {
     "use strict";
     var reflectGetProto = require_Reflect_getPrototypeOf();
     var originalGetProto = require_Object_getPrototypeOf();
@@ -16453,9 +16453,9 @@ var require_get_proto = __commonJS({
   }
 });
 
-// node_modules/hasown/index.js
+// ../../../repos/nightvision-mcp/node_modules/hasown/index.js
 var require_hasown = __commonJS({
-  "node_modules/hasown/index.js"(exports, module) {
+  "../../../repos/nightvision-mcp/node_modules/hasown/index.js"(exports, module) {
     "use strict";
     var call = Function.prototype.call;
     var $hasOwn = Object.prototype.hasOwnProperty;
@@ -16464,9 +16464,9 @@ var require_hasown = __commonJS({
   }
 });
 
-// node_modules/get-intrinsic/index.js
+// ../../../repos/nightvision-mcp/node_modules/get-intrinsic/index.js
 var require_get_intrinsic = __commonJS({
-  "node_modules/get-intrinsic/index.js"(exports, module) {
+  "../../../repos/nightvision-mcp/node_modules/get-intrinsic/index.js"(exports, module) {
     "use strict";
     var undefined2;
     var $Object = require_es_object_atoms();
@@ -16795,9 +16795,9 @@ var require_get_intrinsic = __commonJS({
   }
 });
 
-// node_modules/has-tostringtag/shams.js
+// ../../../repos/nightvision-mcp/node_modules/has-tostringtag/shams.js
 var require_shams2 = __commonJS({
-  "node_modules/has-tostringtag/shams.js"(exports, module) {
+  "../../../repos/nightvision-mcp/node_modules/has-tostringtag/shams.js"(exports, module) {
     "use strict";
     var hasSymbols = require_shams();
     module.exports = function hasToStringTagShams() {
@@ -16806,9 +16806,9 @@ var require_shams2 = __commonJS({
   }
 });
 
-// node_modules/es-set-tostringtag/index.js
+// ../../../repos/nightvision-mcp/node_modules/es-set-tostringtag/index.js
 var require_es_set_tostringtag = __commonJS({
-  "node_modules/es-set-tostringtag/index.js"(exports, module) {
+  "../../../repos/nightvision-mcp/node_modules/es-set-tostringtag/index.js"(exports, module) {
     "use strict";
     var GetIntrinsic = require_get_intrinsic();
     var $defineProperty = GetIntrinsic("%Object.defineProperty%", true);
@@ -16838,9 +16838,9 @@ var require_es_set_tostringtag = __commonJS({
   }
 });
 
-// node_modules/form-data/lib/populate.js
+// ../../../repos/nightvision-mcp/node_modules/form-data/lib/populate.js
 var require_populate = __commonJS({
-  "node_modules/form-data/lib/populate.js"(exports, module) {
+  "../../../repos/nightvision-mcp/node_modules/form-data/lib/populate.js"(exports, module) {
     "use strict";
     module.exports = function(dst, src) {
       Object.keys(src).forEach(function(prop) {
@@ -16851,9 +16851,9 @@ var require_populate = __commonJS({
   }
 });
 
-// node_modules/form-data/lib/form_data.js
+// ../../../repos/nightvision-mcp/node_modules/form-data/lib/form_data.js
 var require_form_data = __commonJS({
-  "node_modules/form-data/lib/form_data.js"(exports, module) {
+  "../../../repos/nightvision-mcp/node_modules/form-data/lib/form_data.js"(exports, module) {
     "use strict";
     var CombinedStream = require_combined_stream();
     var util5 = __require("util");
@@ -17173,9 +17173,9 @@ var require_form_data = __commonJS({
   }
 });
 
-// node_modules/ms/index.js
+// ../../../repos/nightvision-mcp/node_modules/ms/index.js
 var require_ms = __commonJS({
-  "node_modules/ms/index.js"(exports, module) {
+  "../../../repos/nightvision-mcp/node_modules/ms/index.js"(exports, module) {
     var s = 1e3;
     var m = s * 60;
     var h = m * 60;
@@ -17289,9 +17289,9 @@ var require_ms = __commonJS({
   }
 });
 
-// node_modules/debug/src/common.js
+// ../../../repos/nightvision-mcp/node_modules/debug/src/common.js
 var require_common = __commonJS({
-  "node_modules/debug/src/common.js"(exports, module) {
+  "../../../repos/nightvision-mcp/node_modules/debug/src/common.js"(exports, module) {
     function setup(env) {
       createDebug.debug = createDebug;
       createDebug.default = createDebug;
@@ -17466,9 +17466,9 @@ var require_common = __commonJS({
   }
 });
 
-// node_modules/debug/src/browser.js
+// ../../../repos/nightvision-mcp/node_modules/debug/src/browser.js
 var require_browser = __commonJS({
-  "node_modules/debug/src/browser.js"(exports, module) {
+  "../../../repos/nightvision-mcp/node_modules/debug/src/browser.js"(exports, module) {
     exports.formatArgs = formatArgs;
     exports.save = save;
     exports.load = load;
@@ -17636,9 +17636,9 @@ var require_browser = __commonJS({
   }
 });
 
-// node_modules/debug/src/node.js
+// ../../../repos/nightvision-mcp/node_modules/debug/src/node.js
 var require_node = __commonJS({
-  "node_modules/debug/src/node.js"(exports, module) {
+  "../../../repos/nightvision-mcp/node_modules/debug/src/node.js"(exports, module) {
     var tty = __require("tty");
     var util5 = __require("util");
     exports.init = init;
@@ -17810,9 +17810,9 @@ var require_node = __commonJS({
   }
 });
 
-// node_modules/debug/src/index.js
+// ../../../repos/nightvision-mcp/node_modules/debug/src/index.js
 var require_src = __commonJS({
-  "node_modules/debug/src/index.js"(exports, module) {
+  "../../../repos/nightvision-mcp/node_modules/debug/src/index.js"(exports, module) {
     if (typeof process === "undefined" || process.type === "renderer" || process.browser === true || process.__nwjs) {
       module.exports = require_browser();
     } else {
@@ -17821,9 +17821,9 @@ var require_src = __commonJS({
   }
 });
 
-// node_modules/agent-base/dist/src/promisify.js
+// ../../../repos/nightvision-mcp/node_modules/agent-base/dist/src/promisify.js
 var require_promisify = __commonJS({
-  "node_modules/agent-base/dist/src/promisify.js"(exports) {
+  "../../../repos/nightvision-mcp/node_modules/agent-base/dist/src/promisify.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     function promisify3(fn) {
@@ -17843,9 +17843,9 @@ var require_promisify = __commonJS({
   }
 });
 
-// node_modules/agent-base/dist/src/index.js
+// ../../../repos/nightvision-mcp/node_modules/agent-base/dist/src/index.js
 var require_src2 = __commonJS({
-  "node_modules/agent-base/dist/src/index.js"(exports, module) {
+  "../../../repos/nightvision-mcp/node_modules/agent-base/dist/src/index.js"(exports, module) {
     "use strict";
     var __importDefault = exports && exports.__importDefault || function(mod) {
       return mod && mod.__esModule ? mod : { "default": mod };
@@ -18026,9 +18026,9 @@ var require_src2 = __commonJS({
   }
 });
 
-// node_modules/https-proxy-agent/dist/parse-proxy-response.js
+// ../../../repos/nightvision-mcp/node_modules/https-proxy-agent/dist/parse-proxy-response.js
 var require_parse_proxy_response = __commonJS({
-  "node_modules/https-proxy-agent/dist/parse-proxy-response.js"(exports) {
+  "../../../repos/nightvision-mcp/node_modules/https-proxy-agent/dist/parse-proxy-response.js"(exports) {
     "use strict";
     var __importDefault = exports && exports.__importDefault || function(mod) {
       return mod && mod.__esModule ? mod : { "default": mod };
@@ -18092,9 +18092,9 @@ var require_parse_proxy_response = __commonJS({
   }
 });
 
-// node_modules/https-proxy-agent/dist/agent.js
+// ../../../repos/nightvision-mcp/node_modules/https-proxy-agent/dist/agent.js
 var require_agent = __commonJS({
-  "node_modules/https-proxy-agent/dist/agent.js"(exports) {
+  "../../../repos/nightvision-mcp/node_modules/https-proxy-agent/dist/agent.js"(exports) {
     "use strict";
     var __awaiter = exports && exports.__awaiter || function(thisArg, _arguments, P, generator) {
       function adopt(value) {
@@ -18252,9 +18252,9 @@ var require_agent = __commonJS({
   }
 });
 
-// node_modules/https-proxy-agent/dist/index.js
+// ../../../repos/nightvision-mcp/node_modules/https-proxy-agent/dist/index.js
 var require_dist2 = __commonJS({
-  "node_modules/https-proxy-agent/dist/index.js"(exports, module) {
+  "../../../repos/nightvision-mcp/node_modules/https-proxy-agent/dist/index.js"(exports, module) {
     "use strict";
     var __importDefault = exports && exports.__importDefault || function(mod) {
       return mod && mod.__esModule ? mod : { "default": mod };
@@ -18271,9 +18271,9 @@ var require_dist2 = __commonJS({
   }
 });
 
-// node_modules/follow-redirects/debug.js
+// ../../../repos/nightvision-mcp/node_modules/follow-redirects/debug.js
 var require_debug = __commonJS({
-  "node_modules/follow-redirects/debug.js"(exports, module) {
+  "../../../repos/nightvision-mcp/node_modules/follow-redirects/debug.js"(exports, module) {
     var debug;
     module.exports = function() {
       if (!debug) {
@@ -18291,9 +18291,9 @@ var require_debug = __commonJS({
   }
 });
 
-// node_modules/follow-redirects/index.js
+// ../../../repos/nightvision-mcp/node_modules/follow-redirects/index.js
 var require_follow_redirects = __commonJS({
-  "node_modules/follow-redirects/index.js"(exports, module) {
+  "../../../repos/nightvision-mcp/node_modules/follow-redirects/index.js"(exports, module) {
     var url3 = __require("url");
     var URL2 = url3.URL;
     var http3 = __require("http");
@@ -18802,7 +18802,7 @@ var require_follow_redirects = __commonJS({
   }
 });
 
-// node_modules/zod/v3/helpers/util.js
+// ../../../repos/nightvision-mcp/node_modules/zod/v3/helpers/util.js
 var util;
 (function(util5) {
   util5.assertEqual = (_) => {
@@ -18936,7 +18936,7 @@ var getParsedType = (data) => {
   }
 };
 
-// node_modules/zod/v3/ZodError.js
+// ../../../repos/nightvision-mcp/node_modules/zod/v3/ZodError.js
 var ZodIssueCode = util.arrayToEnum([
   "invalid_type",
   "invalid_literal",
@@ -19050,7 +19050,7 @@ ZodError.create = (issues) => {
   return error51;
 };
 
-// node_modules/zod/v3/locales/en.js
+// ../../../repos/nightvision-mcp/node_modules/zod/v3/locales/en.js
 var errorMap = (issue2, _ctx) => {
   let message;
   switch (issue2.code) {
@@ -19153,13 +19153,13 @@ var errorMap = (issue2, _ctx) => {
 };
 var en_default = errorMap;
 
-// node_modules/zod/v3/errors.js
+// ../../../repos/nightvision-mcp/node_modules/zod/v3/errors.js
 var overrideErrorMap = en_default;
 function getErrorMap() {
   return overrideErrorMap;
 }
 
-// node_modules/zod/v3/helpers/parseUtil.js
+// ../../../repos/nightvision-mcp/node_modules/zod/v3/helpers/parseUtil.js
 var makeIssue = (params) => {
   const { data, path: path15, errorMaps, issueData } = params;
   const fullPath = [...path15, ...issueData.path || []];
@@ -19268,14 +19268,14 @@ var isDirty = (x) => x.status === "dirty";
 var isValid = (x) => x.status === "valid";
 var isAsync = (x) => typeof Promise !== "undefined" && x instanceof Promise;
 
-// node_modules/zod/v3/helpers/errorUtil.js
+// ../../../repos/nightvision-mcp/node_modules/zod/v3/helpers/errorUtil.js
 var errorUtil;
 (function(errorUtil2) {
   errorUtil2.errToObj = (message) => typeof message === "string" ? { message } : message || {};
   errorUtil2.toString = (message) => typeof message === "string" ? message : message?.message;
 })(errorUtil || (errorUtil = {}));
 
-// node_modules/zod/v3/types.js
+// ../../../repos/nightvision-mcp/node_modules/zod/v3/types.js
 var ParseInputLazyPath = class {
   constructor(parent, value, path15, key) {
     this._cachedPath = [];
@@ -22678,7 +22678,7 @@ var nullableType = ZodNullable.create;
 var preprocessType = ZodEffects.createWithPreprocess;
 var pipelineType = ZodPipeline.create;
 
-// node_modules/zod/v4/core/index.js
+// ../../../repos/nightvision-mcp/node_modules/zod/v4/core/index.js
 var core_exports2 = {};
 __export(core_exports2, {
   $ZodAny: () => $ZodAny,
@@ -22957,7 +22957,7 @@ __export(core_exports2, {
   version: () => version
 });
 
-// node_modules/zod/v4/core/core.js
+// ../../../repos/nightvision-mcp/node_modules/zod/v4/core/core.js
 var _a;
 var NEVER = /* @__PURE__ */ Object.freeze({
   status: "aborted"
@@ -23034,7 +23034,7 @@ function config(newConfig) {
   return globalConfig;
 }
 
-// node_modules/zod/v4/core/util.js
+// ../../../repos/nightvision-mcp/node_modules/zod/v4/core/util.js
 var util_exports = {};
 __export(util_exports, {
   BIGINT_FORMAT_RANGES: () => BIGINT_FORMAT_RANGES,
@@ -23730,7 +23730,7 @@ var Class = class {
   }
 };
 
-// node_modules/zod/v4/core/errors.js
+// ../../../repos/nightvision-mcp/node_modules/zod/v4/core/errors.js
 var initializer = (inst, def) => {
   inst.name = "$ZodError";
   Object.defineProperty(inst, "_zod", {
@@ -23869,7 +23869,7 @@ function prettifyError(error51) {
   return lines.join("\n");
 }
 
-// node_modules/zod/v4/core/parse.js
+// ../../../repos/nightvision-mcp/node_modules/zod/v4/core/parse.js
 var _parse = (_Err) => (schema, value, _ctx, _params) => {
   const ctx = _ctx ? { ..._ctx, async: false } : { async: false };
   const result = schema._zod.run({ value, issues: [] }, ctx);
@@ -23957,7 +23957,7 @@ var _safeDecodeAsync = (_Err) => async (schema, value, _ctx) => {
 };
 var safeDecodeAsync = /* @__PURE__ */ _safeDecodeAsync($ZodRealError);
 
-// node_modules/zod/v4/core/regexes.js
+// ../../../repos/nightvision-mcp/node_modules/zod/v4/core/regexes.js
 var regexes_exports = {};
 __export(regexes_exports, {
   base64: () => base64,
@@ -24116,7 +24116,7 @@ var sha512_hex = /^[0-9a-fA-F]{128}$/;
 var sha512_base64 = /* @__PURE__ */ fixedBase64(86, "==");
 var sha512_base64url = /* @__PURE__ */ fixedBase64url(86);
 
-// node_modules/zod/v4/core/checks.js
+// ../../../repos/nightvision-mcp/node_modules/zod/v4/core/checks.js
 var $ZodCheck = /* @__PURE__ */ $constructor("$ZodCheck", (inst, def) => {
   var _a3;
   inst._zod ?? (inst._zod = {});
@@ -24664,7 +24664,7 @@ var $ZodCheckOverwrite = /* @__PURE__ */ $constructor("$ZodCheckOverwrite", (ins
   };
 });
 
-// node_modules/zod/v4/core/doc.js
+// ../../../repos/nightvision-mcp/node_modules/zod/v4/core/doc.js
 var Doc = class {
   constructor(args = []) {
     this.content = [];
@@ -24700,14 +24700,14 @@ var Doc = class {
   }
 };
 
-// node_modules/zod/v4/core/versions.js
+// ../../../repos/nightvision-mcp/node_modules/zod/v4/core/versions.js
 var version = {
   major: 4,
   minor: 4,
   patch: 3
 };
 
-// node_modules/zod/v4/core/schemas.js
+// ../../../repos/nightvision-mcp/node_modules/zod/v4/core/schemas.js
 var $ZodType = /* @__PURE__ */ $constructor("$ZodType", (inst, def) => {
   var _a3;
   inst ?? (inst = {});
@@ -26800,7 +26800,7 @@ function handleRefineResult(result, payload, input, inst) {
   }
 }
 
-// node_modules/zod/v4/locales/index.js
+// ../../../repos/nightvision-mcp/node_modules/zod/v4/locales/index.js
 var locales_exports = {};
 __export(locales_exports, {
   ar: () => ar_default,
@@ -26857,7 +26857,7 @@ __export(locales_exports, {
   zhTW: () => zh_TW_default
 });
 
-// node_modules/zod/v4/locales/ar.js
+// ../../../repos/nightvision-mcp/node_modules/zod/v4/locales/ar.js
 var error = () => {
   const Sizable = {
     string: { unit: "\u062D\u0631\u0641", verb: "\u0623\u0646 \u064A\u062D\u0648\u064A" },
@@ -26964,7 +26964,7 @@ function ar_default() {
   };
 }
 
-// node_modules/zod/v4/locales/az.js
+// ../../../repos/nightvision-mcp/node_modules/zod/v4/locales/az.js
 var error2 = () => {
   const Sizable = {
     string: { unit: "simvol", verb: "olmal\u0131d\u0131r" },
@@ -27070,7 +27070,7 @@ function az_default() {
   };
 }
 
-// node_modules/zod/v4/locales/be.js
+// ../../../repos/nightvision-mcp/node_modules/zod/v4/locales/be.js
 function getBelarusianPlural(count, one, few, many) {
   const absCount = Math.abs(count);
   const lastDigit = absCount % 10;
@@ -27227,7 +27227,7 @@ function be_default() {
   };
 }
 
-// node_modules/zod/v4/locales/bg.js
+// ../../../repos/nightvision-mcp/node_modules/zod/v4/locales/bg.js
 var error4 = () => {
   const Sizable = {
     string: { unit: "\u0441\u0438\u043C\u0432\u043E\u043B\u0430", verb: "\u0434\u0430 \u0441\u044A\u0434\u044A\u0440\u0436\u0430" },
@@ -27348,7 +27348,7 @@ function bg_default() {
   };
 }
 
-// node_modules/zod/v4/locales/ca.js
+// ../../../repos/nightvision-mcp/node_modules/zod/v4/locales/ca.js
 var error5 = () => {
   const Sizable = {
     string: { unit: "car\xE0cters", verb: "contenir" },
@@ -27457,7 +27457,7 @@ function ca_default() {
   };
 }
 
-// node_modules/zod/v4/locales/cs.js
+// ../../../repos/nightvision-mcp/node_modules/zod/v4/locales/cs.js
 var error6 = () => {
   const Sizable = {
     string: { unit: "znak\u016F", verb: "m\xEDt" },
@@ -27569,7 +27569,7 @@ function cs_default() {
   };
 }
 
-// node_modules/zod/v4/locales/da.js
+// ../../../repos/nightvision-mcp/node_modules/zod/v4/locales/da.js
 var error7 = () => {
   const Sizable = {
     string: { unit: "tegn", verb: "havde" },
@@ -27685,7 +27685,7 @@ function da_default() {
   };
 }
 
-// node_modules/zod/v4/locales/de.js
+// ../../../repos/nightvision-mcp/node_modules/zod/v4/locales/de.js
 var error8 = () => {
   const Sizable = {
     string: { unit: "Zeichen", verb: "zu haben" },
@@ -27794,7 +27794,7 @@ function de_default() {
   };
 }
 
-// node_modules/zod/v4/locales/el.js
+// ../../../repos/nightvision-mcp/node_modules/zod/v4/locales/el.js
 var error9 = () => {
   const Sizable = {
     string: { unit: "\u03C7\u03B1\u03C1\u03B1\u03BA\u03C4\u03AE\u03C1\u03B5\u03C2", verb: "\u03BD\u03B1 \u03AD\u03C7\u03B5\u03B9" },
@@ -27904,7 +27904,7 @@ function el_default() {
   };
 }
 
-// node_modules/zod/v4/locales/en.js
+// ../../../repos/nightvision-mcp/node_modules/zod/v4/locales/en.js
 var error10 = () => {
   const Sizable = {
     string: { unit: "characters", verb: "to have" },
@@ -28017,7 +28017,7 @@ function en_default2() {
   };
 }
 
-// node_modules/zod/v4/locales/eo.js
+// ../../../repos/nightvision-mcp/node_modules/zod/v4/locales/eo.js
 var error11 = () => {
   const Sizable = {
     string: { unit: "karaktrojn", verb: "havi" },
@@ -28127,7 +28127,7 @@ function eo_default() {
   };
 }
 
-// node_modules/zod/v4/locales/es.js
+// ../../../repos/nightvision-mcp/node_modules/zod/v4/locales/es.js
 var error12 = () => {
   const Sizable = {
     string: { unit: "caracteres", verb: "tener" },
@@ -28260,7 +28260,7 @@ function es_default() {
   };
 }
 
-// node_modules/zod/v4/locales/fa.js
+// ../../../repos/nightvision-mcp/node_modules/zod/v4/locales/fa.js
 var error13 = () => {
   const Sizable = {
     string: { unit: "\u06A9\u0627\u0631\u0627\u06A9\u062A\u0631", verb: "\u062F\u0627\u0634\u062A\u0647 \u0628\u0627\u0634\u062F" },
@@ -28375,7 +28375,7 @@ function fa_default() {
   };
 }
 
-// node_modules/zod/v4/locales/fi.js
+// ../../../repos/nightvision-mcp/node_modules/zod/v4/locales/fi.js
 var error14 = () => {
   const Sizable = {
     string: { unit: "merkki\xE4", subject: "merkkijonon" },
@@ -28488,7 +28488,7 @@ function fi_default() {
   };
 }
 
-// node_modules/zod/v4/locales/fr.js
+// ../../../repos/nightvision-mcp/node_modules/zod/v4/locales/fr.js
 var error15 = () => {
   const Sizable = {
     string: { unit: "caract\xE8res", verb: "avoir" },
@@ -28614,7 +28614,7 @@ function fr_default() {
   };
 }
 
-// node_modules/zod/v4/locales/fr-CA.js
+// ../../../repos/nightvision-mcp/node_modules/zod/v4/locales/fr-CA.js
 var error16 = () => {
   const Sizable = {
     string: { unit: "caract\xE8res", verb: "avoir" },
@@ -28722,7 +28722,7 @@ function fr_CA_default() {
   };
 }
 
-// node_modules/zod/v4/locales/he.js
+// ../../../repos/nightvision-mcp/node_modules/zod/v4/locales/he.js
 var error17 = () => {
   const TypeNames = {
     string: { label: "\u05DE\u05D7\u05E8\u05D5\u05D6\u05EA", gender: "f" },
@@ -28917,7 +28917,7 @@ function he_default() {
   };
 }
 
-// node_modules/zod/v4/locales/hr.js
+// ../../../repos/nightvision-mcp/node_modules/zod/v4/locales/hr.js
 var error18 = () => {
   const Sizable = {
     string: { unit: "znakova", verb: "imati" },
@@ -29040,7 +29040,7 @@ function hr_default() {
   };
 }
 
-// node_modules/zod/v4/locales/hu.js
+// ../../../repos/nightvision-mcp/node_modules/zod/v4/locales/hu.js
 var error19 = () => {
   const Sizable = {
     string: { unit: "karakter", verb: "legyen" },
@@ -29149,7 +29149,7 @@ function hu_default() {
   };
 }
 
-// node_modules/zod/v4/locales/hy.js
+// ../../../repos/nightvision-mcp/node_modules/zod/v4/locales/hy.js
 function getArmenianPlural(count, one, many) {
   return Math.abs(count) === 1 ? one : many;
 }
@@ -29297,7 +29297,7 @@ function hy_default() {
   };
 }
 
-// node_modules/zod/v4/locales/id.js
+// ../../../repos/nightvision-mcp/node_modules/zod/v4/locales/id.js
 var error21 = () => {
   const Sizable = {
     string: { unit: "karakter", verb: "memiliki" },
@@ -29404,7 +29404,7 @@ function id_default() {
   };
 }
 
-// node_modules/zod/v4/locales/is.js
+// ../../../repos/nightvision-mcp/node_modules/zod/v4/locales/is.js
 var error22 = () => {
   const Sizable = {
     string: { unit: "stafi", verb: "a\xF0 hafa" },
@@ -29514,7 +29514,7 @@ function is_default() {
   };
 }
 
-// node_modules/zod/v4/locales/it.js
+// ../../../repos/nightvision-mcp/node_modules/zod/v4/locales/it.js
 var error23 = () => {
   const Sizable = {
     string: { unit: "caratteri", verb: "avere" },
@@ -29623,7 +29623,7 @@ function it_default() {
   };
 }
 
-// node_modules/zod/v4/locales/ja.js
+// ../../../repos/nightvision-mcp/node_modules/zod/v4/locales/ja.js
 var error24 = () => {
   const Sizable = {
     string: { unit: "\u6587\u5B57", verb: "\u3067\u3042\u308B" },
@@ -29731,7 +29731,7 @@ function ja_default() {
   };
 }
 
-// node_modules/zod/v4/locales/ka.js
+// ../../../repos/nightvision-mcp/node_modules/zod/v4/locales/ka.js
 var error25 = () => {
   const Sizable = {
     string: { unit: "\u10E1\u10D8\u10DB\u10D1\u10DD\u10DA\u10DD", verb: "\u10E3\u10DC\u10D3\u10D0 \u10E8\u10D4\u10D8\u10EA\u10D0\u10D5\u10D3\u10D4\u10E1" },
@@ -29844,7 +29844,7 @@ function ka_default() {
   };
 }
 
-// node_modules/zod/v4/locales/km.js
+// ../../../repos/nightvision-mcp/node_modules/zod/v4/locales/km.js
 var error26 = () => {
   const Sizable = {
     string: { unit: "\u178F\u17BD\u17A2\u1780\u17D2\u179F\u179A", verb: "\u1782\u17BD\u179A\u1798\u17B6\u1793" },
@@ -29955,12 +29955,12 @@ function km_default() {
   };
 }
 
-// node_modules/zod/v4/locales/kh.js
+// ../../../repos/nightvision-mcp/node_modules/zod/v4/locales/kh.js
 function kh_default() {
   return km_default();
 }
 
-// node_modules/zod/v4/locales/ko.js
+// ../../../repos/nightvision-mcp/node_modules/zod/v4/locales/ko.js
 var error27 = () => {
   const Sizable = {
     string: { unit: "\uBB38\uC790", verb: "to have" },
@@ -30072,7 +30072,7 @@ function ko_default() {
   };
 }
 
-// node_modules/zod/v4/locales/lt.js
+// ../../../repos/nightvision-mcp/node_modules/zod/v4/locales/lt.js
 var capitalizeFirstCharacter = (text) => {
   return text.charAt(0).toUpperCase() + text.slice(1);
 };
@@ -30276,7 +30276,7 @@ function lt_default() {
   };
 }
 
-// node_modules/zod/v4/locales/mk.js
+// ../../../repos/nightvision-mcp/node_modules/zod/v4/locales/mk.js
 var error29 = () => {
   const Sizable = {
     string: { unit: "\u0437\u043D\u0430\u0446\u0438", verb: "\u0434\u0430 \u0438\u043C\u0430\u0430\u0442" },
@@ -30386,7 +30386,7 @@ function mk_default() {
   };
 }
 
-// node_modules/zod/v4/locales/ms.js
+// ../../../repos/nightvision-mcp/node_modules/zod/v4/locales/ms.js
 var error30 = () => {
   const Sizable = {
     string: { unit: "aksara", verb: "mempunyai" },
@@ -30494,7 +30494,7 @@ function ms_default() {
   };
 }
 
-// node_modules/zod/v4/locales/nl.js
+// ../../../repos/nightvision-mcp/node_modules/zod/v4/locales/nl.js
 var error31 = () => {
   const Sizable = {
     string: { unit: "tekens", verb: "heeft" },
@@ -30605,7 +30605,7 @@ function nl_default() {
   };
 }
 
-// node_modules/zod/v4/locales/no.js
+// ../../../repos/nightvision-mcp/node_modules/zod/v4/locales/no.js
 var error32 = () => {
   const Sizable = {
     string: { unit: "tegn", verb: "\xE5 ha" },
@@ -30714,7 +30714,7 @@ function no_default() {
   };
 }
 
-// node_modules/zod/v4/locales/ota.js
+// ../../../repos/nightvision-mcp/node_modules/zod/v4/locales/ota.js
 var error33 = () => {
   const Sizable = {
     string: { unit: "harf", verb: "olmal\u0131d\u0131r" },
@@ -30824,7 +30824,7 @@ function ota_default() {
   };
 }
 
-// node_modules/zod/v4/locales/ps.js
+// ../../../repos/nightvision-mcp/node_modules/zod/v4/locales/ps.js
 var error34 = () => {
   const Sizable = {
     string: { unit: "\u062A\u0648\u06A9\u064A", verb: "\u0648\u0644\u0631\u064A" },
@@ -30939,7 +30939,7 @@ function ps_default() {
   };
 }
 
-// node_modules/zod/v4/locales/pl.js
+// ../../../repos/nightvision-mcp/node_modules/zod/v4/locales/pl.js
 var error35 = () => {
   const Sizable = {
     string: { unit: "znak\xF3w", verb: "mie\u0107" },
@@ -31049,7 +31049,7 @@ function pl_default() {
   };
 }
 
-// node_modules/zod/v4/locales/pt.js
+// ../../../repos/nightvision-mcp/node_modules/zod/v4/locales/pt.js
 var error36 = () => {
   const Sizable = {
     string: { unit: "caracteres", verb: "ter" },
@@ -31158,7 +31158,7 @@ function pt_default() {
   };
 }
 
-// node_modules/zod/v4/locales/ro.js
+// ../../../repos/nightvision-mcp/node_modules/zod/v4/locales/ro.js
 var error37 = () => {
   const Sizable = {
     string: { unit: "caractere", verb: "s\u0103 aib\u0103" },
@@ -31278,7 +31278,7 @@ function ro_default() {
   };
 }
 
-// node_modules/zod/v4/locales/ru.js
+// ../../../repos/nightvision-mcp/node_modules/zod/v4/locales/ru.js
 function getRussianPlural(count, one, few, many) {
   const absCount = Math.abs(count);
   const lastDigit = absCount % 10;
@@ -31435,7 +31435,7 @@ function ru_default() {
   };
 }
 
-// node_modules/zod/v4/locales/sl.js
+// ../../../repos/nightvision-mcp/node_modules/zod/v4/locales/sl.js
 var error39 = () => {
   const Sizable = {
     string: { unit: "znakov", verb: "imeti" },
@@ -31545,7 +31545,7 @@ function sl_default() {
   };
 }
 
-// node_modules/zod/v4/locales/sv.js
+// ../../../repos/nightvision-mcp/node_modules/zod/v4/locales/sv.js
 var error40 = () => {
   const Sizable = {
     string: { unit: "tecken", verb: "att ha" },
@@ -31656,7 +31656,7 @@ function sv_default() {
   };
 }
 
-// node_modules/zod/v4/locales/ta.js
+// ../../../repos/nightvision-mcp/node_modules/zod/v4/locales/ta.js
 var error41 = () => {
   const Sizable = {
     string: { unit: "\u0B8E\u0BB4\u0BC1\u0BA4\u0BCD\u0BA4\u0BC1\u0B95\u0BCD\u0B95\u0BB3\u0BCD", verb: "\u0B95\u0BCA\u0BA3\u0BCD\u0B9F\u0BBF\u0BB0\u0BC1\u0B95\u0BCD\u0B95 \u0BB5\u0BC7\u0BA3\u0BCD\u0B9F\u0BC1\u0BAE\u0BCD" },
@@ -31767,7 +31767,7 @@ function ta_default() {
   };
 }
 
-// node_modules/zod/v4/locales/th.js
+// ../../../repos/nightvision-mcp/node_modules/zod/v4/locales/th.js
 var error42 = () => {
   const Sizable = {
     string: { unit: "\u0E15\u0E31\u0E27\u0E2D\u0E31\u0E01\u0E29\u0E23", verb: "\u0E04\u0E27\u0E23\u0E21\u0E35" },
@@ -31878,7 +31878,7 @@ function th_default() {
   };
 }
 
-// node_modules/zod/v4/locales/tr.js
+// ../../../repos/nightvision-mcp/node_modules/zod/v4/locales/tr.js
 var error43 = () => {
   const Sizable = {
     string: { unit: "karakter", verb: "olmal\u0131" },
@@ -31984,7 +31984,7 @@ function tr_default() {
   };
 }
 
-// node_modules/zod/v4/locales/uk.js
+// ../../../repos/nightvision-mcp/node_modules/zod/v4/locales/uk.js
 var error44 = () => {
   const Sizable = {
     string: { unit: "\u0441\u0438\u043C\u0432\u043E\u043B\u0456\u0432", verb: "\u043C\u0430\u0442\u0438\u043C\u0435" },
@@ -32093,12 +32093,12 @@ function uk_default() {
   };
 }
 
-// node_modules/zod/v4/locales/ua.js
+// ../../../repos/nightvision-mcp/node_modules/zod/v4/locales/ua.js
 function ua_default() {
   return uk_default();
 }
 
-// node_modules/zod/v4/locales/ur.js
+// ../../../repos/nightvision-mcp/node_modules/zod/v4/locales/ur.js
 var error45 = () => {
   const Sizable = {
     string: { unit: "\u062D\u0631\u0648\u0641", verb: "\u06C1\u0648\u0646\u0627" },
@@ -32209,7 +32209,7 @@ function ur_default() {
   };
 }
 
-// node_modules/zod/v4/locales/uz.js
+// ../../../repos/nightvision-mcp/node_modules/zod/v4/locales/uz.js
 var error46 = () => {
   const Sizable = {
     string: { unit: "belgi", verb: "bo\u2018lishi kerak" },
@@ -32320,7 +32320,7 @@ function uz_default() {
   };
 }
 
-// node_modules/zod/v4/locales/vi.js
+// ../../../repos/nightvision-mcp/node_modules/zod/v4/locales/vi.js
 var error47 = () => {
   const Sizable = {
     string: { unit: "k\xFD t\u1EF1", verb: "c\xF3" },
@@ -32429,7 +32429,7 @@ function vi_default() {
   };
 }
 
-// node_modules/zod/v4/locales/zh-CN.js
+// ../../../repos/nightvision-mcp/node_modules/zod/v4/locales/zh-CN.js
 var error48 = () => {
   const Sizable = {
     string: { unit: "\u5B57\u7B26", verb: "\u5305\u542B" },
@@ -32539,7 +32539,7 @@ function zh_CN_default() {
   };
 }
 
-// node_modules/zod/v4/locales/zh-TW.js
+// ../../../repos/nightvision-mcp/node_modules/zod/v4/locales/zh-TW.js
 var error49 = () => {
   const Sizable = {
     string: { unit: "\u5B57\u5143", verb: "\u64C1\u6709" },
@@ -32647,7 +32647,7 @@ function zh_TW_default() {
   };
 }
 
-// node_modules/zod/v4/locales/yo.js
+// ../../../repos/nightvision-mcp/node_modules/zod/v4/locales/yo.js
 var error50 = () => {
   const Sizable = {
     string: { unit: "\xE0mi", verb: "n\xED" },
@@ -32755,7 +32755,7 @@ function yo_default() {
   };
 }
 
-// node_modules/zod/v4/core/registries.js
+// ../../../repos/nightvision-mcp/node_modules/zod/v4/core/registries.js
 var _a2;
 var $output = /* @__PURE__ */ Symbol("ZodOutput");
 var $input = /* @__PURE__ */ Symbol("ZodInput");
@@ -32805,7 +32805,7 @@ function registry() {
 (_a2 = globalThis).__zod_globalRegistry ?? (_a2.__zod_globalRegistry = registry());
 var globalRegistry = globalThis.__zod_globalRegistry;
 
-// node_modules/zod/v4/core/api.js
+// ../../../repos/nightvision-mcp/node_modules/zod/v4/core/api.js
 // @__NO_SIDE_EFFECTS__
 function _string(Class2, params) {
   return new Class2({
@@ -33844,7 +33844,7 @@ function _stringFormat(Class2, format, fnOrRegex, _params = {}) {
   return inst;
 }
 
-// node_modules/zod/v4/core/to-json-schema.js
+// ../../../repos/nightvision-mcp/node_modules/zod/v4/core/to-json-schema.js
 function initializeContext(params) {
   let target = params?.target ?? "draft-2020-12";
   if (target === "draft-4")
@@ -34203,7 +34203,7 @@ var createStandardJSONSchemaMethod = (schema, io, processors = {}) => (params) =
   return finalize(ctx, schema);
 };
 
-// node_modules/zod/v4/core/json-schema-processors.js
+// ../../../repos/nightvision-mcp/node_modules/zod/v4/core/json-schema-processors.js
 var formatMap = {
   guid: "uuid",
   url: "uri",
@@ -34747,7 +34747,7 @@ function toJSONSchema(input, params) {
   return finalize(ctx, input);
 }
 
-// node_modules/zod/v4/core/json-schema-generator.js
+// ../../../repos/nightvision-mcp/node_modules/zod/v4/core/json-schema-generator.js
 var JSONSchemaGenerator = class {
   /** @deprecated Access via ctx instead */
   get metadataRegistry() {
@@ -34822,10 +34822,10 @@ var JSONSchemaGenerator = class {
   }
 };
 
-// node_modules/zod/v4/core/json-schema.js
+// ../../../repos/nightvision-mcp/node_modules/zod/v4/core/json-schema.js
 var json_schema_exports = {};
 
-// node_modules/zod/v4/mini/schemas.js
+// ../../../repos/nightvision-mcp/node_modules/zod/v4/mini/schemas.js
 var ZodMiniType = /* @__PURE__ */ $constructor("ZodMiniType", (inst, def) => {
   if (!inst._zod)
     throw new Error("Uninitialized schema in ZodMiniType.");
@@ -34871,7 +34871,7 @@ function object(shape, params) {
   return new ZodMiniObject(def);
 }
 
-// node_modules/@modelcontextprotocol/sdk/dist/esm/server/zod-compat.js
+// ../../../repos/nightvision-mcp/node_modules/@modelcontextprotocol/sdk/dist/esm/server/zod-compat.js
 function isZ4Schema(s) {
   const schema = s;
   return !!schema._zod;
@@ -35031,7 +35031,7 @@ function getLiteralValue(schema) {
   return void 0;
 }
 
-// node_modules/zod/v4/classic/external.js
+// ../../../repos/nightvision-mcp/node_modules/zod/v4/classic/external.js
 var external_exports = {};
 __export(external_exports, {
   $brand: () => $brand,
@@ -35274,7 +35274,7 @@ __export(external_exports, {
   xor: () => xor
 });
 
-// node_modules/zod/v4/classic/schemas.js
+// ../../../repos/nightvision-mcp/node_modules/zod/v4/classic/schemas.js
 var schemas_exports2 = {};
 __export(schemas_exports2, {
   ZodAny: () => ZodAny2,
@@ -35445,7 +35445,7 @@ __export(schemas_exports2, {
   xor: () => xor
 });
 
-// node_modules/zod/v4/classic/checks.js
+// ../../../repos/nightvision-mcp/node_modules/zod/v4/classic/checks.js
 var checks_exports2 = {};
 __export(checks_exports2, {
   endsWith: () => _endsWith,
@@ -35479,7 +35479,7 @@ __export(checks_exports2, {
   uppercase: () => _uppercase
 });
 
-// node_modules/zod/v4/classic/iso.js
+// ../../../repos/nightvision-mcp/node_modules/zod/v4/classic/iso.js
 var iso_exports2 = {};
 __export(iso_exports2, {
   ZodISODate: () => ZodISODate,
@@ -35520,7 +35520,7 @@ function duration2(params) {
   return _isoDuration(ZodISODuration, params);
 }
 
-// node_modules/zod/v4/classic/errors.js
+// ../../../repos/nightvision-mcp/node_modules/zod/v4/classic/errors.js
 var initializer2 = (inst, issues) => {
   $ZodError.init(inst, issues);
   inst.name = "ZodError";
@@ -35560,7 +35560,7 @@ var ZodRealError = /* @__PURE__ */ $constructor("ZodError", initializer2, {
   Parent: Error
 });
 
-// node_modules/zod/v4/classic/parse.js
+// ../../../repos/nightvision-mcp/node_modules/zod/v4/classic/parse.js
 var parse2 = /* @__PURE__ */ _parse(ZodRealError);
 var parseAsync2 = /* @__PURE__ */ _parseAsync(ZodRealError);
 var safeParse3 = /* @__PURE__ */ _safeParse(ZodRealError);
@@ -35574,7 +35574,7 @@ var safeDecode2 = /* @__PURE__ */ _safeDecode(ZodRealError);
 var safeEncodeAsync2 = /* @__PURE__ */ _safeEncodeAsync(ZodRealError);
 var safeDecodeAsync2 = /* @__PURE__ */ _safeDecodeAsync(ZodRealError);
 
-// node_modules/zod/v4/classic/schemas.js
+// ../../../repos/nightvision-mcp/node_modules/zod/v4/classic/schemas.js
 var _installedGroups = /* @__PURE__ */ new WeakMap();
 function _installLazyMethods(inst, group, methods) {
   const proto = Object.getPrototypeOf(inst);
@@ -36864,7 +36864,7 @@ function preprocess(fn, schema) {
   });
 }
 
-// node_modules/zod/v4/classic/compat.js
+// ../../../repos/nightvision-mcp/node_modules/zod/v4/classic/compat.js
 var ZodIssueCode2 = {
   invalid_type: "invalid_type",
   too_big: "too_big",
@@ -36890,7 +36890,7 @@ var ZodFirstPartyTypeKind2;
 /* @__PURE__ */ (function(ZodFirstPartyTypeKind3) {
 })(ZodFirstPartyTypeKind2 || (ZodFirstPartyTypeKind2 = {}));
 
-// node_modules/zod/v4/classic/from-json-schema.js
+// ../../../repos/nightvision-mcp/node_modules/zod/v4/classic/from-json-schema.js
 var z = {
   ...schemas_exports2,
   ...checks_exports2,
@@ -37370,7 +37370,7 @@ function fromJSONSchema(schema, params) {
   return convertSchema(normalized, ctx);
 }
 
-// node_modules/zod/v4/classic/coerce.js
+// ../../../repos/nightvision-mcp/node_modules/zod/v4/classic/coerce.js
 var coerce_exports2 = {};
 __export(coerce_exports2, {
   bigint: () => bigint3,
@@ -37395,10 +37395,10 @@ function date4(params) {
   return _coercedDate(ZodDate2, params);
 }
 
-// node_modules/zod/v4/classic/external.js
+// ../../../repos/nightvision-mcp/node_modules/zod/v4/classic/external.js
 config(en_default2());
 
-// node_modules/@modelcontextprotocol/sdk/dist/esm/types.js
+// ../../../repos/nightvision-mcp/node_modules/@modelcontextprotocol/sdk/dist/esm/types.js
 var LATEST_PROTOCOL_VERSION = "2025-11-25";
 var SUPPORTED_PROTOCOL_VERSIONS = [LATEST_PROTOCOL_VERSION, "2025-06-18", "2025-03-26", "2024-11-05", "2024-10-07"];
 var RELATED_TASK_META_KEY = "io.modelcontextprotocol/related-task";
@@ -38929,12 +38929,12 @@ var UrlElicitationRequiredError = class extends McpError {
   }
 };
 
-// node_modules/@modelcontextprotocol/sdk/dist/esm/experimental/tasks/interfaces.js
+// ../../../repos/nightvision-mcp/node_modules/@modelcontextprotocol/sdk/dist/esm/experimental/tasks/interfaces.js
 function isTerminal(status) {
   return status === "completed" || status === "failed" || status === "cancelled";
 }
 
-// node_modules/zod-to-json-schema/dist/esm/Options.js
+// ../../../repos/nightvision-mcp/node_modules/zod-to-json-schema/dist/esm/Options.js
 var ignoreOverride = /* @__PURE__ */ Symbol("Let zodToJsonSchema decide on which parser to use");
 var defaultOptions = {
   name: void 0,
@@ -38968,7 +38968,7 @@ var getDefaultOptions = (options) => typeof options === "string" ? {
   ...options
 };
 
-// node_modules/zod-to-json-schema/dist/esm/Refs.js
+// ../../../repos/nightvision-mcp/node_modules/zod-to-json-schema/dist/esm/Refs.js
 var getRefs = (options) => {
   const _options = getDefaultOptions(options);
   const currentPath = _options.name !== void 0 ? [..._options.basePath, _options.definitionPath, _options.name] : _options.basePath;
@@ -38989,7 +38989,7 @@ var getRefs = (options) => {
   };
 };
 
-// node_modules/zod-to-json-schema/dist/esm/errorMessages.js
+// ../../../repos/nightvision-mcp/node_modules/zod-to-json-schema/dist/esm/errorMessages.js
 function addErrorMessage(res, key, errorMessage, refs) {
   if (!refs?.errorMessages)
     return;
@@ -39005,7 +39005,7 @@ function setResponseValueAndErrors(res, key, value, errorMessage, refs) {
   addErrorMessage(res, key, errorMessage, refs);
 }
 
-// node_modules/zod-to-json-schema/dist/esm/getRelativePath.js
+// ../../../repos/nightvision-mcp/node_modules/zod-to-json-schema/dist/esm/getRelativePath.js
 var getRelativePath = (pathA, pathB) => {
   let i = 0;
   for (; i < pathA.length && i < pathB.length; i++) {
@@ -39015,7 +39015,7 @@ var getRelativePath = (pathA, pathB) => {
   return [(pathA.length - i).toString(), ...pathB.slice(i)].join("/");
 };
 
-// node_modules/zod-to-json-schema/dist/esm/parsers/any.js
+// ../../../repos/nightvision-mcp/node_modules/zod-to-json-schema/dist/esm/parsers/any.js
 function parseAnyDef(refs) {
   if (refs.target !== "openAi") {
     return {};
@@ -39031,7 +39031,7 @@ function parseAnyDef(refs) {
   };
 }
 
-// node_modules/zod-to-json-schema/dist/esm/parsers/array.js
+// ../../../repos/nightvision-mcp/node_modules/zod-to-json-schema/dist/esm/parsers/array.js
 function parseArrayDef(def, refs) {
   const res = {
     type: "array"
@@ -39055,7 +39055,7 @@ function parseArrayDef(def, refs) {
   return res;
 }
 
-// node_modules/zod-to-json-schema/dist/esm/parsers/bigint.js
+// ../../../repos/nightvision-mcp/node_modules/zod-to-json-schema/dist/esm/parsers/bigint.js
 function parseBigintDef(def, refs) {
   const res = {
     type: "integer",
@@ -39101,24 +39101,24 @@ function parseBigintDef(def, refs) {
   return res;
 }
 
-// node_modules/zod-to-json-schema/dist/esm/parsers/boolean.js
+// ../../../repos/nightvision-mcp/node_modules/zod-to-json-schema/dist/esm/parsers/boolean.js
 function parseBooleanDef() {
   return {
     type: "boolean"
   };
 }
 
-// node_modules/zod-to-json-schema/dist/esm/parsers/branded.js
+// ../../../repos/nightvision-mcp/node_modules/zod-to-json-schema/dist/esm/parsers/branded.js
 function parseBrandedDef(_def, refs) {
   return parseDef(_def.type._def, refs);
 }
 
-// node_modules/zod-to-json-schema/dist/esm/parsers/catch.js
+// ../../../repos/nightvision-mcp/node_modules/zod-to-json-schema/dist/esm/parsers/catch.js
 var parseCatchDef = (def, refs) => {
   return parseDef(def.innerType._def, refs);
 };
 
-// node_modules/zod-to-json-schema/dist/esm/parsers/date.js
+// ../../../repos/nightvision-mcp/node_modules/zod-to-json-schema/dist/esm/parsers/date.js
 function parseDateDef(def, refs, overrideDateStrategy) {
   const strategy = overrideDateStrategy ?? refs.dateStrategy;
   if (Array.isArray(strategy)) {
@@ -39177,7 +39177,7 @@ var integerDateParser = (def, refs) => {
   return res;
 };
 
-// node_modules/zod-to-json-schema/dist/esm/parsers/default.js
+// ../../../repos/nightvision-mcp/node_modules/zod-to-json-schema/dist/esm/parsers/default.js
 function parseDefaultDef(_def, refs) {
   return {
     ...parseDef(_def.innerType._def, refs),
@@ -39185,12 +39185,12 @@ function parseDefaultDef(_def, refs) {
   };
 }
 
-// node_modules/zod-to-json-schema/dist/esm/parsers/effects.js
+// ../../../repos/nightvision-mcp/node_modules/zod-to-json-schema/dist/esm/parsers/effects.js
 function parseEffectsDef(_def, refs) {
   return refs.effectStrategy === "input" ? parseDef(_def.schema._def, refs) : parseAnyDef(refs);
 }
 
-// node_modules/zod-to-json-schema/dist/esm/parsers/enum.js
+// ../../../repos/nightvision-mcp/node_modules/zod-to-json-schema/dist/esm/parsers/enum.js
 function parseEnumDef(def) {
   return {
     type: "string",
@@ -39198,7 +39198,7 @@ function parseEnumDef(def) {
   };
 }
 
-// node_modules/zod-to-json-schema/dist/esm/parsers/intersection.js
+// ../../../repos/nightvision-mcp/node_modules/zod-to-json-schema/dist/esm/parsers/intersection.js
 var isJsonSchema7AllOfType = (type) => {
   if ("type" in type && type.type === "string")
     return false;
@@ -39240,7 +39240,7 @@ function parseIntersectionDef(def, refs) {
   } : void 0;
 }
 
-// node_modules/zod-to-json-schema/dist/esm/parsers/literal.js
+// ../../../repos/nightvision-mcp/node_modules/zod-to-json-schema/dist/esm/parsers/literal.js
 function parseLiteralDef(def, refs) {
   const parsedType2 = typeof def.value;
   if (parsedType2 !== "bigint" && parsedType2 !== "number" && parsedType2 !== "boolean" && parsedType2 !== "string") {
@@ -39260,7 +39260,7 @@ function parseLiteralDef(def, refs) {
   };
 }
 
-// node_modules/zod-to-json-schema/dist/esm/parsers/string.js
+// ../../../repos/nightvision-mcp/node_modules/zod-to-json-schema/dist/esm/parsers/string.js
 var emojiRegex2 = void 0;
 var zodPatterns = {
   /**
@@ -39585,7 +39585,7 @@ function stringifyRegExpWithFlags(regex, refs) {
   return pattern;
 }
 
-// node_modules/zod-to-json-schema/dist/esm/parsers/record.js
+// ../../../repos/nightvision-mcp/node_modules/zod-to-json-schema/dist/esm/parsers/record.js
 function parseRecordDef(def, refs) {
   if (refs.target === "openAi") {
     console.warn("Warning: OpenAI may not support records in schemas! Try an array of key-value pairs instead.");
@@ -39637,7 +39637,7 @@ function parseRecordDef(def, refs) {
   return schema;
 }
 
-// node_modules/zod-to-json-schema/dist/esm/parsers/map.js
+// ../../../repos/nightvision-mcp/node_modules/zod-to-json-schema/dist/esm/parsers/map.js
 function parseMapDef(def, refs) {
   if (refs.mapStrategy === "record") {
     return parseRecordDef(def, refs);
@@ -39662,7 +39662,7 @@ function parseMapDef(def, refs) {
   };
 }
 
-// node_modules/zod-to-json-schema/dist/esm/parsers/nativeEnum.js
+// ../../../repos/nightvision-mcp/node_modules/zod-to-json-schema/dist/esm/parsers/nativeEnum.js
 function parseNativeEnumDef(def) {
   const object3 = def.values;
   const actualKeys = Object.keys(def.values).filter((key) => {
@@ -39676,7 +39676,7 @@ function parseNativeEnumDef(def) {
   };
 }
 
-// node_modules/zod-to-json-schema/dist/esm/parsers/never.js
+// ../../../repos/nightvision-mcp/node_modules/zod-to-json-schema/dist/esm/parsers/never.js
 function parseNeverDef(refs) {
   return refs.target === "openAi" ? void 0 : {
     not: parseAnyDef({
@@ -39686,7 +39686,7 @@ function parseNeverDef(refs) {
   };
 }
 
-// node_modules/zod-to-json-schema/dist/esm/parsers/null.js
+// ../../../repos/nightvision-mcp/node_modules/zod-to-json-schema/dist/esm/parsers/null.js
 function parseNullDef(refs) {
   return refs.target === "openApi3" ? {
     enum: ["null"],
@@ -39696,7 +39696,7 @@ function parseNullDef(refs) {
   };
 }
 
-// node_modules/zod-to-json-schema/dist/esm/parsers/union.js
+// ../../../repos/nightvision-mcp/node_modules/zod-to-json-schema/dist/esm/parsers/union.js
 var primitiveMappings = {
   ZodString: "string",
   ZodNumber: "number",
@@ -39764,7 +39764,7 @@ var asAnyOf = (def, refs) => {
   return anyOf.length ? { anyOf } : void 0;
 };
 
-// node_modules/zod-to-json-schema/dist/esm/parsers/nullable.js
+// ../../../repos/nightvision-mcp/node_modules/zod-to-json-schema/dist/esm/parsers/nullable.js
 function parseNullableDef(def, refs) {
   if (["ZodString", "ZodNumber", "ZodBigInt", "ZodBoolean", "ZodNull"].includes(def.innerType._def.typeName) && (!def.innerType._def.checks || !def.innerType._def.checks.length)) {
     if (refs.target === "openApi3") {
@@ -39796,7 +39796,7 @@ function parseNullableDef(def, refs) {
   return base && { anyOf: [base, { type: "null" }] };
 }
 
-// node_modules/zod-to-json-schema/dist/esm/parsers/number.js
+// ../../../repos/nightvision-mcp/node_modules/zod-to-json-schema/dist/esm/parsers/number.js
 function parseNumberDef(def, refs) {
   const res = {
     type: "number"
@@ -39845,7 +39845,7 @@ function parseNumberDef(def, refs) {
   return res;
 }
 
-// node_modules/zod-to-json-schema/dist/esm/parsers/object.js
+// ../../../repos/nightvision-mcp/node_modules/zod-to-json-schema/dist/esm/parsers/object.js
 function parseObjectDef(def, refs) {
   const forceOptionalIntoNullable = refs.target === "openAi";
   const result = {
@@ -39915,7 +39915,7 @@ function safeIsOptional(schema) {
   }
 }
 
-// node_modules/zod-to-json-schema/dist/esm/parsers/optional.js
+// ../../../repos/nightvision-mcp/node_modules/zod-to-json-schema/dist/esm/parsers/optional.js
 var parseOptionalDef = (def, refs) => {
   if (refs.currentPath.toString() === refs.propertyPath?.toString()) {
     return parseDef(def.innerType._def, refs);
@@ -39934,7 +39934,7 @@ var parseOptionalDef = (def, refs) => {
   } : parseAnyDef(refs);
 };
 
-// node_modules/zod-to-json-schema/dist/esm/parsers/pipeline.js
+// ../../../repos/nightvision-mcp/node_modules/zod-to-json-schema/dist/esm/parsers/pipeline.js
 var parsePipelineDef = (def, refs) => {
   if (refs.pipeStrategy === "input") {
     return parseDef(def.in._def, refs);
@@ -39954,12 +39954,12 @@ var parsePipelineDef = (def, refs) => {
   };
 };
 
-// node_modules/zod-to-json-schema/dist/esm/parsers/promise.js
+// ../../../repos/nightvision-mcp/node_modules/zod-to-json-schema/dist/esm/parsers/promise.js
 function parsePromiseDef(def, refs) {
   return parseDef(def.type._def, refs);
 }
 
-// node_modules/zod-to-json-schema/dist/esm/parsers/set.js
+// ../../../repos/nightvision-mcp/node_modules/zod-to-json-schema/dist/esm/parsers/set.js
 function parseSetDef(def, refs) {
   const items = parseDef(def.valueType._def, {
     ...refs,
@@ -39979,7 +39979,7 @@ function parseSetDef(def, refs) {
   return schema;
 }
 
-// node_modules/zod-to-json-schema/dist/esm/parsers/tuple.js
+// ../../../repos/nightvision-mcp/node_modules/zod-to-json-schema/dist/esm/parsers/tuple.js
 function parseTupleDef(def, refs) {
   if (def.rest) {
     return {
@@ -40007,24 +40007,24 @@ function parseTupleDef(def, refs) {
   }
 }
 
-// node_modules/zod-to-json-schema/dist/esm/parsers/undefined.js
+// ../../../repos/nightvision-mcp/node_modules/zod-to-json-schema/dist/esm/parsers/undefined.js
 function parseUndefinedDef(refs) {
   return {
     not: parseAnyDef(refs)
   };
 }
 
-// node_modules/zod-to-json-schema/dist/esm/parsers/unknown.js
+// ../../../repos/nightvision-mcp/node_modules/zod-to-json-schema/dist/esm/parsers/unknown.js
 function parseUnknownDef(refs) {
   return parseAnyDef(refs);
 }
 
-// node_modules/zod-to-json-schema/dist/esm/parsers/readonly.js
+// ../../../repos/nightvision-mcp/node_modules/zod-to-json-schema/dist/esm/parsers/readonly.js
 var parseReadonlyDef = (def, refs) => {
   return parseDef(def.innerType._def, refs);
 };
 
-// node_modules/zod-to-json-schema/dist/esm/selectParser.js
+// ../../../repos/nightvision-mcp/node_modules/zod-to-json-schema/dist/esm/selectParser.js
 var selectParser = (def, typeName, refs) => {
   switch (typeName) {
     case ZodFirstPartyTypeKind.ZodString:
@@ -40100,7 +40100,7 @@ var selectParser = (def, typeName, refs) => {
   }
 };
 
-// node_modules/zod-to-json-schema/dist/esm/parseDef.js
+// ../../../repos/nightvision-mcp/node_modules/zod-to-json-schema/dist/esm/parseDef.js
 function parseDef(def, refs, forceResolution = false) {
   const seenItem = refs.seen.get(def);
   if (refs.override) {
@@ -40156,7 +40156,7 @@ var addMeta = (def, refs, jsonSchema) => {
   return jsonSchema;
 };
 
-// node_modules/zod-to-json-schema/dist/esm/zodToJsonSchema.js
+// ../../../repos/nightvision-mcp/node_modules/zod-to-json-schema/dist/esm/zodToJsonSchema.js
 var zodToJsonSchema = (schema, options) => {
   const refs = getRefs(options);
   let definitions = typeof options === "object" && options.definitions ? Object.entries(options.definitions).reduce((acc, [name2, schema2]) => ({
@@ -40218,7 +40218,7 @@ var zodToJsonSchema = (schema, options) => {
   return combined;
 };
 
-// node_modules/@modelcontextprotocol/sdk/dist/esm/server/zod-json-schema-compat.js
+// ../../../repos/nightvision-mcp/node_modules/@modelcontextprotocol/sdk/dist/esm/server/zod-json-schema-compat.js
 function mapMiniTarget(t) {
   if (!t)
     return "draft-7";
@@ -40260,7 +40260,7 @@ function parseWithCompat(schema, data) {
   return result.data;
 }
 
-// node_modules/@modelcontextprotocol/sdk/dist/esm/shared/protocol.js
+// ../../../repos/nightvision-mcp/node_modules/@modelcontextprotocol/sdk/dist/esm/shared/protocol.js
 var DEFAULT_REQUEST_TIMEOUT_MSEC = 6e4;
 var Protocol = class {
   constructor(_options) {
@@ -41214,7 +41214,7 @@ function mergeCapabilities(base, additional) {
   return result;
 }
 
-// node_modules/@modelcontextprotocol/sdk/dist/esm/validation/ajv-provider.js
+// ../../../repos/nightvision-mcp/node_modules/@modelcontextprotocol/sdk/dist/esm/validation/ajv-provider.js
 var import_ajv = __toESM(require_ajv(), 1);
 var import_ajv_formats = __toESM(require_dist(), 1);
 function createDefaultAjvInstance() {
@@ -41282,7 +41282,7 @@ var AjvJsonSchemaValidator = class {
   }
 };
 
-// node_modules/@modelcontextprotocol/sdk/dist/esm/experimental/tasks/server.js
+// ../../../repos/nightvision-mcp/node_modules/@modelcontextprotocol/sdk/dist/esm/experimental/tasks/server.js
 var ExperimentalServerTasks = class {
   constructor(_server) {
     this._server = _server;
@@ -41495,7 +41495,7 @@ var ExperimentalServerTasks = class {
   }
 };
 
-// node_modules/@modelcontextprotocol/sdk/dist/esm/experimental/tasks/helpers.js
+// ../../../repos/nightvision-mcp/node_modules/@modelcontextprotocol/sdk/dist/esm/experimental/tasks/helpers.js
 function assertToolsCallTaskCapability(requests, method, entityName) {
   if (!requests) {
     throw new Error(`${entityName} does not support task creation (required for ${method})`);
@@ -41530,7 +41530,7 @@ function assertClientRequestTaskCapability(requests, method, entityName) {
   }
 }
 
-// node_modules/@modelcontextprotocol/sdk/dist/esm/server/index.js
+// ../../../repos/nightvision-mcp/node_modules/@modelcontextprotocol/sdk/dist/esm/server/index.js
 var Server = class extends Protocol {
   /**
    * Initializes this server with the given name and version information.
@@ -41901,7 +41901,7 @@ var Server = class extends Protocol {
   }
 };
 
-// node_modules/@modelcontextprotocol/sdk/dist/esm/server/completable.js
+// ../../../repos/nightvision-mcp/node_modules/@modelcontextprotocol/sdk/dist/esm/server/completable.js
 var COMPLETABLE_SYMBOL = /* @__PURE__ */ Symbol.for("mcp.completable");
 function isCompletable(schema) {
   return !!schema && typeof schema === "object" && COMPLETABLE_SYMBOL in schema;
@@ -41915,7 +41915,7 @@ var McpZodTypeKind;
   McpZodTypeKind2["Completable"] = "McpCompletable";
 })(McpZodTypeKind || (McpZodTypeKind = {}));
 
-// node_modules/@modelcontextprotocol/sdk/dist/esm/shared/toolNameValidation.js
+// ../../../repos/nightvision-mcp/node_modules/@modelcontextprotocol/sdk/dist/esm/shared/toolNameValidation.js
 var TOOL_NAME_REGEX = /^[A-Za-z0-9._-]{1,128}$/;
 function validateToolName(name) {
   const warnings = [];
@@ -41973,7 +41973,7 @@ function validateAndWarnToolName(name) {
   return result.isValid;
 }
 
-// node_modules/@modelcontextprotocol/sdk/dist/esm/experimental/tasks/mcp-server.js
+// ../../../repos/nightvision-mcp/node_modules/@modelcontextprotocol/sdk/dist/esm/experimental/tasks/mcp-server.js
 var ExperimentalMcpServerTasks = class {
   constructor(_mcpServer) {
     this._mcpServer = _mcpServer;
@@ -41988,7 +41988,7 @@ var ExperimentalMcpServerTasks = class {
   }
 };
 
-// node_modules/@modelcontextprotocol/sdk/dist/esm/server/mcp.js
+// ../../../repos/nightvision-mcp/node_modules/@modelcontextprotocol/sdk/dist/esm/server/mcp.js
 var McpServer = class {
   constructor(serverInfo, options) {
     this._registeredResources = {};
@@ -42780,10 +42780,10 @@ var EMPTY_COMPLETION_RESULT = {
   }
 };
 
-// node_modules/@modelcontextprotocol/sdk/dist/esm/server/stdio.js
+// ../../../repos/nightvision-mcp/node_modules/@modelcontextprotocol/sdk/dist/esm/server/stdio.js
 import process3 from "node:process";
 
-// node_modules/@modelcontextprotocol/sdk/dist/esm/shared/stdio.js
+// ../../../repos/nightvision-mcp/node_modules/@modelcontextprotocol/sdk/dist/esm/shared/stdio.js
 var STDIO_DEFAULT_MAX_BUFFER_SIZE = 10 * 1024 * 1024;
 var ReadBuffer = class {
   constructor(options) {
@@ -42820,7 +42820,7 @@ function serializeMessage(message) {
   return JSON.stringify(message) + "\n";
 }
 
-// node_modules/@modelcontextprotocol/sdk/dist/esm/server/stdio.js
+// ../../../repos/nightvision-mcp/node_modules/@modelcontextprotocol/sdk/dist/esm/server/stdio.js
 var StdioServerTransport = class {
   constructor(_stdin = process3.stdin, _stdout = process3.stdout, options) {
     this._stdin = _stdin;
@@ -42939,14 +42939,14 @@ function matchTargetByName(targets, name, project, projectId) {
 import { execFile } from "child_process";
 import { promisify } from "util";
 
-// node_modules/axios/lib/helpers/bind.js
+// ../../../repos/nightvision-mcp/node_modules/axios/lib/helpers/bind.js
 function bind(fn, thisArg) {
   return function wrap() {
     return fn.apply(thisArg, arguments);
   };
 }
 
-// node_modules/axios/lib/utils.js
+// ../../../repos/nightvision-mcp/node_modules/axios/lib/utils.js
 var { toString } = Object.prototype;
 var { getPrototypeOf } = Object;
 var { iterator, toStringTag } = Symbol;
@@ -43433,7 +43433,7 @@ var utils_default = {
   isSafeIterable
 };
 
-// node_modules/axios/lib/helpers/parseHeaders.js
+// ../../../repos/nightvision-mcp/node_modules/axios/lib/helpers/parseHeaders.js
 var ignoreDuplicateOf = utils_default.toObjectSet([
   "age",
   "authorization",
@@ -43479,7 +43479,7 @@ var parseHeaders_default = (rawHeaders) => {
   return parsed;
 };
 
-// node_modules/axios/lib/helpers/sanitizeHeaderValue.js
+// ../../../repos/nightvision-mcp/node_modules/axios/lib/helpers/sanitizeHeaderValue.js
 function trimSPorHTAB(str) {
   let start = 0;
   let end = str.length;
@@ -43517,7 +43517,7 @@ function toByteStringHeaderObject(headers) {
   return byteStringHeaders;
 }
 
-// node_modules/axios/lib/core/AxiosHeaders.js
+// ../../../repos/nightvision-mcp/node_modules/axios/lib/core/AxiosHeaders.js
 var $internals = /* @__PURE__ */ Symbol("internals");
 function normalizeHeader(header) {
   return header && String(header).trim().toLowerCase();
@@ -43850,7 +43850,7 @@ utils_default.reduceDescriptors(AxiosHeaders.prototype, ({ value }, key) => {
 utils_default.freezeMethods(AxiosHeaders);
 var AxiosHeaders_default = AxiosHeaders;
 
-// node_modules/axios/lib/core/AxiosError.js
+// ../../../repos/nightvision-mcp/node_modules/axios/lib/core/AxiosError.js
 var REDACTED = "[REDACTED ****]";
 function hasOwnOrPrototypeToJSON(source) {
   if (utils_default.hasOwnProp(source, "toJSON")) {
@@ -44012,11 +44012,11 @@ AxiosError.ERR_INVALID_URL = "ERR_INVALID_URL";
 AxiosError.ERR_FORM_DATA_DEPTH_EXCEEDED = "ERR_FORM_DATA_DEPTH_EXCEEDED";
 var AxiosError_default = AxiosError;
 
-// node_modules/axios/lib/platform/node/classes/FormData.js
+// ../../../repos/nightvision-mcp/node_modules/axios/lib/platform/node/classes/FormData.js
 var import_form_data = __toESM(require_form_data(), 1);
 var FormData_default = import_form_data.default;
 
-// node_modules/axios/lib/platform/node/classes/Buffer.js
+// ../../../repos/nightvision-mcp/node_modules/axios/lib/platform/node/classes/Buffer.js
 var Buffer_default = {
   isBufferAvailable() {
     return typeof Buffer !== "undefined";
@@ -44026,7 +44026,7 @@ var Buffer_default = {
   }
 };
 
-// node_modules/axios/lib/helpers/toFormData.js
+// ../../../repos/nightvision-mcp/node_modules/axios/lib/helpers/toFormData.js
 var DEFAULT_FORM_DATA_MAX_DEPTH = 100;
 function isVisitable(thing) {
   return utils_default.isPlainObject(thing) || utils_default.isArray(thing);
@@ -44178,7 +44178,7 @@ function toFormData(obj, formData, options) {
 }
 var toFormData_default = toFormData;
 
-// node_modules/axios/lib/helpers/AxiosURLSearchParams.js
+// ../../../repos/nightvision-mcp/node_modules/axios/lib/helpers/AxiosURLSearchParams.js
 function encode3(str) {
   const charMap = {
     "!": "%21",
@@ -44208,7 +44208,7 @@ prototype.toString = function toString2(encoder) {
 };
 var AxiosURLSearchParams_default = AxiosURLSearchParams;
 
-// node_modules/axios/lib/helpers/buildURL.js
+// ../../../repos/nightvision-mcp/node_modules/axios/lib/helpers/buildURL.js
 function encode4(val) {
   return encodeURIComponent(val).replace(/%3A/gi, ":").replace(/%24/g, "$").replace(/%2C/gi, ",").replace(/%20/g, "+");
 }
@@ -44238,7 +44238,7 @@ function buildURL(url3, params, options) {
   return url3;
 }
 
-// node_modules/axios/lib/core/InterceptorManager.js
+// ../../../repos/nightvision-mcp/node_modules/axios/lib/core/InterceptorManager.js
 var InterceptorManager = class {
   constructor() {
     this.handlers = [];
@@ -44303,7 +44303,7 @@ var InterceptorManager = class {
 };
 var InterceptorManager_default = InterceptorManager;
 
-// node_modules/axios/lib/defaults/transitional.js
+// ../../../repos/nightvision-mcp/node_modules/axios/lib/defaults/transitional.js
 var transitional_default = {
   silentJSONParsing: true,
   forcedJSONParsing: true,
@@ -44313,14 +44313,14 @@ var transitional_default = {
   validateStatusUndefinedResolves: true
 };
 
-// node_modules/axios/lib/platform/node/index.js
+// ../../../repos/nightvision-mcp/node_modules/axios/lib/platform/node/index.js
 import crypto from "crypto";
 
-// node_modules/axios/lib/platform/node/classes/URLSearchParams.js
+// ../../../repos/nightvision-mcp/node_modules/axios/lib/platform/node/classes/URLSearchParams.js
 import url2 from "url";
 var URLSearchParams_default = url2.URLSearchParams;
 
-// node_modules/axios/lib/platform/node/index.js
+// ../../../repos/nightvision-mcp/node_modules/axios/lib/platform/node/index.js
 var ALPHA = "abcdefghijklmnopqrstuvwxyz";
 var DIGIT = "0123456789";
 var ALPHABET = {
@@ -44350,7 +44350,7 @@ var node_default = {
   protocols: ["http", "https", "file", "data"]
 };
 
-// node_modules/axios/lib/platform/common/utils.js
+// ../../../repos/nightvision-mcp/node_modules/axios/lib/platform/common/utils.js
 var utils_exports = {};
 __export(utils_exports, {
   hasBrowserEnv: () => hasBrowserEnv,
@@ -44368,13 +44368,13 @@ var hasStandardBrowserWebWorkerEnv = (() => {
 })();
 var origin = hasBrowserEnv && window.location.href || "http://localhost";
 
-// node_modules/axios/lib/platform/index.js
+// ../../../repos/nightvision-mcp/node_modules/axios/lib/platform/index.js
 var platform_default = {
   ...utils_exports,
   ...node_default
 };
 
-// node_modules/axios/lib/helpers/toURLEncodedForm.js
+// ../../../repos/nightvision-mcp/node_modules/axios/lib/helpers/toURLEncodedForm.js
 function toURLEncodedForm(data, options) {
   return toFormData_default(data, new platform_default.classes.URLSearchParams(), {
     visitor: function(value, key, path15, helpers) {
@@ -44388,7 +44388,7 @@ function toURLEncodedForm(data, options) {
   });
 }
 
-// node_modules/axios/lib/helpers/formDataToJSON.js
+// ../../../repos/nightvision-mcp/node_modules/axios/lib/helpers/formDataToJSON.js
 var MAX_DEPTH = DEFAULT_FORM_DATA_MAX_DEPTH;
 function throwIfDepthExceeded(index) {
   if (index > MAX_DEPTH) {
@@ -44456,7 +44456,7 @@ function formDataToJSON(formData) {
 }
 var formDataToJSON_default = formDataToJSON;
 
-// node_modules/axios/lib/defaults/index.js
+// ../../../repos/nightvision-mcp/node_modules/axios/lib/defaults/index.js
 var own = (obj, key) => obj != null && utils_default.hasOwnProp(obj, key) ? obj[key] : void 0;
 function stringifySafely2(rawValue, parser, encoder) {
   if (utils_default.isString(rawValue)) {
@@ -44573,7 +44573,7 @@ utils_default.forEach(["delete", "get", "head", "post", "put", "patch", "query"]
 });
 var defaults_default = defaults;
 
-// node_modules/axios/lib/core/transformData.js
+// ../../../repos/nightvision-mcp/node_modules/axios/lib/core/transformData.js
 function transformData(fns, response) {
   const config2 = this || defaults_default;
   const context = response || config2;
@@ -44586,12 +44586,12 @@ function transformData(fns, response) {
   return data;
 }
 
-// node_modules/axios/lib/cancel/isCancel.js
+// ../../../repos/nightvision-mcp/node_modules/axios/lib/cancel/isCancel.js
 function isCancel(value) {
   return !!(value && value.__CANCEL__);
 }
 
-// node_modules/axios/lib/cancel/CanceledError.js
+// ../../../repos/nightvision-mcp/node_modules/axios/lib/cancel/CanceledError.js
 var CanceledError = class extends AxiosError_default {
   /**
    * A `CanceledError` is an object that is thrown when an operation is canceled.
@@ -44610,7 +44610,7 @@ var CanceledError = class extends AxiosError_default {
 };
 var CanceledError_default = CanceledError;
 
-// node_modules/axios/lib/core/settle.js
+// ../../../repos/nightvision-mcp/node_modules/axios/lib/core/settle.js
 function settle(resolve2, reject, response) {
   const validateStatus2 = response.config.validateStatus;
   if (!response.status || !validateStatus2 || validateStatus2(response.status)) {
@@ -44626,7 +44626,7 @@ function settle(resolve2, reject, response) {
   }
 }
 
-// node_modules/axios/lib/helpers/isAbsoluteURL.js
+// ../../../repos/nightvision-mcp/node_modules/axios/lib/helpers/isAbsoluteURL.js
 function isAbsoluteURL(url3) {
   if (typeof url3 !== "string") {
     return false;
@@ -44634,7 +44634,7 @@ function isAbsoluteURL(url3) {
   return /^([a-z][a-z\d+\-.]*:)?\/\//i.test(url3);
 }
 
-// node_modules/axios/lib/helpers/combineURLs.js
+// ../../../repos/nightvision-mcp/node_modules/axios/lib/helpers/combineURLs.js
 function combineURLs(baseURL, relativeURL) {
   if (!relativeURL) {
     return baseURL;
@@ -44646,7 +44646,7 @@ function combineURLs(baseURL, relativeURL) {
   return baseURL.slice(0, end) + "/" + relativeURL.replace(/^\/+/, "");
 }
 
-// node_modules/axios/lib/core/buildFullPath.js
+// ../../../repos/nightvision-mcp/node_modules/axios/lib/core/buildFullPath.js
 var malformedHttpProtocol = /^https?:(?!\/\/)/i;
 var httpProtocolControlCharacters = /[\t\n\r]/g;
 function stripLeadingC0ControlOrSpace(url3) {
@@ -44702,7 +44702,7 @@ function buildFullPath(baseURL, requestedURL, allowAbsoluteUrls, config2) {
   return requestedURL;
 }
 
-// node_modules/proxy-from-env/index.js
+// ../../../repos/nightvision-mcp/node_modules/proxy-from-env/index.js
 var DEFAULT_PORTS = {
   ftp: 21,
   gopher: 70,
@@ -44769,7 +44769,7 @@ function getEnv(key) {
   return process.env[key.toLowerCase()] || process.env[key.toUpperCase()] || "";
 }
 
-// node_modules/axios/lib/adapters/http.js
+// ../../../repos/nightvision-mcp/node_modules/axios/lib/adapters/http.js
 var import_https_proxy_agent = __toESM(require_dist2(), 1);
 var import_follow_redirects = __toESM(require_follow_redirects(), 1);
 import http from "http";
@@ -44779,16 +44779,16 @@ import util4 from "util";
 import { resolve as resolvePath } from "path";
 import zlib from "zlib";
 
-// node_modules/axios/lib/env/data.js
+// ../../../repos/nightvision-mcp/node_modules/axios/lib/env/data.js
 var VERSION = "1.19.0";
 
-// node_modules/axios/lib/helpers/parseProtocol.js
+// ../../../repos/nightvision-mcp/node_modules/axios/lib/helpers/parseProtocol.js
 function parseProtocol(url3) {
   const match = /^([-+\w]{1,25}):(?:\/\/)?/.exec(url3);
   return match && match[1] || "";
 }
 
-// node_modules/axios/lib/helpers/fromDataURI.js
+// ../../../repos/nightvision-mcp/node_modules/axios/lib/helpers/fromDataURI.js
 var DATA_URL_PATTERN = /^([^,;]+\/[^,;]+)?((?:;[^,;=]+=[^,;]+)*)(;base64)?,([\s\S]*)$/;
 function fromDataURI(uri, asBlob, options) {
   const _Blob = options && options.Blob || platform_default.classes.Blob;
@@ -44824,10 +44824,10 @@ function fromDataURI(uri, asBlob, options) {
   throw new AxiosError_default("Unsupported protocol " + protocol, AxiosError_default.ERR_NOT_SUPPORT);
 }
 
-// node_modules/axios/lib/adapters/http.js
+// ../../../repos/nightvision-mcp/node_modules/axios/lib/adapters/http.js
 import stream3 from "stream";
 
-// node_modules/axios/lib/core/setFormDataHeaders.js
+// ../../../repos/nightvision-mcp/node_modules/axios/lib/core/setFormDataHeaders.js
 var FORM_DATA_CONTENT_HEADERS = ["content-type", "content-length"];
 function setFormDataHeaders(headers, formHeaders, policy) {
   if (policy !== "content-only") {
@@ -44841,7 +44841,7 @@ function setFormDataHeaders(headers, formHeaders, policy) {
   });
 }
 
-// node_modules/axios/lib/helpers/AxiosTransformStream.js
+// ../../../repos/nightvision-mcp/node_modules/axios/lib/helpers/AxiosTransformStream.js
 import stream from "stream";
 var kInternals = /* @__PURE__ */ Symbol("internals");
 var AxiosTransformStream = class extends stream.Transform {
@@ -44964,14 +44964,14 @@ var AxiosTransformStream = class extends stream.Transform {
 };
 var AxiosTransformStream_default = AxiosTransformStream;
 
-// node_modules/axios/lib/adapters/http.js
+// ../../../repos/nightvision-mcp/node_modules/axios/lib/adapters/http.js
 import { EventEmitter } from "events";
 
-// node_modules/axios/lib/helpers/formDataToStream.js
+// ../../../repos/nightvision-mcp/node_modules/axios/lib/helpers/formDataToStream.js
 import util2 from "util";
 import { Readable } from "stream";
 
-// node_modules/axios/lib/helpers/readBlob.js
+// ../../../repos/nightvision-mcp/node_modules/axios/lib/helpers/readBlob.js
 var { asyncIterator } = Symbol;
 var readBlob = async function* (blob) {
   if (blob.stream) {
@@ -44986,7 +44986,7 @@ var readBlob = async function* (blob) {
 };
 var readBlob_default = readBlob;
 
-// node_modules/axios/lib/helpers/formDataToStream.js
+// ../../../repos/nightvision-mcp/node_modules/axios/lib/helpers/formDataToStream.js
 var BOUNDARY_ALPHABET = platform_default.ALPHABET.ALPHA_DIGIT + "-_";
 var textEncoder = typeof TextEncoder === "function" ? new TextEncoder() : new util2.TextEncoder();
 var CRLF = "\r\n";
@@ -45071,7 +45071,7 @@ var formDataToStream = (form, headersHandler, options) => {
 };
 var formDataToStream_default = formDataToStream;
 
-// node_modules/axios/lib/helpers/ZlibHeaderTransformStream.js
+// ../../../repos/nightvision-mcp/node_modules/axios/lib/helpers/ZlibHeaderTransformStream.js
 import stream2 from "stream";
 var ZlibHeaderTransformStream = class extends stream2.Transform {
   __transform(chunk, encoding, callback) {
@@ -45093,7 +45093,7 @@ var ZlibHeaderTransformStream = class extends stream2.Transform {
 };
 var ZlibHeaderTransformStream_default = ZlibHeaderTransformStream;
 
-// node_modules/axios/lib/helpers/Http2Sessions.js
+// ../../../repos/nightvision-mcp/node_modules/axios/lib/helpers/Http2Sessions.js
 import http2 from "http2";
 import util3 from "util";
 var Http2Sessions = class {
@@ -45174,7 +45174,7 @@ var Http2Sessions = class {
 };
 var Http2Sessions_default = Http2Sessions;
 
-// node_modules/axios/lib/helpers/callbackify.js
+// ../../../repos/nightvision-mcp/node_modules/axios/lib/helpers/callbackify.js
 var callbackify = (fn, reducer) => {
   return utils_default.isAsyncFn(fn) ? function(...args) {
     const cb = args.pop();
@@ -45189,7 +45189,7 @@ var callbackify = (fn, reducer) => {
 };
 var callbackify_default = callbackify;
 
-// node_modules/axios/lib/helpers/shouldBypassProxy.js
+// ../../../repos/nightvision-mcp/node_modules/axios/lib/helpers/shouldBypassProxy.js
 var LOOPBACK_HOSTNAMES = /* @__PURE__ */ new Set(["localhost", "0.0.0.0"]);
 var isIPv4Loopback = (host) => {
   const parts = host.split(".");
@@ -45390,7 +45390,7 @@ function shouldBypassProxy(location) {
   });
 }
 
-// node_modules/axios/lib/helpers/speedometer.js
+// ../../../repos/nightvision-mcp/node_modules/axios/lib/helpers/speedometer.js
 function speedometer(samplesCount, min) {
   samplesCount = samplesCount || 10;
   const bytes = new Array(samplesCount);
@@ -45426,7 +45426,7 @@ function speedometer(samplesCount, min) {
 }
 var speedometer_default = speedometer;
 
-// node_modules/axios/lib/helpers/throttle.js
+// ../../../repos/nightvision-mcp/node_modules/axios/lib/helpers/throttle.js
 function throttle(fn, freq) {
   let timestamp = 0;
   let threshold = 1e3 / freq;
@@ -45461,7 +45461,7 @@ function throttle(fn, freq) {
 }
 var throttle_default = throttle;
 
-// node_modules/axios/lib/helpers/progressEventReducer.js
+// ../../../repos/nightvision-mcp/node_modules/axios/lib/helpers/progressEventReducer.js
 var progressEventReducer = (listener, isDownloadStream, freq = 3) => {
   let bytesNotified = 0;
   const _speedometer = speedometer_default(50, 250);
@@ -45502,7 +45502,7 @@ var progressEventDecorator = (total, throttled) => {
 };
 var asyncDecorator = (fn, scheduler = utils_default.asap) => (...args) => scheduler(() => fn(...args));
 
-// node_modules/axios/lib/helpers/estimateDataURLDecodedBytes.js
+// ../../../repos/nightvision-mcp/node_modules/axios/lib/helpers/estimateDataURLDecodedBytes.js
 var isHexDigit = (charCode) => charCode >= 48 && charCode <= 57 || charCode >= 65 && charCode <= 70 || charCode >= 97 && charCode <= 102;
 var isPercentEncodedByte = (str, i, len) => i + 2 < len && isHexDigit(str.charCodeAt(i + 1)) && isHexDigit(str.charCodeAt(i + 2));
 var hexValue = (charCode) => charCode <= 57 ? charCode - 48 : (charCode & 223) - 55;
@@ -45605,7 +45605,7 @@ function estimateDataURLBufferAllocation(url3) {
   return estimateDataURLBytes(url3, estimateBase64BufferAllocation);
 }
 
-// node_modules/axios/lib/adapters/http.js
+// ../../../repos/nightvision-mcp/node_modules/axios/lib/adapters/http.js
 var zlibOptions = {
   flush: zlib.constants.Z_SYNC_FLUSH,
   finishFlush: zlib.constants.Z_SYNC_FLUSH
@@ -46567,7 +46567,7 @@ var http_default = isHttpAdapterSupported && function httpAdapter(config2) {
   });
 };
 
-// node_modules/axios/lib/helpers/isURLSameOrigin.js
+// ../../../repos/nightvision-mcp/node_modules/axios/lib/helpers/isURLSameOrigin.js
 var isURLSameOrigin_default = platform_default.hasStandardBrowserEnv ? /* @__PURE__ */ ((origin2, isMSIE) => (url3) => {
   url3 = new URL(url3, platform_default.origin);
   return origin2.protocol === url3.protocol && origin2.host === url3.host && (isMSIE || origin2.port === url3.port);
@@ -46576,7 +46576,7 @@ var isURLSameOrigin_default = platform_default.hasStandardBrowserEnv ? /* @__PUR
   platform_default.navigator && /(msie|trident)/i.test(platform_default.navigator.userAgent)
 ) : () => true;
 
-// node_modules/axios/lib/helpers/cookies.js
+// ../../../repos/nightvision-mcp/node_modules/axios/lib/helpers/cookies.js
 var cookies_default = platform_default.hasStandardBrowserEnv ? (
   // Standard browser envs support document.cookie
   {
@@ -46633,7 +46633,7 @@ var cookies_default = platform_default.hasStandardBrowserEnv ? (
   }
 );
 
-// node_modules/axios/lib/core/mergeConfig.js
+// ../../../repos/nightvision-mcp/node_modules/axios/lib/core/mergeConfig.js
 var headersToObject = (thing) => thing instanceof AxiosHeaders_default ? { ...thing } : thing;
 var ownEnumerableKeys = (thing) => {
   if (Object.getOwnPropertySymbols && Object.getOwnPropertyDescriptor) {
@@ -46761,7 +46761,7 @@ function mergeConfig(config1, config2) {
   return config3;
 }
 
-// node_modules/axios/lib/helpers/resolveConfig.js
+// ../../../repos/nightvision-mcp/node_modules/axios/lib/helpers/resolveConfig.js
 var encodeUTF8 = (str) => encodeURIComponent(str).replace(
   /%([0-9A-F]{2})/gi,
   (_, hex3) => String.fromCharCode(parseInt(hex3, 16))
@@ -46819,7 +46819,7 @@ function resolveConfig(config2) {
 }
 var resolveConfig_default = resolveConfig;
 
-// node_modules/axios/lib/adapters/xhr.js
+// ../../../repos/nightvision-mcp/node_modules/axios/lib/adapters/xhr.js
 var isXHRAdapterSupported = typeof XMLHttpRequest !== "undefined";
 var xhr_default = isXHRAdapterSupported && function(config2) {
   return new Promise(function dispatchXhrRequest(resolve2, reject) {
@@ -46966,7 +46966,7 @@ var xhr_default = isXHRAdapterSupported && function(config2) {
   });
 };
 
-// node_modules/axios/lib/helpers/composeSignals.js
+// ../../../repos/nightvision-mcp/node_modules/axios/lib/helpers/composeSignals.js
 var composeSignals = (signals, timeout) => {
   signals = signals ? signals.filter(Boolean) : [];
   if (!timeout && !signals.length) {
@@ -47015,7 +47015,7 @@ var composeSignals = (signals, timeout) => {
 };
 var composeSignals_default = composeSignals;
 
-// node_modules/axios/lib/helpers/trackStream.js
+// ../../../repos/nightvision-mcp/node_modules/axios/lib/helpers/trackStream.js
 var streamChunk = function* (chunk, chunkSize) {
   let len = chunk.byteLength;
   if (!chunkSize || len < chunkSize) {
@@ -47095,7 +47095,7 @@ var trackStream = (stream4, chunkSize, onProgress, onFinish) => {
   );
 };
 
-// node_modules/axios/lib/adapters/fetch.js
+// ../../../repos/nightvision-mcp/node_modules/axios/lib/adapters/fetch.js
 var DEFAULT_CHUNK_SIZE = 64 * 1024;
 var { isFunction: isFunction2 } = utils_default;
 var encodeUTF82 = (str) => encodeURIComponent(str).replace(
@@ -47512,7 +47512,7 @@ var getFetch = (config2) => {
 };
 var adapter = getFetch();
 
-// node_modules/axios/lib/adapters/adapters.js
+// ../../../repos/nightvision-mcp/node_modules/axios/lib/adapters/adapters.js
 var knownAdapters = {
   http: http_default,
   xhr: xhr_default,
@@ -47577,7 +47577,7 @@ var adapters_default = {
   adapters: knownAdapters
 };
 
-// node_modules/axios/lib/core/dispatchRequest.js
+// ../../../repos/nightvision-mcp/node_modules/axios/lib/core/dispatchRequest.js
 function throwIfCancellationRequested(config2) {
   if (config2.cancelToken) {
     config2.cancelToken.throwIfRequested();
@@ -47628,7 +47628,7 @@ function dispatchRequest(config2) {
   );
 }
 
-// node_modules/axios/lib/helpers/validator.js
+// ../../../repos/nightvision-mcp/node_modules/axios/lib/helpers/validator.js
 var validators = {};
 ["object", "boolean", "number", "function", "string", "symbol"].forEach((type, i) => {
   validators[type] = function validator(thing) {
@@ -47695,7 +47695,7 @@ var validator_default = {
   validators
 };
 
-// node_modules/axios/lib/core/Axios.js
+// ../../../repos/nightvision-mcp/node_modules/axios/lib/core/Axios.js
 var validators2 = validator_default.validators;
 var Axios = class {
   constructor(instanceConfig) {
@@ -47914,7 +47914,7 @@ utils_default.forEach(["post", "put", "patch", "query"], function forEachMethodW
 });
 var Axios_default = Axios;
 
-// node_modules/axios/lib/cancel/CancelToken.js
+// ../../../repos/nightvision-mcp/node_modules/axios/lib/cancel/CancelToken.js
 var CancelToken = class _CancelToken {
   constructor(executor) {
     if (typeof executor !== "function") {
@@ -48012,19 +48012,19 @@ var CancelToken = class _CancelToken {
 };
 var CancelToken_default = CancelToken;
 
-// node_modules/axios/lib/helpers/spread.js
+// ../../../repos/nightvision-mcp/node_modules/axios/lib/helpers/spread.js
 function spread(callback) {
   return function wrap(arr) {
     return callback.apply(null, arr);
   };
 }
 
-// node_modules/axios/lib/helpers/isAxiosError.js
+// ../../../repos/nightvision-mcp/node_modules/axios/lib/helpers/isAxiosError.js
 function isAxiosError(payload) {
   return utils_default.isObject(payload) && payload.isAxiosError === true;
 }
 
-// node_modules/axios/lib/helpers/HttpStatusCode.js
+// ../../../repos/nightvision-mcp/node_modules/axios/lib/helpers/HttpStatusCode.js
 var HttpStatusCode = {
   Continue: 100,
   SwitchingProtocols: 101,
@@ -48102,7 +48102,7 @@ Object.entries(HttpStatusCode).forEach(([key, value]) => {
 });
 var HttpStatusCode_default = HttpStatusCode;
 
-// node_modules/axios/lib/axios.js
+// ../../../repos/nightvision-mcp/node_modules/axios/lib/axios.js
 function createInstance(defaultConfig) {
   const context = new Axios_default(defaultConfig);
   const instance = bind(Axios_default.prototype.request, context);
@@ -48135,7 +48135,7 @@ axios.HttpStatusCode = HttpStatusCode_default;
 axios.default = axios;
 var axios_default = axios;
 
-// node_modules/axios/index.js
+// ../../../repos/nightvision-mcp/node_modules/axios/index.js
 var {
   Axios: Axios2,
   AxiosError: AxiosError2,
@@ -48901,6 +48901,13 @@ function extractScanId(output) {
   return idFromObject(parsed) || idFromCliStreams(parsed);
 }
 
+// src/utils/cli-capabilities.ts
+var DISABLE_NUCLEI_TEMPLATES_FLAG = "--disable-nuclei-templates";
+function helpListsFlag(helpText, flag) {
+  const escaped = flag.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return new RegExp(`^\\s+(?:-\\w,\\s+)?${escaped}(?![\\w-])`, "m").test(helpText);
+}
+
 // src/utils/scan-check-format.ts
 var NA = "N/A";
 var cell = (v) => v === void 0 || v === null || v === "" ? NA : String(v);
@@ -49059,6 +49066,10 @@ function buildScanArgs(targetName, options) {
   if (options.disable_nuclei_folders && options.disable_nuclei_folders.length > 0) {
     args.push("--disable-nuclei-folders", options.disable_nuclei_folders.join(","));
   }
+  if (options.no_zap) args.push("--no-zap");
+  if (options.disable_nuclei_templates && options.disable_nuclei_templates.length > 0) {
+    args.push(DISABLE_NUCLEI_TEMPLATES_FLAG, options.disable_nuclei_templates.join(","));
+  }
   return args;
 }
 var ScanService = class {
@@ -49069,6 +49080,7 @@ var ScanService = class {
   client;
   resolver;
   cachedChecks = null;
+  disableNucleiTemplatesSupported = false;
   managedScanProcesses = /* @__PURE__ */ new Map();
   /**
    * Start a scan against a target
@@ -49573,13 +49585,33 @@ var ScanService = class {
   }
   /**
    * Fetch the configured check catalog from the API.
-   * Cached for the lifetime of the server process.
+   * Cached for the lifetime of the server process. Pass `fresh` to skip the
+   * cache and refresh it: a stale list can miss a Nuclei folder added since
+   * the server started, and an exclusion list built from it would let that
+   * folder run.
    */
-  async getConfiguredChecks() {
-    if (this.cachedChecks) return this.cachedChecks;
+  async getConfiguredChecks(options = {}) {
+    if (this.cachedChecks && !options.fresh) return this.cachedChecks;
     const response = await this.client.apiRequest("common/configured-checks/", "GET");
     this.cachedChecks = response;
     return response;
+  }
+  /**
+   * Whether the installed CLI's `scan` command has --disable-nuclei-templates
+   * (NV-6604), read from its help. Only a positive answer is cached, so an
+   * upgrade of the CLI is picked up without restarting the server. A help call
+   * that fails counts as not supported.
+   */
+  async supportsDisableNucleiTemplates() {
+    if (this.disableNucleiTemplatesSupported) return true;
+    try {
+      const help = await this.client.executeCommand(["scan", "--help"], "text", true);
+      this.disableNucleiTemplatesSupported = helpListsFlag(help, DISABLE_NUCLEI_TEMPLATES_FLAG);
+    } catch (error51) {
+      console.error(`Could not read 'nightvision scan --help': ${error51.message}`);
+      return false;
+    }
+    return this.disableNucleiTemplatesSupported;
   }
 };
 
@@ -49800,6 +49832,36 @@ Total Templates: ${response.count || 0}`;
       console.error(`Error listing nuclei templates: ${error51.message}`);
       throw new Error(`Failed to list nuclei templates: ${error51.message}`);
     }
+  }
+  /**
+   * Every custom nuclei template assigned to a target, across all pages of
+   * the listing (the same `target` filter list-nuclei-templates uses).
+   * @param targetId UUID of the target
+   * @returns The assigned templates' ids, names and statuses
+   * @throws When the page cap is reached with pages left, because a partial
+   * list would let an unlisted template run while the scan reports otherwise
+   */
+  async listTargetNucleiTemplates(targetId) {
+    const templates = [];
+    const maxPages = 50;
+    for (let page = 1; page <= maxPages; page++) {
+      const response = await this.client.apiRequest(
+        "nuclei-templates/",
+        "GET",
+        { target: targetId, page, page_size: 100 },
+        null,
+        false,
+        serializeRepeatedParams
+      );
+      const results = Array.isArray(response?.results) ? response.results : [];
+      for (const template of results) {
+        if (template?.id) {
+          templates.push({ id: String(template.id), name: String(template.name ?? ""), status: template.status });
+        }
+      }
+      if (!response?.next || results.length === 0) return templates;
+    }
+    throw new Error(`Target ${targetId} has more than ${maxPages} pages of custom Nuclei templates, so the full list could not be read.`);
   }
   /**
    * Assign a nuclei template to a target
@@ -50793,6 +50855,9 @@ var NightVisionService = class {
   getConfiguredChecks(...a) {
     return this.scans.getConfiguredChecks(...a);
   }
+  supportsDisableNucleiTemplates(...a) {
+    return this.scans.supportsDisableNucleiTemplates(...a);
+  }
   // --- Nuclei ---
   uploadNucleiTemplate(...a) {
     return this.nuclei.uploadNucleiTemplate(...a);
@@ -50805,6 +50870,9 @@ var NightVisionService = class {
   }
   assignNucleiTemplate(...a) {
     return this.nuclei.assignNucleiTemplate(...a);
+  }
+  listTargetNucleiTemplates(...a) {
+    return this.nuclei.listTargetNucleiTemplates(...a);
   }
   // --- Traffic ---
   recordTraffic(...a) {
@@ -50926,7 +50994,9 @@ var StartScanParamsSchema = {
   project_id: external_exports.string().uuid().optional().describe("Project UUID of the target to scan"),
   force_private_scan: external_exports.boolean().optional().default(false).describe("Force the CLI Smart Proxy/private scan path only when automatic private-scan detection needs an override"),
   run_only_zap_checks: external_exports.array(external_exports.string()).optional().describe("Run ONLY these ZAP vulnerability checks by name (e.g. ['SQL Injection']). Use list-check-categories to see available names. All other ZAP checks are disabled."),
-  run_only_nuclei_folders: external_exports.array(external_exports.string()).optional().describe("Run ONLY these Nuclei template folders by name. Use list-check-categories to see available folders. All other Nuclei folders are disabled.")
+  run_only_nuclei_folders: external_exports.array(external_exports.string()).optional().describe("Run ONLY these Nuclei template folders by name. Use list-check-categories to see available folders. All other Nuclei folders are disabled."),
+  no_zap: external_exports.boolean().optional().describe("Turn off the ZAP engine so only Nuclei runs. Cannot be combined with run_only_zap_checks."),
+  run_only_nuclei_templates: external_exports.array(external_exports.string()).optional().describe('Run ONLY these custom Nuclei templates, by name or id. They must be assigned to the target (see list-nuclei-templates with the target filter). Every other assigned custom template is skipped. Unless run_only_nuclei_folders is also given, all built-in Nuclei folders are turned off too. Needs a NightVision CLI that supports --disable-nuclei-templates. To run a single custom template: no_zap: true, run_only_nuclei_templates: ["<template name>"].')
   // Note: start-scan always returns structured JSON, so no output-format param.
 };
 var ListCheckCategoriesParamsSchema = {};
@@ -52550,6 +52620,49 @@ function getNucleiExclusionFolders(checks, includeNames) {
   const excludeFolders = allFolders.filter((f) => !includeSet.has(f));
   return { excludeFolders, matchedFolders: matched };
 }
+function selectNucleiTemplates(assigned, requested) {
+  const unmatched = [];
+  const ambiguous = [];
+  const matches = [];
+  for (const raw of requested) {
+    const value = raw.trim();
+    if (!value) {
+      unmatched.push(raw);
+      continue;
+    }
+    const lower = value.toLowerCase();
+    const byId = assigned.filter((t) => t.id.toLowerCase() === lower);
+    if (byId.length > 0) {
+      matches.push({ requested: raw, template: byId[0], by: "id" });
+      continue;
+    }
+    const steps = [
+      ["name", assigned.filter((t) => t.name.toLowerCase() === lower)],
+      ["partial-name", assigned.filter((t) => t.name.toLowerCase().includes(lower))]
+    ];
+    const step = steps.find(([, found]) => found.length > 0);
+    if (!step) {
+      unmatched.push(raw);
+    } else if (step[1].length > 1) {
+      ambiguous.push({ requested: raw, candidates: step[1] });
+    } else {
+      matches.push({ requested: raw, template: step[1][0], by: step[0] });
+    }
+  }
+  if (unmatched.length > 0 || ambiguous.length > 0) {
+    return { ok: false, unmatched, ambiguous };
+  }
+  const runIds = new Set(matches.map((m) => m.template.id));
+  return {
+    ok: true,
+    run: assigned.filter((t) => runIds.has(t.id)),
+    skip: assigned.filter((t) => !runIds.has(t.id)),
+    matches
+  };
+}
+function formatNucleiTemplateList(templates) {
+  return templates.map((t) => `  - ${t.name} (${t.id})`).join("\n");
+}
 function formatCheckList(checks) {
   const lines = [];
   if (checks.zap.standard?.length) {
@@ -52682,10 +52795,24 @@ function registerScanTools(server) {
           project_id,
           force_private_scan = false,
           run_only_zap_checks,
-          run_only_nuclei_folders
+          run_only_nuclei_folders,
+          no_zap,
+          run_only_nuclei_templates
         } = args;
         const authGuard = await requireAuthenticatedUser();
         if (!authGuard.ok) return authGuard.response;
+        const wantsZapChecks = !!run_only_zap_checks && run_only_zap_checks.length > 0;
+        const wantsNucleiFolders = !!run_only_nuclei_folders && run_only_nuclei_folders.length > 0;
+        const wantsNucleiTemplates = !!run_only_nuclei_templates && run_only_nuclei_templates.length > 0;
+        if (no_zap && wantsZapChecks) {
+          return {
+            content: [{
+              type: "text",
+              text: "no_zap turns ZAP off, and run_only_zap_checks asks ZAP to run some checks. Use one of them, not both."
+            }],
+            isError: true
+          };
+        }
         if (!project && !project_id) {
           return {
             content: [{
@@ -52703,9 +52830,78 @@ function registerScanTools(server) {
         if (!projectAccess.ok) return projectAccess.response;
         let disableZapActiveAlerts;
         let disableNucleiFolders;
-        if (run_only_zap_checks && run_only_zap_checks.length > 0 || run_only_nuclei_folders && run_only_nuclei_folders.length > 0) {
+        let disableNucleiTemplates;
+        let templateSelection;
+        const selectionWarnings = [];
+        if (wantsNucleiTemplates) {
           try {
-            const checks = await nightvision_default.getConfiguredChecks();
+            const targetId = await nightvision_default.resolveTargetId(targetName, project, project_id);
+            const assigned = await nightvision_default.listTargetNucleiTemplates(targetId);
+            if (assigned.length === 0) {
+              return {
+                content: [{
+                  type: "text",
+                  text: `Target '${targetName}' has no custom Nuclei templates assigned, so run_only_nuclei_templates cannot match anything. Assign one with assign-nuclei-template first.`
+                }],
+                isError: true
+              };
+            }
+            const selection = selectNucleiTemplates(assigned, run_only_nuclei_templates);
+            if (!selection.ok) {
+              const parts = [];
+              if (selection.unmatched.length > 0) {
+                parts.push(`No custom Nuclei template assigned to target '${targetName}' matches: ${selection.unmatched.join(", ")}.`);
+              }
+              for (const { requested, candidates } of selection.ambiguous) {
+                parts.push(`'${requested}' matches several templates; use the exact name or id:
+${formatNucleiTemplateList(candidates)}`);
+              }
+              parts.push(`Templates assigned to target '${targetName}':
+${formatNucleiTemplateList(assigned)}`);
+              return {
+                content: [{ type: "text", text: parts.join("\n\n") }],
+                isError: true
+              };
+            }
+            const noFile = selection.run.filter((t) => t.status && t.status !== "VALID");
+            if (noFile.length > 0) {
+              return {
+                content: [{
+                  type: "text",
+                  text: `These custom Nuclei templates cannot run because their file was never uploaded:
+${formatNucleiTemplateList(noFile)}
+
+Upload the file with upload-nuclei-template or pick another template. No scan was started.`
+                }],
+                isError: true
+              };
+            }
+            for (const match of selection.matches) {
+              if (match.by === "partial-name") {
+                selectionWarnings.push(`'${match.requested}' matched custom Nuclei template '${match.template.name}' by partial name.`);
+              }
+            }
+            templateSelection = { run: selection.run, skip: selection.skip };
+            disableNucleiTemplates = selection.skip.map((t) => t.id);
+          } catch (error51) {
+            return {
+              content: [{ type: "text", text: `Failed to resolve custom Nuclei template selection: ${error51.message} No scan was started.` }],
+              isError: true
+            };
+          }
+          if (disableNucleiTemplates.length > 0 && !await nightvision_default.supportsDisableNucleiTemplates()) {
+            return {
+              content: [{
+                type: "text",
+                text: `The installed NightVision CLI does not support ${DISABLE_NUCLEI_TEMPLATES_FLAG}, which run_only_nuclei_templates needs to skip the other custom templates. Upgrade the NightVision CLI to the latest release and try again. No scan was started.`
+              }],
+              isError: true
+            };
+          }
+        }
+        if (wantsZapChecks || wantsNucleiFolders || wantsNucleiTemplates) {
+          try {
+            const checks = await nightvision_default.getConfiguredChecks({ fresh: wantsNucleiTemplates });
             if (run_only_zap_checks && run_only_zap_checks.length > 0) {
               const { excludeIds, matchedAlerts } = getExclusionIds(checks, run_only_zap_checks);
               if (matchedAlerts.length === 0) {
@@ -52737,6 +52933,18 @@ ${formatCheckList(checks)}`
                 };
               }
               disableNucleiFolders = excludeFolders;
+            } else if (wantsNucleiTemplates) {
+              const allFolders = checks.nuclei || [];
+              if (allFolders.length === 0) {
+                return {
+                  content: [{
+                    type: "text",
+                    text: "The configured-checks list has no built-in Nuclei folders, so they cannot be turned off for run_only_nuclei_templates. No scan was started."
+                  }],
+                  isError: true
+                };
+              }
+              disableNucleiFolders = [...allFolders];
             }
           } catch (error51) {
             return {
@@ -52757,11 +52965,21 @@ ${formatCheckList(checks)}`
               project_id,
               force_private_scan,
               disable_zap_active_alerts: disableZapActiveAlerts,
-              disable_nuclei_folders: disableNucleiFolders
+              disable_nuclei_folders: disableNucleiFolders,
+              no_zap,
+              disable_nuclei_templates: disableNucleiTemplates
             },
             "json"
           );
           const scanId = extractScanId(result);
+          const engineSelection = {
+            ...no_zap ? { no_zap: true } : {},
+            ...templateSelection ? {
+              nuclei_templates_run: templateSelection.run.map((t) => t.name),
+              nuclei_templates_skipped: templateSelection.skip.map((t) => t.name)
+            } : {},
+            ...wantsNucleiTemplates && !wantsNucleiFolders ? { builtin_nuclei_folders_disabled: true } : {}
+          };
           if (!scanId) {
             let parsedResult = null;
             try {
@@ -52780,9 +52998,10 @@ ${formatCheckList(checks)}`
                   project: project || null,
                   project_id: project_id || null,
                   cli_process: parsedResult.cli_process || null,
+                  ...engineSelection,
                   message: "NightVision scan is starting and the CLI relay is running. Poll list-scans or list-managed-scan-processes to obtain the scan ID."
                 },
-                warnings: ["Scan ID not yet reported. The managed CLI relay is still running; do not stop the MCP server for local/private scans until the scan reaches a terminal status."]
+                warnings: ["Scan ID not yet reported. The managed CLI relay is still running; do not stop the MCP server for local/private scans until the scan reaches a terminal status.", ...selectionWarnings]
               });
             }
             return jsonText({
@@ -52813,8 +53032,10 @@ ${formatCheckList(checks)}`
               auth_id: auth_id || null,
               no_auth: !!no_auth,
               force_private_scan: !!force_private_scan,
+              ...engineSelection,
               raw
-            }
+            },
+            ...selectionWarnings.length > 0 ? { warnings: selectionWarnings } : {}
           });
         } catch (error51) {
           console.error(`Error starting scan: ${error51.message}`);

@@ -2,6 +2,7 @@ import { serializeRepeatedParams } from '../utils/query-params.js';
 import { scanStatusFilterCodes } from '../utils/scan-status.js';
 import { extractScanId } from '../utils/scan-id.js';
 import type { ConfiguredChecks } from '../utils/check-catalog.js';
+import { DISABLE_NUCLEI_TEMPLATES_FLAG, helpListsFlag } from '../utils/cli-capabilities.js';
 import { formatScanChecksText, formatScanChecksTable } from '../utils/scan-check-format.js';
 import { formatScansTable } from '../utils/scan-list-format.js';
 import { formatScanPathsText, formatScanPathsTable } from '../utils/scan-path-format.js';
@@ -70,6 +71,10 @@ export interface ScanCliOptions {
   force_private_scan?: boolean;
   disable_zap_active_alerts?: string[];
   disable_nuclei_folders?: string[];
+  /** Turn off the ZAP engine (`--no-zap`). */
+  no_zap?: boolean;
+  /** Custom Nuclei template ids to skip (`--disable-nuclei-templates`, NV-6604). */
+  disable_nuclei_templates?: string[];
 }
 
 /**
@@ -91,6 +96,10 @@ function buildScanArgs(targetName: string, options: ScanCliOptions): string[] {
   if (options.disable_nuclei_folders && options.disable_nuclei_folders.length > 0) {
     args.push('--disable-nuclei-folders', options.disable_nuclei_folders.join(','));
   }
+  if (options.no_zap) args.push('--no-zap');
+  if (options.disable_nuclei_templates && options.disable_nuclei_templates.length > 0) {
+    args.push(DISABLE_NUCLEI_TEMPLATES_FLAG, options.disable_nuclei_templates.join(','));
+  }
   return args;
 }
 
@@ -99,6 +108,7 @@ function buildScanArgs(targetName: string, options: ScanCliOptions): string[] {
  */
 export class ScanService {
   private cachedChecks: ConfiguredChecks | null = null;
+  private disableNucleiTemplatesSupported = false;
   private managedScanProcesses = new Map<string, ManagedScanProcess>();
 
   constructor(private client: ApiClient, private resolver: ScanResolver) {}
@@ -820,12 +830,33 @@ export class ScanService {
 
   /**
    * Fetch the configured check catalog from the API.
-   * Cached for the lifetime of the server process.
+   * Cached for the lifetime of the server process. Pass `fresh` to skip the
+   * cache and refresh it: a stale list can miss a Nuclei folder added since
+   * the server started, and an exclusion list built from it would let that
+   * folder run.
    */
-  async getConfiguredChecks(): Promise<ConfiguredChecks> {
-    if (this.cachedChecks) return this.cachedChecks;
+  async getConfiguredChecks(options: { fresh?: boolean } = {}): Promise<ConfiguredChecks> {
+    if (this.cachedChecks && !options.fresh) return this.cachedChecks;
     const response = await this.client.apiRequest<ConfiguredChecks>('common/configured-checks/', 'GET');
     this.cachedChecks = response;
     return response;
+  }
+
+  /**
+   * Whether the installed CLI's `scan` command has --disable-nuclei-templates
+   * (NV-6604), read from its help. Only a positive answer is cached, so an
+   * upgrade of the CLI is picked up without restarting the server. A help call
+   * that fails counts as not supported.
+   */
+  async supportsDisableNucleiTemplates(): Promise<boolean> {
+    if (this.disableNucleiTemplatesSupported) return true;
+    try {
+      const help = await this.client.executeCommand(['scan', '--help'], 'text', true);
+      this.disableNucleiTemplatesSupported = helpListsFlag(help, DISABLE_NUCLEI_TEMPLATES_FLAG);
+    } catch (error: any) {
+      console.error(`Could not read 'nightvision scan --help': ${error.message}`);
+      return false;
+    }
+    return this.disableNucleiTemplatesSupported;
   }
 }
