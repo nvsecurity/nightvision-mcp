@@ -560,7 +560,8 @@ export class ScanService {
     format: OutputFormat = 'json'
   ): Promise<string> {
     try {
-      // Use API endpoint instead of CLI - based on https://docs.nightvision.net/reference/scans_list
+      // Use API endpoint instead of CLI - based on the scans_list operation at
+      // https://docs.nightviz.ai/reference/
       console.error(`Listing scans via API endpoint...`);
 
       // Build query parameters. The scans endpoint scopes by `target` and
@@ -787,7 +788,8 @@ export class ScanService {
     format: OutputFormat = 'json'
   ): Promise<string> {
     try {
-      // Use API endpoint from https://docs.nightvision.net/reference/scans_paths_list
+      // Use API endpoint from the scans_paths_list operation at
+      // https://docs.nightviz.ai/reference/
       console.error(`Getting scan paths for ${scanId} via API endpoint...`);
 
       // Build query parameters
