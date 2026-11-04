@@ -34,6 +34,7 @@ function client(overrides: Partial<ApiClient> = {}): ApiClient {
   return {
     getToken: () => 'token-1',
     executeCommand: async () => '',
+    assertCliSupported: async () => {},
     apiRequest: async () => {
       throw new Error('apiRequest was not expected');
     },
@@ -86,7 +87,7 @@ test('startManagedScan returns a scan id from CLI output and passes scan flags',
     assert.match(argv, /--disable-zap-active-alerts 40012/);
     assert.match(argv, /--disable-nuclei-folders cves\/2024/);
     assert.match(argv, /-F json/);
-    assert.match(argv, /--api-url https:\/\/api\.nightvision\.net\/api\/v1\//);
+    assert.match(argv, /--api-url https:\/\/api\.nightviz\.ai\/api\/v1\//);
   });
 });
 

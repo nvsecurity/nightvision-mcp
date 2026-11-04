@@ -7,9 +7,12 @@
  */
 export const NIGHTVISION_API = {
   /**
-   * Production API URL
+   * Production API URL.
+   *
+   * NV-6111: CLI 0.26.0 or later supports this host and maps Smart Proxy
+   * connections to the existing relay hosts on nightvision.net.
    */
-  PRODUCTION_URL: 'https://api.nightvision.net/api/v1/'
+  PRODUCTION_URL: 'https://api.nightviz.ai/api/v1/'
 };
 
 /**

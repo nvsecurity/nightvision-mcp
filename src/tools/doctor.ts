@@ -47,7 +47,8 @@ export function registerDoctorTools(server: McpServer): void {
         if (!cliVersion) {
           warnings.push('NightVision CLI is installed, but its version could not be determined.');
         } else if (isCliVersionBelow(cliVersion, MIN_CLI_VERSION)) {
-          warnings.push(`NightVision CLI ${cliVersion} is older than supported minimum ${MIN_CLI_VERSION}.`);
+          blockers.push('cli_version_unsupported');
+          warnings.push(`NightVision CLI ${cliVersion} is older than supported minimum ${MIN_CLI_VERSION}. CLI workflows are blocked until you upgrade.`);
         }
       }
 
@@ -97,6 +98,8 @@ export function registerDoctorTools(server: McpServer): void {
         },
         next_steps: [
           !cliInstalled ? `Install the NightVision CLI and make sure \`${ENVIRONMENT.NIGHTVISION_CLI_PATH} version\` works.` : null,
+          cliVersion && isCliVersionBelow(cliVersion, MIN_CLI_VERSION)
+            ? `Upgrade the NightVision CLI to ${MIN_CLI_VERSION} or later for nightviz.ai support, then retry doctor.` : null,
           !token ? `Run ${ENVIRONMENT.NIGHTVISION_CLI_PATH} login --api-url ${ENVIRONMENT.CURRENT_API_URL} or use the authenticate tool.` : null,
           !process.env.NIGHTVISION_DEFAULT_PROJECT ? 'Set NIGHTVISION_DEFAULT_PROJECT or pass nightvision_project to run-app-security-scan.' : null
         ].filter(Boolean)

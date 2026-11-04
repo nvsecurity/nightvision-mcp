@@ -2,7 +2,7 @@ import { execFile } from 'child_process';
 import { promisify } from 'util';
 import axios from 'axios';
 import { ENVIRONMENT } from '../config/environment.js';
-import { extractCliVersion } from '../utils/cli-version.js';
+import { extractCliVersion, isCliVersionBelow, MIN_CLI_VERSION } from '../utils/cli-version.js';
 
 // Promisify execFile for cleaner async/await usage
 const execFileAsync = promisify(execFile);
@@ -113,6 +113,7 @@ export class ApiClient {
     skipToken: boolean = false,
     cwd?: string
   ): Promise<string> {
+    if (args[0] !== 'version') await this.assertCliSupported();
     try {
       // Build the command with format flag
       const commandArgs = [...args];
@@ -202,10 +203,26 @@ export class ApiClient {
    */
   async getCliVersion(): Promise<string | null> {
     try {
-      const output = await this.executeCommand(['version']);
-      return extractCliVersion(output);
+      // Probe without API flags or the execution guard, so an old CLI can be
+      // diagnosed before it receives an API host it does not understand.
+      const { stdout } = await execFileAsync(ENVIRONMENT.NIGHTVISION_CLI_PATH, ['version'], {
+        maxBuffer: 1024 * 1024,
+        env: { ...process.env }
+      });
+      return extractCliVersion(stdout);
     } catch {
       return null;
+    }
+  }
+
+  /** Reject known unsupported releases before launching any CLI workflow. */
+  async assertCliSupported(): Promise<void> {
+    const version = await this.getCliVersion();
+    if (version && isCliVersionBelow(version, MIN_CLI_VERSION)) {
+      throw new Error(
+        `NightVision CLI ${version} is older than the supported minimum ${MIN_CLI_VERSION}. ` +
+        `Upgrade the NightVision CLI to ${MIN_CLI_VERSION} or later for nightviz.ai support.`
+      );
     }
   }
 

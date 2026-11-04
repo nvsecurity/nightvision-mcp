@@ -28,14 +28,17 @@ A Model Context Protocol (MCP) server that enables AI assistants to interact wit
 ## Prerequisites
 
 - Node.js 22 or later
-- NightVision CLI 0.18.0 or later, installed and on your `PATH`
+- NightVision CLI 0.26.0 or later, installed and on your `PATH`
 - Valid NightVision account and authentication
 
 The server runs the `nightvision` CLI it finds on your `PATH` and depends on its
 command and flag surface (for example `openapi extract --file-format`). It checks
 for the CLI at startup and logs a warning if the version is older than the
-supported minimum (0.18.0, the first release with the `openapi` command); a
-newer CLI is recommended. Upgrade the CLI the way you installed it.
+supported minimum (0.26.0, which supports `nightviz.ai` API hosts and links).
+CLI workflows are blocked on older releases, and `doctor` reports the upgrade
+as a setup blocker; direct API tools remain available. Development builds whose
+version cannot be determined are allowed, with a warning in `doctor`.
+Upgrade the CLI the way you installed it.
 
 ## Installation
 
@@ -214,7 +217,7 @@ The server reads the following optional environment variables (set them in your 
 | `NIGHTVISION_CLI_PATH` | Absolute path to the `nightvision` CLI. Optional when the CLI is already on `PATH`; recommended for desktop clients launched outside a login shell. |
 | `NIGHTVISION_DEFAULT_PROJECT` | Default NightVision project name for the guided harness when no `nightvision_project` is passed. |
 | `NIGHTVISION_CREDS_ID` | Default target-app auth credential UUID applied by `run-app-security-scan` when the caller passes no `auth`/`auth_id`. Leave unset to scan unauthenticated by default. |
-| `NIGHTVISION_API_URL` | Overrides the API base URL (default `https://api.nightvision.net/api/v1/`). Intended for self-hosted API endpoints and the test harness; it redirects all API traffic, including where your token is sent, so only point it at a NightVision endpoint you trust. |
+| `NIGHTVISION_API_URL` | Overrides the API base URL (default `https://api.nightviz.ai/api/v1/`). Intended for self-hosted API endpoints and the test harness; it redirects all API traffic, including where your token is sent, so only point it at a NightVision endpoint you trust. The URL is also passed to the NightVision CLI as `--api-url`. Explicit `nightvision.net` and custom endpoint overrides are still honored. |
 
 ### Guided App Security Scan
 
@@ -1378,7 +1381,7 @@ If you see errors related to missing modules:
 
 If you see authentication errors:
 
-1. Run `nightvision login --api-url https://api.nightvision.net/api/v1/` in your terminal to authenticate with the CLI
+1. Run `nightvision login --api-url https://api.nightviz.ai/api/v1/` in your terminal to authenticate with the CLI
 2. Check if your token is valid and not expired (tokens are stored in `~/.nightvision/token`)
 
 ### Connection Issues

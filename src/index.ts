@@ -16,11 +16,11 @@ async function main() {
       process.exit(1);
     }
 
-    // Warn (but do not block) when the installed CLI is older than the minimum
-    // this server relies on. A dev build with no parseable version is left alone.
+    // Keep API tools available; CLI execution rejects unsupported versions.
+    // A dev build with no parseable version is left alone.
     const cliVersion = await nightvisionService.getCliVersion();
     if (cliVersion && isCliVersionBelow(cliVersion, MIN_CLI_VERSION)) {
-      console.error(`WARNING: NightVision CLI ${cliVersion} is older than the supported minimum ${MIN_CLI_VERSION}. Some tools (for example API discovery) may fail; please upgrade the NightVision CLI.`);
+      console.error(`WARNING: NightVision CLI ${cliVersion} is older than the supported minimum ${MIN_CLI_VERSION}. CLI workflows are blocked; upgrade to ${MIN_CLI_VERSION} or later for nightviz.ai support. Direct API tools remain available.`);
     }
 
     // Load authentication token

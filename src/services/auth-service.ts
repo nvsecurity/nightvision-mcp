@@ -49,6 +49,7 @@ export class AuthService {
    * @returns The created token
    */
   async createToken(expiryDate?: string): Promise<string> {
+    await this.client.assertCliSupported();
     try {
       // First, attempt to login to NightVision CLI (interactive process)
       try {

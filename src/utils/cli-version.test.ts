@@ -29,8 +29,8 @@ test('isCliVersionBelow tolerates an optional v prefix on either side', () => {
   assert.equal(isCliVersionBelow('v0.5.0', 'v0.5.0'), false);
 });
 
-test('the installed-version floor sits at or above where the openapi command appeared', () => {
-  // Guard the constant: the server runs `openapi extract`, which arrived in
-  // 0.18.0, so the floor must not be set below that.
-  assert.equal(isCliVersionBelow(MIN_CLI_VERSION, '0.18.0'), false);
+test('the installed-version floor requires nightviz.ai CLI support', () => {
+  assert.equal(isCliVersionBelow('0.25.1', MIN_CLI_VERSION), true);
+  assert.equal(isCliVersionBelow('0.26.0', MIN_CLI_VERSION), false);
+  assert.equal(isCliVersionBelow('0.26.1', MIN_CLI_VERSION), false);
 });

@@ -174,6 +174,7 @@ export class ScanService {
     format: OutputFormat = 'json',
     timeoutMs = 120_000
   ): Promise<string> {
+    await this.client.assertCliSupported();
     const args = buildScanArgs(targetName, options);
 
     const commandArgs = [...args, '-F', format, '--api-url', ENVIRONMENT.CURRENT_API_URL];

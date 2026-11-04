@@ -54816,9 +54816,12 @@ var {
 // src/config/environment.ts
 var NIGHTVISION_API = {
   /**
-   * Production API URL
+   * Production API URL.
+   *
+   * NV-6111: CLI 0.26.0 or later supports this host and maps Smart Proxy
+   * connections to the existing relay hosts on nightvision.net.
    */
-  PRODUCTION_URL: "https://api.nightvision.net/api/v1/"
+  PRODUCTION_URL: "https://api.nightviz.ai/api/v1/"
 };
 var ENVIRONMENT = {
   /**
@@ -54833,7 +54836,7 @@ var ENVIRONMENT = {
 };
 
 // src/utils/cli-version.ts
-var MIN_CLI_VERSION = "0.18.0";
+var MIN_CLI_VERSION = "0.26.0";
 function extractCliVersion(output2) {
   const m = output2.match(/v?(\d+)\.(\d+)\.(\d+)/i);
   return m ? `${m[1]}.${m[2]}.${m[3]}` : null;
@@ -54919,6 +54922,7 @@ var ApiClient = class {
    * @returns Command output
    */
   async executeCommand(args, format = "text", skipToken = false, cwd) {
+    if (args[0] !== "version") await this.assertCliSupported();
     try {
       const commandArgs = [...args];
       if (format) {
@@ -54978,10 +54982,22 @@ var ApiClient = class {
    */
   async getCliVersion() {
     try {
-      const output2 = await this.executeCommand(["version"]);
-      return extractCliVersion(output2);
+      const { stdout } = await execFileAsync(ENVIRONMENT.NIGHTVISION_CLI_PATH, ["version"], {
+        maxBuffer: 1024 * 1024,
+        env: { ...process.env }
+      });
+      return extractCliVersion(stdout);
     } catch {
       return null;
+    }
+  }
+  /** Reject known unsupported releases before launching any CLI workflow. */
+  async assertCliSupported() {
+    const version2 = await this.getCliVersion();
+    if (version2 && isCliVersionBelow(version2, MIN_CLI_VERSION)) {
+      throw new Error(
+        `NightVision CLI ${version2} is older than the supported minimum ${MIN_CLI_VERSION}. Upgrade the NightVision CLI to ${MIN_CLI_VERSION} or later for nightviz.ai support.`
+      );
     }
   }
   /**
@@ -55059,6 +55075,7 @@ var AuthService = class {
    * @returns The created token
    */
   async createToken(expiryDate) {
+    await this.client.assertCliSupported();
     try {
       try {
         console.error("Attempting to login to NightVision before creating a new token...");
@@ -55775,6 +55792,7 @@ var ScanService = class {
    * the service process.
    */
   async startManagedScan(targetName, options = {}, format = "json", timeoutMs = 12e4) {
+    await this.client.assertCliSupported();
     const args = buildScanArgs(targetName, options);
     const commandArgs = [...args, "-F", format, "--api-url", ENVIRONMENT.CURRENT_API_URL];
     const env = { ...process.env };
@@ -61660,7 +61678,8 @@ function registerDoctorTools(server) {
         if (!cliVersion) {
           warnings.push("NightVision CLI is installed, but its version could not be determined.");
         } else if (isCliVersionBelow(cliVersion, MIN_CLI_VERSION)) {
-          warnings.push(`NightVision CLI ${cliVersion} is older than supported minimum ${MIN_CLI_VERSION}.`);
+          blockers.push("cli_version_unsupported");
+          warnings.push(`NightVision CLI ${cliVersion} is older than supported minimum ${MIN_CLI_VERSION}. CLI workflows are blocked until you upgrade.`);
         }
       }
       const token = nightvision_default.getToken();
@@ -61707,6 +61726,7 @@ function registerDoctorTools(server) {
         },
         next_steps: [
           !cliInstalled ? `Install the NightVision CLI and make sure \`${ENVIRONMENT.NIGHTVISION_CLI_PATH} version\` works.` : null,
+          cliVersion && isCliVersionBelow(cliVersion, MIN_CLI_VERSION) ? `Upgrade the NightVision CLI to ${MIN_CLI_VERSION} or later for nightviz.ai support, then retry doctor.` : null,
           !token ? `Run ${ENVIRONMENT.NIGHTVISION_CLI_PATH} login --api-url ${ENVIRONMENT.CURRENT_API_URL} or use the authenticate tool.` : null,
           !process.env.NIGHTVISION_DEFAULT_PROJECT ? "Set NIGHTVISION_DEFAULT_PROJECT or pass nightvision_project to run-app-security-scan." : null
         ].filter(Boolean)
@@ -64095,7 +64115,7 @@ async function main() {
     }
     const cliVersion = await nightvision_default.getCliVersion();
     if (cliVersion && isCliVersionBelow(cliVersion, MIN_CLI_VERSION)) {
-      console.error(`WARNING: NightVision CLI ${cliVersion} is older than the supported minimum ${MIN_CLI_VERSION}. Some tools (for example API discovery) may fail; please upgrade the NightVision CLI.`);
+      console.error(`WARNING: NightVision CLI ${cliVersion} is older than the supported minimum ${MIN_CLI_VERSION}. CLI workflows are blocked; upgrade to ${MIN_CLI_VERSION} or later for nightviz.ai support. Direct API tools remain available.`);
     }
     const token = loadToken();
     if (token) {

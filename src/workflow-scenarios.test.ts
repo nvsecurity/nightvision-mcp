@@ -98,7 +98,7 @@ function fakeCli(baseDir: string): { binDir: string; logPath: string } {
     'function argAfter(f){const i=args.indexOf(f);return i>=0?args[i+1]:undefined;}',
     'function json(v){process.stdout.write(`${JSON.stringify(v)}\\n`);}',
     'if (args[0] === "--help") { process.stdout.write("help\\n"); process.exit(0); }',
-    'if (args[0] === "version") { process.stdout.write("NightVision CLI 0.18.4\\n"); process.exit(0); }',
+    'if (args[0] === "version") { process.stdout.write(`NightVision CLI ${process.env.NV_CLI_VERSION || "0.26.0"}\\n`); process.exit(0); }',
     'if (args[0] === "project" && args[1] === "list") { json(JSON.parse(process.env.NV_FAKE_PROJECTS || "[]")); process.exit(0); }',
     'if (args[0] === "openapi" && args[1] === "extract" && args.includes("--help")) {',
     '  process.stdout.write("Flags:\\n      --no-target   Run without a target\\n      --no-upload   Upload nothing\\n"); process.exit(0);',
@@ -274,6 +274,43 @@ async function call(client: Awaited<ReturnType<typeof init>>, name: string, args
 const skip = isWin ? 'requires a POSIX shell stub' : false;
 
 // ---------- Scenarios ----------
+
+for (const version of ['0.25.1', 'unknown']) {
+  test(`scenario: doctor diagnoses CLI ${version} while API tools remain usable`, { timeout: 30000, skip }, async (t) => {
+    const baseDir = mkdtempSync(path.join(os.tmpdir(), 'nv-sc-cli-version-'));
+    const { binDir, logPath } = fakeCli(baseDir);
+    const api = await fakeApi({ listScans: [{ id: 'scan-existing' }] });
+    if (!api) return t.skip('loopback blocked');
+    const child = spawnServer(baseDir, binDir, logPath, {
+      token: 't', apiUrl: api.url, env: { NV_CLI_VERSION: version }
+    });
+    try {
+      const client = await init(child);
+      const doctor = await call(client, 'doctor', {});
+      const diagnostics = doctor.payload.data || doctor.payload.error.details;
+      assert.equal(diagnostics.cli.minimum_supported_version, '0.26.0');
+      assert.equal(diagnostics.cli.version, version === 'unknown' ? null : version);
+      if (version !== 'unknown') {
+        assert.equal(doctor.payload.status, 'blocked');
+        assert.ok(doctor.payload.blockers.includes('cli_version_unsupported'));
+        assert.match(diagnostics.next_steps.join('\n'), /Upgrade.*0\.26\.0/);
+        const projects = await client.rpc('tools/call', { name: 'list-projects', arguments: {} });
+        assert.equal(projects.result.isError, true);
+        assert.match(projects.result.content[0].text, /Upgrade the NightVision CLI to 0\.26\.0/);
+        assert.doesNotMatch(readFileSync(logPath, 'utf8'), /^project list/m);
+      } else {
+        assert.equal(doctor.payload.ok, true);
+        assert.match(doctor.payload.warnings.join('\n'), /version could not be determined/);
+      }
+      const scans = await call(client, 'list-scans', {});
+      assert.match(JSON.stringify(scans.payload), /scan-existing/);
+      assert.equal(scans.isError, false);
+    } finally {
+      child.kill('SIGKILL');
+      api.server.close();
+    }
+  });
+}
 
 test('scenario: "scan the app I just built" runs the full workflow and produces a scan id + manifest', { timeout: 30000, skip }, async (t) => {
   const baseDir = mkdtempSync(path.join(os.tmpdir(), 'nv-sc-happy-'));
