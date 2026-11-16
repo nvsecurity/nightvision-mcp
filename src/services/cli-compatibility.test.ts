@@ -8,8 +8,11 @@ import { ApiClient } from './api-client.js';
 import { AuthService } from './auth-service.js';
 import { ScanService } from './scan-service.js';
 
-for (const version of ['0.18.0', '0.25.1', '0.26.0', '0.26.1', 'unknown']) {
-  test(`CLI execution compatibility: ${version}`, {
+const cases = ['0.18.0', '0.25.1', '0.26.0', '0.26.1', 'unknown'].flatMap((version) =>
+  ['stdout', 'stderr'].map((stream) => ({ version, stream })));
+
+for (const { version, stream } of cases) {
+  test(`CLI execution compatibility: ${version} on ${stream}`, {
     skip: process.platform === 'win32' ? 'requires an executable shell stub' : false
   }, async (t) => {
     const dir = mkdtempSync(join(tmpdir(), 'nv-cli-compat-'));
@@ -20,7 +23,8 @@ for (const version of ['0.18.0', '0.25.1', '0.26.0', '0.26.1', 'unknown']) {
       'const fs = require("node:fs");',
       'const args = process.argv.slice(2);',
       `fs.appendFileSync(${JSON.stringify(log)}, JSON.stringify(args) + "\\n");`,
-      `process.stdout.write(args[0] === "version" ? "Version ${version}" : JSON.stringify(args));`
+      `if (args[0] === "version") process.${stream}.write(${JSON.stringify(`nightvision CLI\n\nVersion ${version}\nCommit fixture\nBuild date unknown\n`)});`,
+      'else process.stdout.write(JSON.stringify(args));'
     ].join('\n'));
     chmodSync(cli, 0o755);
     const previousPath = ENVIRONMENT.NIGHTVISION_CLI_PATH;

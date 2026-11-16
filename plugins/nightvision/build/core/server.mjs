@@ -54982,11 +54982,11 @@ var ApiClient = class {
    */
   async getCliVersion() {
     try {
-      const { stdout } = await execFileAsync(ENVIRONMENT.NIGHTVISION_CLI_PATH, ["version"], {
+      const { stdout, stderr } = await execFileAsync(ENVIRONMENT.NIGHTVISION_CLI_PATH, ["version"], {
         maxBuffer: 1024 * 1024,
         env: { ...process.env }
       });
-      return extractCliVersion(stdout);
+      return extractCliVersion(stderr) ?? extractCliVersion(stdout);
     } catch {
       return null;
     }

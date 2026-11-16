@@ -205,11 +205,13 @@ export class ApiClient {
     try {
       // Probe without API flags or the execution guard, so an old CLI can be
       // diagnosed before it receives an API host it does not understand.
-      const { stdout } = await execFileAsync(ENVIRONMENT.NIGHTVISION_CLI_PATH, ['version'], {
+      const { stdout, stderr } = await execFileAsync(ENVIRONMENT.NIGHTVISION_CLI_PATH, ['version'], {
         maxBuffer: 1024 * 1024,
         env: { ...process.env }
       });
-      return extractCliVersion(stdout);
+      // Released CLIs write their version to stderr; also accept stdout from
+      // wrappers and development builds.
+      return extractCliVersion(stderr) ?? extractCliVersion(stdout);
     } catch {
       return null;
     }

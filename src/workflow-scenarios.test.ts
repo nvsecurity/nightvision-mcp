@@ -98,7 +98,7 @@ function fakeCli(baseDir: string): { binDir: string; logPath: string } {
     'function argAfter(f){const i=args.indexOf(f);return i>=0?args[i+1]:undefined;}',
     'function json(v){process.stdout.write(`${JSON.stringify(v)}\\n`);}',
     'if (args[0] === "--help") { process.stdout.write("help\\n"); process.exit(0); }',
-    'if (args[0] === "version") { process.stdout.write(`NightVision CLI ${process.env.NV_CLI_VERSION || "0.26.0"}\\n`); process.exit(0); }',
+    'if (args[0] === "version") { process.stderr.write(`NightVision CLI ${process.env.NV_CLI_VERSION || "0.26.0"}\\n`); process.exit(0); }',
     'if (args[0] === "project" && args[1] === "list") { json(JSON.parse(process.env.NV_FAKE_PROJECTS || "[]")); process.exit(0); }',
     'if (args[0] === "openapi" && args[1] === "extract" && args.includes("--help")) {',
     '  process.stdout.write("Flags:\\n      --no-target   Run without a target\\n      --no-upload   Upload nothing\\n"); process.exit(0);',

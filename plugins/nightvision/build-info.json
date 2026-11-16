@@ -4,5 +4,5 @@
   "entrypoint": "src/index.ts",
   "builder": "esbuild@0.28.1",
   "bundle": "build/core/server.mjs",
-  "sha256": "153e66a2a24f5dc633212a423d3de4cdb0d1166a0c253bc2621dc68d3ed4ce6e"
+  "sha256": "c88061c7bd524a5ebdf9d7d8f23cf520f60de307b6d29f92014fddbf7ebc561e"
 }

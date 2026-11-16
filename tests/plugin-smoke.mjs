@@ -23,7 +23,7 @@ const fakeCli = join(temporaryHome, 'bin', 'nightvision');
 mkdirSync(dirname(fakeCli), { recursive: true });
 writeFileSync(
   fakeCli,
-  '#!/bin/sh\nif [ "$1" = "version" ]; then printf "nightvision version 1.9.0\\n"; exit 0; fi\nprintf "{}\\n"\n',
+  '#!/bin/sh\nif [ "$1" = "version" ]; then printf "nightvision version 1.9.0\\n" >&2; exit 0; fi\nprintf "{}\\n"\n',
 );
 chmodSync(fakeCli, 0o755);
 
