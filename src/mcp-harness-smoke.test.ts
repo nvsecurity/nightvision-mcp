@@ -101,7 +101,7 @@ function fakeNightVisionForHarness(baseDir: string): { binDir: string; logPath: 
     'function argAfter(flag) { const i = args.indexOf(flag); return i >= 0 ? args[i + 1] : undefined; }',
     'function json(value) { process.stdout.write(`${JSON.stringify(value)}\\n`); }',
     'if (args[0] === "--help") { process.stdout.write("NightVision help\\n"); process.exit(0); }',
-    'if (args[0] === "version") { process.stdout.write("NightVision CLI 0.18.4\\n"); process.exit(0); }',
+    'if (args[0] === "version") { process.stderr.write("NightVision CLI 0.26.0\\n"); process.exit(0); }',
     'if (args[0] === "project" && args[1] === "list") { json({ results: [{ id: "project-1", name: "Demo Project", is_default: true }] }); process.exit(0); }',
     'if (args[0] === "openapi" && args[1] === "extract") {',
     '  const output = argAfter("--output") || argAfter("-o");',

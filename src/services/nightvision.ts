@@ -58,6 +58,10 @@ export class NightVisionService {
     return this.client.getProjectByName(projectName);
   }
 
+  getProjectById(projectId: string): Promise<Record<string, any> | null> {
+    return this.client.getProjectById(projectId);
+  }
+
   // --- Auth / Credentials ---
 
   createToken(...a: Parameters<AuthService['createToken']>) {
