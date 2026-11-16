@@ -83,15 +83,6 @@ export async function requireAuthenticatedUser(): Promise<AuthGuardResult> {
   };
 }
 
-function projectsFrom(raw: unknown): Record<string, any>[] {
-  if (Array.isArray(raw)) return raw;
-  if (!raw || typeof raw !== 'object') return [];
-  const obj = raw as any;
-  if (Array.isArray(obj.results)) return obj.results;
-  if (Array.isArray(obj.projects)) return obj.projects;
-  return [];
-}
-
 // A transient API outage (5xx or a network/DNS failure) is not a permission
 // problem. Detect it so project resolution reports nightvision_api_unavailable
 // (retry, do not re-auth) instead of PROJECT_ACCESS_DENIED, matching how
@@ -103,8 +94,7 @@ function looksLikeServiceOutage(error: any): boolean {
       ? error.response.status
       : undefined;
   if (status !== undefined) return status >= 500;
-  // Include the CLI's stderr (surfaced by executeCommand) so a connectivity
-  // failure on the CLI-backed project lookup is classified, not just axios errors.
+  // Include transport details carried by wrapped errors, not just axios errors.
   const msg = `${String(error?.message ?? error ?? '')} ${String(error?.stderr ?? '')}`;
   // A socket-level EACCES ("dial tcp <ip>:443: connect: permission denied") is a
   // network egress block, not a project-access rejection. Classify it as an
@@ -119,17 +109,6 @@ function looksLikeServiceOutage(error: any): boolean {
   }
   if (/status code\s+5\d\d/i.test(msg)) return true;
   return /ECONNREFUSED|ECONNRESET|ETIMEDOUT|ENOTFOUND|EAI_AGAIN|socket hang up|network error|fetch failed|timed?\s?out|unreachable|connection (refused|reset)|no such host|i\/o timeout|context deadline exceeded|server misbehaving|tls handshake|dial tcp|internal server error|bad gateway|service unavailable|gateway timeout/i.test(msg);
-}
-
-async function findProjectById(projectId: string): Promise<Record<string, any> | null> {
-  const raw = await nightvisionService.executeCommand(['project', 'list'], 'json');
-  let parsed: unknown;
-  try {
-    parsed = JSON.parse(raw);
-  } catch {
-    parsed = raw;
-  }
-  return projectsFrom(parsed).find((project) => project.id === projectId) || null;
 }
 
 export async function requireProjectAccess(options: {
@@ -159,12 +138,12 @@ export async function requireProjectAccess(options: {
   try {
     let project: Record<string, any> | null;
     if (projectId) {
-      project = await findProjectById(projectId);
+      project = await nightvisionService.getProjectById(projectId);
     } else if (projectName && UUID_PATTERN.test(projectName)) {
       // A UUID-shaped value in the name field is ambiguous: it may be a project
       // id, or a project whose name genuinely looks like a UUID. Try id lookup
       // first, then fall back to name lookup so such projects are not denied.
-      project = await findProjectById(projectName);
+      project = await nightvisionService.getProjectById(projectName);
       if (!project) {
         // Let a lookup error propagate to the outer catch so an outage on this
         // fallback is classified (nightvision_api_unavailable) rather than

@@ -226,6 +226,21 @@ export class ApiClient {
     }
   }
 
+  /** Look up an accessible project over HTTP without depending on the CLI. */
+  async getProjectById(projectId: string): Promise<Record<string, any> | null> {
+    try {
+      const project = await this.apiRequest<Record<string, any>>(
+        `projects/${encodeURIComponent(projectId)}/`, 'GET'
+      );
+      return project?.id === projectId ? project : null;
+    } catch (error: any) {
+      // A missing/inaccessible id may instead be a UUID-shaped project name.
+      // Preserve permission errors and outages for the access guard to classify.
+      if (error?.statusCode === 404) return null;
+      throw error;
+    }
+  }
+
   /**
    * Look up a project by name.
    */

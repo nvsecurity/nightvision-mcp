@@ -55000,6 +55000,19 @@ var ApiClient = class {
       );
     }
   }
+  /** Look up an accessible project over HTTP without depending on the CLI. */
+  async getProjectById(projectId) {
+    try {
+      const project = await this.apiRequest(
+        `projects/${encodeURIComponent(projectId)}/`,
+        "GET"
+      );
+      return project?.id === projectId ? project : null;
+    } catch (error62) {
+      if (error62?.statusCode === 404) return null;
+      throw error62;
+    }
+  }
   /**
    * Look up a project by name.
    */
@@ -57404,6 +57417,9 @@ var NightVisionService = class {
   getProjectByName(projectName) {
     return this.client.getProjectByName(projectName);
   }
+  getProjectById(projectId) {
+    return this.client.getProjectById(projectId);
+  }
   // --- Auth / Credentials ---
   createToken(...a) {
     return this.auth.createToken(...a);
@@ -58031,14 +58047,6 @@ async function requireAuthenticatedUser() {
     response: authBlocked("NightVision token is missing, invalid, or expired. Re-authenticate before running this tool.", "INVALID_OR_EXPIRED_TOKEN")
   };
 }
-function projectsFrom(raw) {
-  if (Array.isArray(raw)) return raw;
-  if (!raw || typeof raw !== "object") return [];
-  const obj = raw;
-  if (Array.isArray(obj.results)) return obj.results;
-  if (Array.isArray(obj.projects)) return obj.projects;
-  return [];
-}
 function looksLikeServiceOutage(error62) {
   const status = typeof error62?.statusCode === "number" ? error62.statusCode : typeof error62?.response?.status === "number" ? error62.response.status : void 0;
   if (status !== void 0) return status >= 500;
@@ -58051,16 +58059,6 @@ function looksLikeServiceOutage(error62) {
   }
   if (/status code\s+5\d\d/i.test(msg)) return true;
   return /ECONNREFUSED|ECONNRESET|ETIMEDOUT|ENOTFOUND|EAI_AGAIN|socket hang up|network error|fetch failed|timed?\s?out|unreachable|connection (refused|reset)|no such host|i\/o timeout|context deadline exceeded|server misbehaving|tls handshake|dial tcp|internal server error|bad gateway|service unavailable|gateway timeout/i.test(msg);
-}
-async function findProjectById(projectId) {
-  const raw = await nightvision_default.executeCommand(["project", "list"], "json");
-  let parsed;
-  try {
-    parsed = JSON.parse(raw);
-  } catch {
-    parsed = raw;
-  }
-  return projectsFrom(parsed).find((project) => project.id === projectId) || null;
 }
 async function requireProjectAccess(options) {
   const projectName = options.project || null;
@@ -58083,9 +58081,9 @@ async function requireProjectAccess(options) {
   try {
     let project;
     if (projectId) {
-      project = await findProjectById(projectId);
+      project = await nightvision_default.getProjectById(projectId);
     } else if (projectName && UUID_PATTERN.test(projectName)) {
-      project = await findProjectById(projectName);
+      project = await nightvision_default.getProjectById(projectName);
       if (!project) {
         project = await nightvision_default.getProjectByName(projectName);
       }
@@ -60916,7 +60914,7 @@ function parseJson(raw) {
     return raw;
   }
 }
-function projectsFrom2(raw) {
+function projectsFrom(raw) {
   if (Array.isArray(raw)) return raw;
   if (!raw || typeof raw !== "object") return [];
   const obj = raw;
@@ -61007,7 +61005,7 @@ async function chooseProject(requestedName, requestedId, allowCliLookup = true) 
   }
   try {
     const raw = await nightvision_default.executeCommand(["project", "list"], "json");
-    const projects = projectsFrom2(parseJson(raw)).filter((project) => project.name);
+    const projects = projectsFrom(parseJson(raw)).filter((project) => project.name);
     const byId = requestedId ? projects.find((project) => project.id === requestedId) : void 0;
     if (byId?.name) {
       return { name: byId.name, id: byId.id || requestedId || null, source: "project_id", warnings: [] };

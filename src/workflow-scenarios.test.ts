@@ -133,6 +133,7 @@ function fakeCli(baseDir: string): { binDir: string; logPath: string } {
 interface ApiConfig {
   userMe?: 'ok' | 'unauthorized' | 'server_error';
   projects?: Array<{ id: string; name: string }>;
+  projectLookupStatus?: number;
   // Scan status returned by /scans/<id>/. Provide a fixed status or a sequence.
   scanStatus?: any;
   scanStatusSequence?: any[];
@@ -143,8 +144,11 @@ interface ApiConfig {
   targets?: any[];
 }
 
-async function fakeApi(config: ApiConfig): Promise<{ server: Server; url: string; captured: { checkParams: string[] } } | null> {
-  const captured = { checkParams: [] as string[] };
+async function fakeApi(config: ApiConfig): Promise<{
+  server: Server; url: string;
+  captured: { checkParams: string[]; projectLookups: string[]; scanListParams: string[] };
+} | null> {
+  const captured = { checkParams: [] as string[], projectLookups: [] as string[], scanListParams: [] as string[] };
   let statusPolls = 0;
   const projects = config.projects || [{ id: 'project-1', name: 'Demo Project' }];
 
@@ -164,6 +168,16 @@ async function fakeApi(config: ApiConfig): Promise<{ server: Server; url: string
       const wanted = decodeURIComponent(nameMatch[1]);
       const found = projects.filter((p) => p.name === wanted);
       res.end(JSON.stringify({ results: found }));
+      return;
+    }
+
+    const projectMatch = u.match(/^\/api\/v1\/projects\/([^/?]+)\/$/);
+    if (projectMatch) {
+      const id = decodeURIComponent(projectMatch[1]);
+      captured.projectLookups.push(id);
+      const project = projects.find((p) => p.id === id);
+      res.statusCode = config.projectLookupStatus || (project ? 200 : 404);
+      res.end(JSON.stringify(res.statusCode === 200 ? project : { detail: 'Project lookup failed.' }));
       return;
     }
 
@@ -191,6 +205,7 @@ async function fakeApi(config: ApiConfig): Promise<{ server: Server; url: string
     }
 
     if (u.startsWith('/api/v1/scans/')) {
+      captured.scanListParams.push(u);
       res.end(JSON.stringify({ results: config.listScans || [] }));
       return;
     }
@@ -279,7 +294,13 @@ for (const version of ['0.25.1', 'unknown']) {
   test(`scenario: doctor diagnoses CLI ${version} while API tools remain usable`, { timeout: 30000, skip }, async (t) => {
     const baseDir = mkdtempSync(path.join(os.tmpdir(), 'nv-sc-cli-version-'));
     const { binDir, logPath } = fakeCli(baseDir);
-    const api = await fakeApi({ listScans: [{ id: 'scan-existing' }] });
+    const projectId = '178f6736-789d-4473-aa45-0b1a0b69ab3b';
+    const uuidName = '123e4567-e89b-12d3-a456-426614174000';
+    const namedProjectId = '11111111-1111-1111-1111-111111111111';
+    const api = await fakeApi({
+      projects: [{ id: projectId, name: 'Demo Project' }, { id: namedProjectId, name: uuidName }],
+      listScans: [{ id: 'scan-existing' }]
+    });
     if (!api) return t.skip('loopback blocked');
     const child = spawnServer(baseDir, binDir, logPath, {
       token: 't', apiUrl: api.url, env: { NV_CLI_VERSION: version }
@@ -302,9 +323,39 @@ for (const version of ['0.25.1', 'unknown']) {
         assert.equal(doctor.payload.ok, true);
         assert.match(doctor.payload.warnings.join('\n'), /version could not be determined/);
       }
-      const scans = await call(client, 'list-scans', {});
-      assert.match(JSON.stringify(scans.payload), /scan-existing/);
-      assert.equal(scans.isError, false);
+      for (const filter of [{}, { project_id: projectId }, { project: uuidName }]) {
+        const scans = await call(client, 'list-scans', filter);
+        assert.match(JSON.stringify(scans.payload), /scan-existing/);
+        assert.equal(scans.isError, false);
+      }
+      assert.deepEqual(api.captured.projectLookups, [projectId, uuidName]);
+      assert.equal(api.captured.scanListParams.length, 3);
+      assert.deepEqual(api.captured.scanListParams.slice(1).map((request) =>
+        new URL(request, api.url).searchParams.get('project')), [projectId, namedProjectId]);
+      assert.doesNotMatch(readFileSync(logPath, 'utf8'), /^project list/m);
+    } finally {
+      child.kill('SIGKILL');
+      api.server.close();
+    }
+  });
+}
+
+for (const status of [403, 404, 503]) {
+  test(`scenario: project-ID API lookup preserves rejection ${status} with an older CLI`, { timeout: 30000, skip }, async (t) => {
+    const baseDir = mkdtempSync(path.join(os.tmpdir(), 'nv-sc-project-rejected-'));
+    const { binDir, logPath } = fakeCli(baseDir);
+    const api = await fakeApi({ projectLookupStatus: status });
+    if (!api) return t.skip('loopback blocked');
+    const child = spawnServer(baseDir, binDir, logPath, {
+      token: 't', apiUrl: api.url, env: { NV_CLI_VERSION: '0.25.1' }
+    });
+    try {
+      const client = await init(child);
+      const scans = await call(client, 'list-scans', { project_id: '178f6736-789d-4473-aa45-0b1a0b69ab3b' });
+      assert.equal(scans.isError, true);
+      assert.equal(scans.payload.error.code, status === 503 ? 'NIGHTVISION_API_UNAVAILABLE' : 'PROJECT_ACCESS_DENIED');
+      assert.deepEqual(api.captured.scanListParams, [], 'failed authorization must not reach the scans endpoint');
+      assert.doesNotMatch(readFileSync(logPath, 'utf8'), /^project list/m);
     } finally {
       child.kill('SIGKILL');
       api.server.close();
@@ -538,8 +589,7 @@ test('scenario: a project whose NAME looks like a UUID is not falsely denied', {
   const uuidName = '123e4567-e89b-12d3-a456-426614174000';
   const baseDir = mkdtempSync(path.join(os.tmpdir(), 'nv-sc-uuidproj-'));
   const { binDir, logPath } = fakeCli(baseDir);
-  // CLI `project list` (used by id lookup) has a DIFFERENT id, so id lookup
-  // misses and the guard must fall back to name lookup via the API.
+  // The API id lookup misses, so the guard must fall back to a name lookup.
   const api = await fakeApi({ projects: [{ id: 'real-project-id', name: uuidName }] });
   const child = spawnServer(baseDir, binDir, logPath, {
     token: 't', apiUrl: api!.url, env: { NV_FAKE_PROJECTS: JSON.stringify([{ id: 'real-project-id', name: uuidName }]) }
