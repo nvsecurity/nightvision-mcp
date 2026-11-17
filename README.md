@@ -110,8 +110,8 @@ For Codex, see below.
 
 ### Using with Codex
 
-Codex installs this server as a plugin, which bundles the five NightVision
-skills alongside it. The plugin is packaged from this repository, so it is the
+Codex installs this server as a plugin, which bundles the NightVision skills
+alongside it. The plugin is packaged from this repository, so it is the
 same server described above rather than a separate build.
 
 1. Add this repository as a plugin marketplace and install:

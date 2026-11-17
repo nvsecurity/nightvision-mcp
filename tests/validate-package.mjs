@@ -195,11 +195,15 @@ check(
 const expectedSkills = [
   'api-discovery',
   'app-security-scan',
+  'authz-review',
   'ci-cd-integration',
   'scan-configuration',
   'scan-report',
   'scan-triage',
+  'secure-build',
+  'ship-check',
   'source-intelligence',
+  'verify-fix',
 ];
 const actualSkills = readdirSync(join(pluginRoot, 'skills'))
   .filter((entry) => existsSync(join(pluginRoot, 'skills', entry, 'SKILL.md')))
