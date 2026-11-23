@@ -60,15 +60,19 @@ export class ApiClient {
     params: Record<string, any> = {},
     data: any = null,
     isFormData: boolean = false,
-    serializeParams?: (params: Record<string, any>) => string
+    serializeParams?: (params: Record<string, any>) => string,
+    extraHeaders?: Record<string, string>
   ): Promise<T> {
     try {
       const url = `${this.getApiBaseUrl()}${endpoint}`;
 
       // Use different headers for form data vs JSON
-      const headers = isFormData
-        ? { 'Authorization': this.token ? `Token ${this.token}` : '' }
-        : this.getApiHeaders();
+      const headers = {
+        ...(isFormData
+          ? { 'Authorization': this.token ? `Token ${this.token}` : '' }
+          : this.getApiHeaders()),
+        ...extraHeaders
+      };
 
       const response = await axios({
         method,
