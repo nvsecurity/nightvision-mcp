@@ -371,9 +371,17 @@ async function ensureTarget(
     return updateExistingTarget(existingAfterCreate, name, url, projectName, projectId, specFile, warnings);
   }
 
+  const created = parseJson(rawCreate) as Target;
+  if (created?.id) {
+    const tagged = await nightvisionService.tagAgentCreated(created.id, created.organization_id);
+    if (!tagged.tagged) warnings.push(tagged.warning);
+  } else {
+    warnings.push('Could not add the "Agent created" tag: the create output had no target id.');
+  }
+
   return {
     action: 'created',
-    target: parseJson(rawCreate) as Target,
+    target: created,
     raw_output: parseJson(rawCreate),
     warnings
   };

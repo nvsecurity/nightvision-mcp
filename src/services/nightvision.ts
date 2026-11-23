@@ -3,6 +3,7 @@ import type { Target } from '../types/index.js';
 import { ApiClient } from './api-client.js';
 import { AuthService } from './auth-service.js';
 import { TargetService } from './target-service.js';
+import { TagService } from './tag-service.js';
 import { ScanService } from './scan-service.js';
 import { NucleiService } from './nuclei-service.js';
 import { TrafficService } from './traffic-service.js';
@@ -23,6 +24,7 @@ export class NightVisionService {
 
   private auth = new AuthService(this.client);
   private targets = new TargetService(this.client);
+  private tags = new TagService(this.client);
   // ScanService resolves target/project names through this facade so the
   // resolution methods stay interceptable in the same way as before.
   private scans = new ScanService(this.client, this);
@@ -124,6 +126,10 @@ export class NightVisionService {
 
   createTarget(...a: Parameters<TargetService['createTarget']>) {
     return this.targets.createTarget(...a);
+  }
+
+  tagAgentCreated(...a: Parameters<TagService['tagAgentCreated']>) {
+    return this.tags.tagAgentCreated(...a);
   }
 
   deleteTarget(...a: Parameters<TargetService['deleteTarget']>) {

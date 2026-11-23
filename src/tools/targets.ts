@@ -16,6 +16,44 @@ import { matchTargetByName } from '../utils/target-matching.js';
 import { registerNightVisionTool } from './metadata.js';
 
 /**
+ * Tag an application this server just created as "Agent created" and describe
+ * the outcome in one line. The JSON output carries the new target; for text and
+ * table output it is looked up by name in its project.
+ */
+export async function tagNewTarget(
+  output: string,
+  format: string,
+  name: string,
+  project: string
+): Promise<string> {
+  let target: Target | null = null;
+  if (format === "json") {
+    try {
+      target = JSON.parse(output) as Target;
+    } catch {
+      target = null;
+    }
+  }
+  if (!target?.id) {
+    try {
+      const raw = JSON.parse(await nightvisionService.listTargets(false, [project], "json"));
+      const targets: Target[] = Array.isArray(raw) ? raw : raw?.results || raw?.targets || [];
+      // The list is already scoped to the project, and its rows carry no project_id.
+      const match = matchTargetByName(targets, name, project);
+      target = match.status === "found" ? match.target : null;
+    } catch {
+      target = null;
+    }
+  }
+  if (!target?.id) {
+    return `Note: could not find the new target to add the "Agent created" tag.`;
+  }
+
+  const result = await nightvisionService.tagAgentCreated(target.id, target.organization_id);
+  return result.tagged ? `Tagged "${result.tag}".` : `Note: ${result.warning}`;
+}
+
+/**
  * Register target-related tools with the MCP server
  * @param server The MCP server instance
  */
@@ -239,6 +277,8 @@ export function registerTargetTools(server: McpServer): void {
           format || "json"
         );
         
+        const tagNote = await tagNewTarget(output, format || "json", name, project);
+
         // For JSON format, try to parse and format the output for better readability
         if (format === "json") {
           try {
@@ -246,14 +286,14 @@ export function registerTargetTools(server: McpServer): void {
             return {
               content: [{ 
                 type: "text" as const, 
-                text: `Successfully created target "${name}" with ID: ${target.id}\n\n${JSON.stringify(target, null, 2)}` 
+                text: `Successfully created target "${name}" with ID: ${target.id}\n${tagNote}\n\n${JSON.stringify(target, null, 2)}` 
               }]
             };
           } catch (parseError) {
             // If parsing fails, return raw output
             console.error(`Failed to parse JSON output: ${parseError}`);
             return {
-              content: [{ type: "text" as const, text: output }]
+              content: [{ type: "text" as const, text: `${output}\n\n${tagNote}` }]
             };
           }
         }
@@ -262,7 +302,7 @@ export function registerTargetTools(server: McpServer): void {
         return {
           content: [{ 
             type: "text" as const, 
-            text: `Successfully created target "${name}"\n\n${output}` 
+            text: `Successfully created target "${name}"\n${tagNote}\n\n${output}` 
           }]
         };
       } catch (error: any) {

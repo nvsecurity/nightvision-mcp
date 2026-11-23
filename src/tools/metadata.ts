@@ -260,7 +260,7 @@ export const NIGHTVISION_TOOL_METADATA = {
   },
   'create-target': {
     title: 'Create NightVision target',
-    description: 'Creates a web or API scan target in an authorized NightVision project.',
+    description: 'Creates a web or API scan target in an authorized NightVision project and tags it "Agent created".',
     annotations: INTERNAL_WRITE,
   },
   'delete-target': {

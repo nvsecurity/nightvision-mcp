@@ -158,10 +158,29 @@ async function startLocalApp(): Promise<{ server: Server; url: string } | null> 
   return { server, url: `http://127.0.0.1:${address.port}` };
 }
 
-async function startFakeNightVisionApi(options: { targetExistsMarker?: string } = {}): Promise<{ server: Server; url: string } | null> {
+async function startFakeNightVisionApi(
+  options: { targetExistsMarker?: string } = {}
+): Promise<{ server: Server; url: string; requests: string[] } | null> {
+  const requests: string[] = [];
   const server = createServer((req, res) => {
     const requestUrl = req.url || '';
+    requests.push(`${req.method} ${requestUrl}`);
     res.setHeader('content-type', 'application/json');
+
+    if (requestUrl.startsWith('/api/v1/tags/tag-1/assign-to-targets/')) {
+      res.end(JSON.stringify({ results: [{ target_id: 'target-1', status: 'updated', reason: null }] }));
+      return;
+    }
+
+    if (requestUrl.startsWith('/api/v1/targets/target-1/')) {
+      res.end(JSON.stringify({ id: 'target-1', organization_id: 'org-1' }));
+      return;
+    }
+
+    if (requestUrl.startsWith('/api/v1/tags/')) {
+      res.end(JSON.stringify(req.method === 'POST' ? { id: 'tag-1' } : { results: [] }));
+      return;
+    }
 
     if (requestUrl.startsWith('/api/v1/user/me/')) {
       res.end(JSON.stringify({
@@ -246,7 +265,7 @@ async function startFakeNightVisionApi(options: { targetExistsMarker?: string } 
   }
 
   const address = server.address() as AddressInfo;
-  return { server, url: `http://127.0.0.1:${address.port}/api/v1/` };
+  return { server, url: `http://127.0.0.1:${address.port}/api/v1/`, requests };
 }
 
 // Copy the checked-in fixture app into a throwaway temp dir so the harness can
@@ -555,6 +574,8 @@ test('run-app-security-scan starts a mocked authenticated scan without waiting b
     assert.equal(payload.data.nightvision.user.email, 'demo@example.com');
     assert.equal(payload.data.api_discovery.status, 'success');
     assert.equal(payload.data.target.action, 'created');
+    assert.ok(api.requests.includes('POST /api/v1/tags/tag-1/assign-to-targets/'));
+    assert.ok(!payload.warnings.some((warning: string) => warning.includes('Agent created')));
     assert.equal(payload.data.scan.scan_id, 'scan-123');
     assert.equal(payload.data.scan.status, 'started');
     assert.equal(existsSync(payload.data.manifest_path), true);

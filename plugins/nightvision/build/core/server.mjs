@@ -54888,10 +54888,13 @@ var ApiClient = class {
   /**
    * Make an API request using Axios
    */
-  async apiRequest(endpoint2, method = "GET", params = {}, data = null, isFormData2 = false, serializeParams) {
+  async apiRequest(endpoint2, method = "GET", params = {}, data = null, isFormData2 = false, serializeParams, extraHeaders) {
     try {
       const url3 = `${this.getApiBaseUrl()}${endpoint2}`;
-      const headers = isFormData2 ? { "Authorization": this.token ? `Token ${this.token}` : "" } : this.getApiHeaders();
+      const headers = {
+        ...isFormData2 ? { "Authorization": this.token ? `Token ${this.token}` : "" } : this.getApiHeaders(),
+        ...extraHeaders
+      };
       const response = await axios_default({
         method,
         url: url3,
@@ -55426,6 +55429,93 @@ var TargetService = class {
       location: t.location || "",
       type: t.type || ""
     }));
+  }
+};
+
+// src/services/tag-service.ts
+var AGENT_CREATED_TAG = {
+  name: "Agent created",
+  color: "indigo",
+  icon: "code",
+  description: "Created by an AI coding agent (Claude Code, Codex or Cursor) through NightVision."
+};
+var TagService = class {
+  constructor(client) {
+    this.client = client;
+  }
+  client;
+  /**
+   * Add the "Agent created" tag to an application, creating the tag in the
+   * application's organization the first time. Never throws: tagging is a label
+   * on top of target creation, so a failure comes back as a warning.
+   */
+  async tagAgentCreated(targetId, organizationId) {
+    try {
+      const orgId = organizationId || await this.targetOrganization(targetId);
+      const headers = orgId ? { "X-Active-Organization": orgId } : void 0;
+      const tagId = await this.findOrCreateAgentCreatedTag(headers);
+      const response = await this.client.apiRequest(
+        `tags/${encodeURIComponent(tagId)}/assign-to-targets/`,
+        "POST",
+        {},
+        { targets: [targetId] },
+        false,
+        void 0,
+        headers
+      );
+      const row = Array.isArray(response?.results) ? response.results[0] : null;
+      if (row?.status === "skipped") {
+        return {
+          tagged: false,
+          warning: `Could not add the "${AGENT_CREATED_TAG.name}" tag to the application (${row.reason}).`
+        };
+      }
+      return { tagged: true, tag_id: tagId, tag: AGENT_CREATED_TAG.name };
+    } catch (error62) {
+      return {
+        tagged: false,
+        warning: `Could not add the "${AGENT_CREATED_TAG.name}" tag to the application: ${error62.message}`
+      };
+    }
+  }
+  async targetOrganization(targetId) {
+    const target = await this.client.apiRequest(`targets/${encodeURIComponent(targetId)}/`, "GET");
+    return target?.organization_id || null;
+  }
+  async findAgentCreatedTag(headers) {
+    const response = await this.client.apiRequest(
+      "tags/",
+      "GET",
+      { filter: AGENT_CREATED_TAG.name, page_size: 100 },
+      null,
+      false,
+      void 0,
+      headers
+    );
+    const rows = Array.isArray(response?.results) ? response.results : [];
+    const wanted = AGENT_CREATED_TAG.name.toLowerCase();
+    const match = rows.find((row) => !row.key && row.name?.toLowerCase() === wanted);
+    return match ? match.id : null;
+  }
+  async findOrCreateAgentCreatedTag(headers) {
+    const existing = await this.findAgentCreatedTag(headers);
+    if (existing) return existing;
+    try {
+      const created = await this.client.apiRequest(
+        "tags/",
+        "POST",
+        {},
+        { ...AGENT_CREATED_TAG },
+        false,
+        void 0,
+        headers
+      );
+      return created.id;
+    } catch (error62) {
+      const raced = await this.findAgentCreatedTag(headers);
+      if (raced) return raced;
+      throw error62;
+    }
   }
 };
 
@@ -57390,6 +57480,7 @@ var NightVisionService = class {
   client = new ApiClient();
   auth = new AuthService(this.client);
   targets = new TargetService(this.client);
+  tags = new TagService(this.client);
   // ScanService resolves target/project names through this facade so the
   // resolution methods stay interceptable in the same way as before.
   scans = new ScanService(this.client, this);
@@ -57466,6 +57557,9 @@ var NightVisionService = class {
   }
   createTarget(...a) {
     return this.targets.createTarget(...a);
+  }
+  tagAgentCreated(...a) {
+    return this.tags.tagAgentCreated(...a);
   }
   deleteTarget(...a) {
     return this.targets.deleteTarget(...a);
@@ -58370,7 +58464,7 @@ var NIGHTVISION_TOOL_METADATA = {
   },
   "create-target": {
     title: "Create NightVision target",
-    description: "Creates a web or API scan target in an authorized NightVision project.",
+    description: 'Creates a web or API scan target in an authorized NightVision project and tags it "Agent created".',
     annotations: INTERNAL_WRITE
   },
   "delete-target": {
@@ -58840,6 +58934,31 @@ ${lines.join("\n")}` }]
 }
 
 // src/tools/targets.ts
+async function tagNewTarget(output2, format, name, project) {
+  let target = null;
+  if (format === "json") {
+    try {
+      target = JSON.parse(output2);
+    } catch {
+      target = null;
+    }
+  }
+  if (!target?.id) {
+    try {
+      const raw = JSON.parse(await nightvision_default.listTargets(false, [project], "json"));
+      const targets = Array.isArray(raw) ? raw : raw?.results || raw?.targets || [];
+      const match = matchTargetByName(targets, name, project);
+      target = match.status === "found" ? match.target : null;
+    } catch {
+      target = null;
+    }
+  }
+  if (!target?.id) {
+    return `Note: could not find the new target to add the "Agent created" tag.`;
+  }
+  const result = await nightvision_default.tagAgentCreated(target.id, target.organization_id);
+  return result.tagged ? `Tagged "${result.tag}".` : `Note: ${result.warning}`;
+}
 function registerTargetTools(server) {
   registerNightVisionTool(
     server,
@@ -59018,6 +59137,7 @@ function registerTargetTools(server) {
           },
           format || "json"
         );
+        const tagNote = await tagNewTarget(output2, format || "json", name, project);
         if (format === "json") {
           try {
             const target = JSON.parse(output2);
@@ -59025,6 +59145,7 @@ function registerTargetTools(server) {
               content: [{
                 type: "text",
                 text: `Successfully created target "${name}" with ID: ${target.id}
+${tagNote}
 
 ${JSON.stringify(target, null, 2)}`
               }]
@@ -59032,7 +59153,9 @@ ${JSON.stringify(target, null, 2)}`
           } catch (parseError) {
             console.error(`Failed to parse JSON output: ${parseError}`);
             return {
-              content: [{ type: "text", text: output2 }]
+              content: [{ type: "text", text: `${output2}
+
+${tagNote}` }]
             };
           }
         }
@@ -59040,6 +59163,7 @@ ${JSON.stringify(target, null, 2)}`
           content: [{
             type: "text",
             text: `Successfully created target "${name}"
+${tagNote}
 
 ${output2}`
           }]
@@ -61137,9 +61261,16 @@ async function ensureTarget(name, url3, projectName, projectId, specFile, resolv
     const existingAfterCreate = await findExistingTarget(name, projectName, projectId, warnings);
     return updateExistingTarget(existingAfterCreate, name, url3, projectName, projectId, specFile, warnings);
   }
+  const created = parseJson(rawCreate);
+  if (created?.id) {
+    const tagged = await nightvision_default.tagAgentCreated(created.id, created.organization_id);
+    if (!tagged.tagged) warnings.push(tagged.warning);
+  } else {
+    warnings.push('Could not add the "Agent created" tag: the create output had no target id.');
+  }
   return {
     action: "created",
-    target: parseJson(rawCreate),
+    target: created,
     raw_output: parseJson(rawCreate),
     warnings
   };
